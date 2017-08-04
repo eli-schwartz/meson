@@ -35,7 +35,7 @@ from ..mesonlib import (
 from ..dependencies import Dependency, PkgConfigDependency, InternalDependency
 from ..interpreterbase import noPosargs, noKwargs, permittedKwargs, FeatureNew, FeatureNewKwargs, FeatureDeprecatedKwargs, FeatureDeprecated
 from ..interpreterbase import typed_kwargs, KwargInfo, ContainerTypeInfo
-from ..programs import ExternalProgram, OverrideProgram
+from ..programs import ExternalProgram, OverrideProgram, EmptyExternalProgram
 from ..build import CustomTarget, CustomTargetIndex, GeneratedList
 
 if T.TYPE_CHECKING:
@@ -1103,6 +1103,8 @@ class GnomeModule(ExtensionModule):
             args.append(f'--{program_name}={path}')
         if namespace:
             args.append('--namespace=' + namespace)
+        if state.environment.need_exe_wrapper() and not isinstance(state.environment.get_exe_wrapper(), EmptyExternalProgram):
+            args.append('--run=' + ' '.join(state.environment.get_exe_wrapper().get_command()))
         args += self._unpack_args('--htmlargs=', 'html_args', kwargs)
         args += self._unpack_args('--scanargs=', 'scan_args', kwargs)
         args += self._unpack_args('--scanobjsargs=', 'scanobjs_args', kwargs)
