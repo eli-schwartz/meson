@@ -23,6 +23,7 @@ import json
 import os
 import pickle
 import re
+import shutil
 import typing as T
 import hashlib
 
@@ -592,17 +593,22 @@ class Backend:
         cmd.extend(cmd_args)
         es = self.get_executable_serialisation(cmd, workdir, extra_bdeps, capture, feed, env, verbose=verbose)
         reasons: T.List[str] = []
+        serialize_with_env = shutil.which('env') is not None
         if es.extra_paths:
             reasons.append('to set PATH')
+            serialize_with_env = False
 
         if es.exe_wrapper:
             reasons.append('to use exe_wrapper')
+            serialize_with_env = False
 
         if workdir:
             reasons.append('to set workdir')
+            serialize_with_env = False
 
         if any('\n' in c for c in es.cmd_args):
             reasons.append('because command contains newlines')
+            serialize_with_env = False
 
         if es.env and es.env.varnames:
             reasons.append('to set env')
@@ -627,6 +633,11 @@ class Backend:
                 self.environment.get_build_command() + ['--internal', 'exe'] + args + ['--'] + es.cmd_args,
                 ', '.join(reasons)
             )
+        if not capture and serialize_with_env:
+            envlist = []
+            for k, v in es.env.get_env(dict()).items():
+                envlist.append(f'{k}={v}')
+            return ['env'] + envlist + es.cmd_args, ', '.join(reasons)
 
         if isinstance(exe, (programs.ExternalProgram,
                             build.BuildTarget, build.CustomTarget)):
