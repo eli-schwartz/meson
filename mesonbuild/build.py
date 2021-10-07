@@ -246,6 +246,7 @@ class Build:
         self.install_scripts: T.List['ExecutableSerialisation'] = []
         self.postconf_scripts: T.List['ExecutableSerialisation'] = []
         self.dist_scripts: T.List['ExecutableSerialisation'] = []
+        self.dist_options: T.List[str] = []
         self.install_dirs: T.List[InstallDir] = []
         self.dep_manifest_name: T.Optional[str] = None
         self.dep_manifest: T.Dict[str, DepManifest] = {}

@@ -64,6 +64,7 @@ class MesonMain(MesonInterpreterObject):
                              'add_install_script': self.add_install_script_method,
                              'add_postconf_script': self.add_postconf_script_method,
                              'add_dist_script': self.add_dist_script_method,
+                             'add_dist_options': self.add_dist_options_method,
                              'install_dependency_manifest': self.install_dependency_manifest_method,
                              'override_dependency': self.override_dependency_method,
                              'override_find_program': self.override_find_program_method,
@@ -173,6 +174,13 @@ class MesonMain(MesonInterpreterObject):
         script_args = self._process_script_args('add_postconf_script', args[1], allow_built=True)
         script = self._find_source_script(args[0], script_args)
         self.build.postconf_scripts.append(script)
+
+    @typed_pos_args('meson.add_dist_options', varargs=str, min_varargs=1)
+    @noKwargs
+    def add_dist_options_method(self, args, kwargs):
+        if not self.build.dist_options:
+            self.build.dist_options = ['--']
+        self.build.dist_options.extend(args[0])
 
     @typed_pos_args(
         'meson.add_dist_script',

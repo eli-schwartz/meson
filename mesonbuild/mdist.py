@@ -46,6 +46,8 @@ def add_arguments(parser):
                         help='Include source code of subprojects that have been used for the build.')
     parser.add_argument('--no-tests', action='store_true',
                         help='Do not build and test generated packages.')
+    parser.add_argument('configure_opts', nargs='*',
+                        help='Additional options passed after -- which will be forwarded to the test configure.')
 
 
 def create_hash(fname):
@@ -294,7 +296,7 @@ def run(options):
     archives = determine_archives_to_generate(options)
 
     subprojects = {}
-    extra_meson_args = []
+    extra_meson_args = options.configure_opts
     if options.include_subprojects:
         subproject_dir = os.path.join(src_root, b.subproject_dir)
         for sub in b.subprojects:

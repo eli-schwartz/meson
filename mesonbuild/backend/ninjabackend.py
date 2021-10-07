@@ -3134,7 +3134,7 @@ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47485'''))
     def generate_dist(self):
         elem = NinjaBuildElement(self.all_outputs, 'meson-dist', 'CUSTOM_COMMAND', 'PHONY')
         elem.add_item('DESC', 'Creating source packages')
-        elem.add_item('COMMAND', self.environment.get_build_command() + ['dist'])
+        elem.add_item('COMMAND', self.environment.get_build_command() + ['dist'] + self.build.dist_options)
         elem.add_item('pool', 'console')
         self.add_build(elem)
         # Alias that runs the target defined above
