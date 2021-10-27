@@ -167,7 +167,6 @@ class Vs2010Backend(backends.Backend):
                         cmd[1:],
                         workdir=tdir_abs,
                         capture=outfiles[0] if generator.capture else None,
-                        force_serialize=True
                     )
                     deps = cmd[-1:] + deps
                     abs_pdir = os.path.join(self.environment.get_build_dir(), self.get_target_dir(target))
@@ -624,7 +623,7 @@ class Vs2010Backend(backends.Backend):
             target_env = self.get_run_target_env(target)
             _, _, cmd_raw = self.eval_custom_target_command(target)
             wrapper_cmd, _ = self.as_meson_exe_cmdline(target.command[0], cmd_raw[1:],
-                                                       force_serialize=True, env=target_env,
+                                                       env=target_env,
                                                        verbose=True)
             self.add_custom_build(root, 'run_target', ' '.join(self.quote_arguments(wrapper_cmd)),
                                   deps=depend_files)
@@ -660,7 +659,6 @@ class Vs2010Backend(backends.Backend):
                                                    extra_bdeps=extra_bdeps,
                                                    capture=ofilenames[0] if target.capture else None,
                                                    feed=srcs[0] if target.feed else None,
-                                                   force_serialize=True,
                                                    env=target.env,
                                                    verbose=target.console)
         if target.build_always_stale:
