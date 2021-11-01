@@ -1708,9 +1708,7 @@ class OrderedSet(T.MutableSet[_T]):
     insertion.
     """
     def __init__(self, iterable: T.Optional[T.Iterable[_T]] = None):
-        # typing.OrderedDict is new in 3.7.2, so we can't use that, but we can
-        # use MutableMapping, which is fine in this case.
-        self.__container = collections.OrderedDict()  # type: T.MutableMapping[_T, None]
+        self.__container: T.OrderedDict[_T, None] = collections.OrderedDict()
         if iterable:
             self.update(iterable)
 
@@ -1731,9 +1729,7 @@ class OrderedSet(T.MutableSet[_T]):
         return 'OrderedSet()'
 
     def __reversed__(self) -> T.Iterator[_T]:
-        # Mypy is complaining that sets can't be reversed, which is true for
-        # unordered sets, but this is an ordered, set so reverse() makes sense.
-        return reversed(self.__container.keys())  # type: ignore
+        return reversed(self.__container.keys())
 
     def add(self, value: _T) -> None:
         self.__container[value] = None
@@ -1743,12 +1739,10 @@ class OrderedSet(T.MutableSet[_T]):
             del self.__container[value]
 
     def move_to_end(self, value: _T, last: bool = True) -> None:
-        # Mypy does not know about move_to_end, because it is not part of MutableMapping
-        self.__container.move_to_end(value, last) # type: ignore
+        self.__container.move_to_end(value, last)
 
     def pop(self, last: bool = True) -> _T:
-        # Mypy does not know about the last argument, because it is not part of MutableMapping
-        item, _ = self.__container.popitem(last)  # type: ignore
+        item, _ = self.__container.popitem(last)
         return item
 
     def update(self, iterable: T.Iterable[_T]) -> None:
