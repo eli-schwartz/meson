@@ -15,6 +15,8 @@
 # This class contains the basic functionality needed to run any interpreter
 # or an interpreter-based tool
 
+from __future__ import annotations
+
 from . import AstVisitor
 from .. import mparser
 import typing as T
