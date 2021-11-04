@@ -112,7 +112,7 @@ PRESET_ARGS = {
 
 
 class I18nModule(ExtensionModule):
-    def __init__(self, interpreter: 'Interpreter'):
+    def __init__(self, interpreter: Interpreter):
         super().__init__(interpreter)
         self.methods.update({
             'merge_file': self.merge_file,
@@ -124,7 +124,7 @@ class I18nModule(ExtensionModule):
         mlog.warning('Gettext not found, all translation targets will be ignored.', once=True)
 
     @staticmethod
-    def _get_data_dirs(state: 'ModuleState', dirs: T.Iterable[str]) -> T.List[str]:
+    def _get_data_dirs(state: ModuleState, dirs: T.Iterable[str]) -> T.List[str]:
         """Returns source directories of relative paths"""
         src_dir = path.join(state.environment.get_source_dir(), state.subdir)
         return [path.join(src_dir, d) for d in dirs]
@@ -144,7 +144,7 @@ class I18nModule(ExtensionModule):
         KwargInfo('po_dir', str, required=True),
         KwargInfo('type', str, default='xml', validator=in_set_validator({'xml', 'desktop'})),
     )
-    def merge_file(self, state: 'ModuleState', args: T.List['TYPE_var'], kwargs: 'MergeFile') -> ModuleReturnValue:
+    def merge_file(self, state: ModuleState, args: T.List[TYPE_var], kwargs: MergeFile) -> ModuleReturnValue:
         if not shutil.which('xgettext'):
             self.nogettext_warning()
             return ModuleReturnValue(None, [])
@@ -154,7 +154,7 @@ class I18nModule(ExtensionModule):
         datadirs = '--datadirs=' + ':'.join(ddirs) if ddirs else None
 
         command: T.List[T.Union[str, build.BuildTarget, build.CustomTarget,
-                                build.CustomTargetIndex, 'ExternalProgram', mesonlib.File]] = []
+                                build.CustomTargetIndex, ExternalProgram, mesonlib.File]] = []
         command.extend(state.environment.get_build_command())
         command.extend([
             '--internal', 'msgfmthelper',
@@ -221,7 +221,7 @@ class I18nModule(ExtensionModule):
             since='0.37.0',
         ),
     )
-    def gettext(self, state: 'ModuleState', args: T.Tuple[str], kwargs: 'Gettext') -> ModuleReturnValue:
+    def gettext(self, state: ModuleState, args: T.Tuple[str], kwargs: Gettext) -> ModuleReturnValue:
         if not shutil.which('xgettext'):
             self.nogettext_warning()
             return ModuleReturnValue(None, [])
@@ -291,5 +291,5 @@ class I18nModule(ExtensionModule):
 
         return ModuleReturnValue([gmotargets, pottarget, updatepotarget], targets)
 
-def initialize(interp: 'Interpreter') -> I18nModule:
+def initialize(interp: Interpreter) -> I18nModule:
     return I18nModule(interp)

@@ -109,7 +109,7 @@ class CompilerArgs(collections.abc.MutableSequence):
     # TODO: these should probably move too
     always_dedup_args = tuple('-l' + lib for lib in UNIXY_COMPILER_INTERNAL_LIBS)  # type : T.Tuple[str, ...]
 
-    def __init__(self, compiler: T.Union['Compiler', 'StaticLinker'],
+    def __init__(self, compiler: T.Union[Compiler, StaticLinker],
                  iterable: T.Optional[T.Iterable[str]] = None):
         self.compiler = compiler
         self._container = list(iterable) if iterable is not None else []  # type: T.List[str]
@@ -279,13 +279,13 @@ class CompilerArgs(collections.abc.MutableSequence):
         self.extend(normal_flags)
         self.extend_direct(lflags)
 
-    def __add__(self, args: T.Iterable[str]) -> 'CompilerArgs':
+    def __add__(self, args: T.Iterable[str]) -> CompilerArgs:
         self.flush_pre_post()
         new = self.copy()
         new += args
         return new
 
-    def __iadd__(self, args: T.Iterable[str]) -> 'CompilerArgs':
+    def __iadd__(self, args: T.Iterable[str]) -> CompilerArgs:
         '''
         Add two CompilerArgs while taking into account overriding of arguments
         and while preserving the order of arguments as much as possible
@@ -310,7 +310,7 @@ class CompilerArgs(collections.abc.MutableSequence):
         #pre and post is going to be merged later before a iter call
         return self
 
-    def __radd__(self, args: T.Iterable[str]) -> 'CompilerArgs':
+    def __radd__(self, args: T.Iterable[str]) -> CompilerArgs:
         self.flush_pre_post()
         new = type(self)(self.compiler, args)
         new += self
