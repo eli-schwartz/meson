@@ -323,11 +323,13 @@ def links_against_libpython():
 print(json.dumps({
   'variables': sysconfig.get_config_vars(),
   'paths': paths,
+  'sysconfig_paths': sysconfig.get_paths(),
   'install_paths': install_paths,
   'sys_paths': sys.path,
   'version': sysconfig.get_python_version(),
   'platform': sysconfig.get_platform(),
   'is_pypy': '__pypy__' in sys.builtin_module_names,
+  'is_venv': sys.prefix != sys.base_prefix,
   'link_libpython': links_against_libpython(),
 }))
 '''
@@ -337,7 +339,9 @@ if T.TYPE_CHECKING:
 
         install_paths: T.Dict[str, str]
         is_pypy: bool
+        is_venv: bool
         link_libpython: bool
+        sysconfig_paths: T.Dict[str, str]
         paths: T.Dict[str, str]
         platform: str
         suffix: str
@@ -362,7 +366,9 @@ class PythonExternalProgram(ExternalProgram):
         self.info: 'PythonIntrospectionDict' = {
             'install_paths': {},
             'is_pypy': False,
+            'is_venv': False,
             'link_libpython': False,
+            'sysconfig_paths': {},
             'paths': {},
             'platform': 'sentinal',
             'variables': {},
@@ -408,6 +414,18 @@ class PythonExternalProgram(ExternalProgram):
         value = state.get_option(f'{key}dir', module='python')
         if value:
             return value
+
+        install_env = state.get_option('install_env', module='python')
+        if install_env == 'auto':
+            install_env = 'venv' if self.info['is_venv'] else 'system'
+
+        if install_env == 'system':
+            rel_path = os.path.join(self.info['variables']['prefix'], rel_path)
+        elif install_env == 'venv':
+            if not self.info['is_venv']:
+                raise mesonlib.MesonException('python.install_env cannot be set to "venv" unless you are in a venv!')
+            rel_path = self.info['sysconfig_paths'][key]
+
         # Use python's path relative to prefix, and warn if that's not a location
         # python will lookup for modules.
         abs_path = Path(state.get_option('prefix'), rel_path)
