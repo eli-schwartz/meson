@@ -314,6 +314,8 @@ else:
     install_paths = sysconfig.get_paths(vars=empty_vars)
 
 def links_against_libpython():
+    if sys.version_info >= (3, 8):
+        return False
     from distutils.core import Distribution, Extension
     cmd = Distribution().get_command_obj('build_ext')
     cmd.ensure_finalized()
