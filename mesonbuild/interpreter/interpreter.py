@@ -2183,13 +2183,9 @@ This will become a hard error in the future.''', location=self.current_node)
                         f"The variable(s) {var_list} in the input file '{inputs[0]}' are not "
                         "present in the given configuration data.", location=node)
                 if confdata_useless:
-                    ifbase = os.path.basename(inputs_abs[0])
-                    tv = FeatureNew.get_target_version(self.subproject)
-                    if FeatureNew.check_version(tv, '0.47.0'):
-                        mlog.warning('Got an empty configuration_data() object and found no '
-                                     f'substitutions in the input file {ifbase!r}. If you want to '
-                                     'copy a file to the build dir, use the \'copy:\' keyword '
-                                     'argument added in 0.47.0', location=node)
+                    FeatureDeprecated.single_use(f'configure_file() with empty confdata and no substitutions', '0.47.0',
+                            self.subproject, "For copying files to the build dir, please use the 'copy:' keyword instead",
+                            node)
             else:
                 mesonlib.dump_conf_header(ofile_abs, conf.conf_data, output_format)
             conf.mark_used()
