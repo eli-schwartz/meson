@@ -382,9 +382,9 @@ class KwargInfo(T.Generic[_T]):
                  types: T.Union[T.Type[_T], T.Tuple[T.Union[T.Type[_T], ContainerTypeInfo], ...], ContainerTypeInfo],
                  *, required: bool = False, listify: bool = False,
                  default: T.Optional[_T] = None,
-                 since: T.Optional[str] = None,
+                 since: T.Optional['AllVersions'] = None,
                  since_values: T.Optional[T.Dict[str, str]] = None,
-                 deprecated: T.Optional[str] = None,
+                 deprecated: T.Optional['AllVersions'] = None,
                  deprecated_values: T.Optional[T.Dict[str, str]] = None,
                  validator: T.Optional[T.Callable[[T.Any], T.Optional[str]]] = None,
                  convertor: T.Optional[T.Callable[[_T], object]] = None,
@@ -407,9 +407,9 @@ class KwargInfo(T.Generic[_T]):
                required: T.Union[bool, _NULL_T] = _NULL,
                listify: T.Union[bool, _NULL_T] = _NULL,
                default: T.Union[_T, None, _NULL_T] = _NULL,
-               since: T.Union[str, None, _NULL_T] = _NULL,
+               since: T.Union['AllVersions', None, _NULL_T] = _NULL,
                since_values: T.Union[T.Dict[str, str], None, _NULL_T] = _NULL,
-               deprecated: T.Union[str, None, _NULL_T] = _NULL,
+               deprecated: T.Union['AllVersions', None, _NULL_T] = _NULL,
                deprecated_values: T.Union[T.Dict[str, str], None, _NULL_T] = _NULL,
                validator: T.Union[T.Callable[[_T], T.Optional[str]], None, _NULL_T] = _NULL,
                convertor: T.Union[T.Callable[[_T], TYPE_var], None, _NULL_T] = _NULL) -> 'KwargInfo':
@@ -531,7 +531,7 @@ def typed_kwargs(name: str, *types: KwargInfo) -> T.Callable[..., T.Any]:
                                 warn = n == value
 
                             if warn:
-                                FeatureDeprecated.single_use(f'"{name}" keyword argument "{info.name}" value "{n}"', version, subproject, location=node)
+                                FeatureDeprecated.single_use(f'"{name}" keyword argument "{info.name}" value "{n}"', T.cast(AllVersions, version), subproject, location=node)
 
                     if info.since_values is not None:
                         for n, version in info.since_values.items():
@@ -541,7 +541,7 @@ def typed_kwargs(name: str, *types: KwargInfo) -> T.Callable[..., T.Any]:
                                 warn = n == value
 
                             if warn:
-                                FeatureNew.single_use(f'"{name}" keyword argument "{info.name}" value "{n}"', version, subproject, location=node)
+                                FeatureNew.single_use(f'"{name}" keyword argument "{info.name}" value "{n}"', T.cast(AllVersions, version), subproject, location=node)
 
                 elif info.required:
                     raise InvalidArguments(f'{name} is missing required keyword argument "{info.name}"')
@@ -562,6 +562,8 @@ def typed_kwargs(name: str, *types: KwargInfo) -> T.Callable[..., T.Any]:
         return T.cast(TV_func, wrapper)
     return inner
 
+AllVersions = T.Literal['0.1.0', '0.2.0', '0.4.0', '0.4.1', '0.5.0', '0.6.0', '0.7.0', '0.8.0', '0.9.0', '0.10.0', '0.11.0', '0.12.0', '0.13.0', '0.14.0', '0.15.0', '0.16.0', '0.17.0', '0.18.0', '0.19.0', '0.20.0', '0.21.0', '0.22.0', '0.23.0', '0.24.0', '0.25.0', '0.26.0', '0.27.0', '0.28.0', '0.29.0', '0.30.0', '0.31.0', '0.32.0', '0.33.0', '0.34.0', '0.35.0', '0.35.1', '0.36.0', '0.37.0', '0.37.1', '0.38.0', '0.38.1', '0.39.0', '0.39.1', '0.40.0', '0.40.1', '0.41.0', '0.41.1', '0.41.2', '0.42.0', '0.42.1', '0.43.0', '0.44.0', '0.44.1', '0.45.0', '0.45.1', '0.46.0', '0.46.1', '0.47.0', '0.47.1', '0.47.2', '0.48.0', '0.48.1', '0.48.2', '0.49.0', '0.49.1', '0.49.2', '0.50.0', '0.50.1', '0.51.0', '0.51.1', '0.51.2', '0.52.0', '0.52.1', '0.53.0', '0.53.1', '0.53.2', '0.54.0', '0.54.1', '0.54.2', '0.54.3', '0.55.0', '0.55.1', '0.55.2', '0.55.3', '0.56.0', '0.56.1', '0.56.2', '0.57.0', '0.57.1', '0.57.2', '0.58.0', '0.58.1', '0.58.2', '0.59.0', '0.59.1', '0.59.2', '0.59.3', '0.59.4', '0.60.0', '0.60.1', '0.60.2', '0.61.0', '0.59', '0.44', '0.57', '0.58']
+
 
 class FeatureCheckBase(metaclass=abc.ABCMeta):
     "Base class for feature version checks"
@@ -569,9 +571,9 @@ class FeatureCheckBase(metaclass=abc.ABCMeta):
     feature_registry: T.ClassVar[T.Dict[str, T.Dict[str, T.Set[T.Tuple[str, T.Optional['mparser.BaseNode']]]]]]
     emit_notice = False
 
-    def __init__(self, feature_name: str, version: str, extra_message: T.Optional[str] = None, location: T.Optional['mparser.BaseNode'] = None):
+    def __init__(self, feature_name: str, version: AllVersions, extra_message: T.Optional[str] = None, location: T.Optional['mparser.BaseNode'] = None):
         self.feature_name = feature_name  # type: str
-        self.feature_version = version    # type: str
+        self.feature_version = version
         self.extra_message = extra_message or ''  # type: str
         self.location = location
 
@@ -584,7 +586,7 @@ class FeatureCheckBase(metaclass=abc.ABCMeta):
 
     @staticmethod
     @abc.abstractmethod
-    def check_version(target_version: str, feature_Version: str) -> bool:
+    def check_version(target_version: str, feature_Version: AllVersions) -> bool:
         pass
 
     def use(self, subproject: str) -> None:
@@ -623,7 +625,7 @@ class FeatureCheckBase(metaclass=abc.ABCMeta):
         fv = cls.feature_registry[subproject]
         tv = cls.get_target_version(subproject)
         for version in sorted(fv.keys()):
-            if cls.check_version(tv, version):
+            if cls.check_version(tv, T.cast(AllVersions, version)):
                 notice_str += '\n * {}: {}'.format(version, {i[0] for i in fv[version]})
             else:
                 warning_str += '\n * {}: {}'.format(version, {i[0] for i in fv[version]})
@@ -655,7 +657,7 @@ class FeatureCheckBase(metaclass=abc.ABCMeta):
         return T.cast(TV_func, wrapped)
 
     @classmethod
-    def single_use(cls, feature_name: str, version: str, subproject: str,
+    def single_use(cls, feature_name: str, version: AllVersions, subproject: str,
                    extra_message: T.Optional[str] = None, location: T.Optional['mparser.BaseNode'] = None) -> None:
         """Oneline version that instantiates and calls use()."""
         cls(feature_name, version, extra_message, location).use(subproject)
@@ -670,7 +672,7 @@ class FeatureNew(FeatureCheckBase):
     feature_registry = {}  # type: T.ClassVar[T.Dict[str, T.Dict[str, T.Set[T.Tuple[str, T.Optional[mparser.BaseNode]]]]]]
 
     @staticmethod
-    def check_version(target_version: str, feature_version: str) -> bool:
+    def check_version(target_version: str, feature_version: AllVersions) -> bool:
         return mesonlib.version_compare_condition_with_min(target_version, feature_version)
 
     @staticmethod
@@ -702,7 +704,7 @@ class FeatureDeprecated(FeatureCheckBase):
     emit_notice = True
 
     @staticmethod
-    def check_version(target_version: str, feature_version: str) -> bool:
+    def check_version(target_version: str, feature_version: AllVersions) -> bool:
         # For deprecation checks we need to return the inverse of FeatureNew checks
         return not mesonlib.version_compare_condition_with_min(target_version, feature_version)
 
@@ -733,7 +735,7 @@ class FeatureCheckKwargsBase(metaclass=abc.ABCMeta):
     def feature_check_class(self) -> T.Type[FeatureCheckBase]:
         pass
 
-    def __init__(self, feature_name: str, feature_version: str,
+    def __init__(self, feature_name: str, feature_version: AllVersions,
                  kwargs: T.List[str], extra_message: T.Optional[str] = None, location: T.Optional['mparser.BaseNode'] = None):
         self.feature_name = feature_name
         self.feature_version = feature_version
