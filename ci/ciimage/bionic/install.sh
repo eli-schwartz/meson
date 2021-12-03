@@ -9,12 +9,12 @@ export LANG='C.UTF-8'
 export DC=gdc
 
 pkgs=(
-  python3-pip libxml2-dev libxslt1-dev libyaml-dev libjson-glib-dev
+  python3-pip python3.7 libxml2-dev libxslt1-dev libyaml-dev libjson-glib-dev
   wget unzip cmake doxygen
   clang
   pkg-config-arm-linux-gnueabihf
   qt4-linguist-tools qt5-default qtbase5-private-dev
-  python-dev
+  python3.7-dev
   libomp-dev
   llvm lcov
   ldc
@@ -46,6 +46,10 @@ done
 
 # packages
 eatmydata apt-get -y install "${pkgs[@]}"
+
+# Actually select the right python version
+update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1
+update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 2
 
 install_python_packages
 
