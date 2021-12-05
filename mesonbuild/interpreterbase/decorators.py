@@ -19,6 +19,7 @@ from .exceptions import InterpreterException, InvalidArguments
 from .operator import MesonOperator
 from ._unholder import _unholder
 
+from dataclasses import dataclass
 from functools import wraps
 import abc
 import itertools
@@ -99,10 +100,9 @@ def disablerIfNotFound(f: TV_func) -> TV_func:
         return ret
     return T.cast(TV_func, wrapped)
 
+@dataclass(repr=False, eq=False)
 class permittedKwargs:
-
-    def __init__(self, permitted: T.Set[str]):
-        self.permitted = permitted  # type: T.Set[str]
+    permitted: T.Set[str]
 
     def __call__(self, f: TV_func) -> TV_func:
         @wraps(f)
@@ -563,17 +563,21 @@ def typed_kwargs(name: str, *types: KwargInfo) -> T.Callable[..., T.Any]:
     return inner
 
 
+@dataclass
 class FeatureCheckBase(metaclass=abc.ABCMeta):
     "Base class for feature version checks"
 
     feature_registry: T.ClassVar[T.Dict[str, T.Dict[str, T.Set[T.Tuple[str, T.Optional['mparser.BaseNode']]]]]]
-    emit_notice = False
+    emit_notice = T.ClassVar[False]
 
-    def __init__(self, feature_name: str, version: str, extra_message: T.Optional[str] = None, location: T.Optional['mparser.BaseNode'] = None):
-        self.feature_name = feature_name  # type: str
-        self.feature_version = version    # type: str
-        self.extra_message = extra_message or ''  # type: str
-        self.location = location
+    feature_name: str
+    version: str
+    extra_message: T.Optional[str] = None
+    location: T.Optional['mparser.BaseNode'] = None)
+
+    def __post_init__(self):
+        if not self.extra_message:
+            self.extra_message = ''
 
     @staticmethod
     def get_target_version(subproject: str) -> str:
@@ -726,20 +730,18 @@ class FeatureDeprecated(FeatureCheckBase):
         mlog.warning(*args, location=self.location)
 
 
+@dataclass
 class FeatureCheckKwargsBase(metaclass=abc.ABCMeta):
+    feature_name: str
+    feature_version: str
+    kwargs: T.List[str]
+    extra_message: T.Optional[str] = None
+    location: T.Optional['mparser.BaseNode'] = None
 
     @property
     @abc.abstractmethod
     def feature_check_class(self) -> T.Type[FeatureCheckBase]:
         pass
-
-    def __init__(self, feature_name: str, feature_version: str,
-                 kwargs: T.List[str], extra_message: T.Optional[str] = None, location: T.Optional['mparser.BaseNode'] = None):
-        self.feature_name = feature_name
-        self.feature_version = feature_version
-        self.kwargs = kwargs
-        self.extra_message = extra_message
-        self.location = location
 
     def __call__(self, f: TV_func) -> TV_func:
         @wraps(f)
