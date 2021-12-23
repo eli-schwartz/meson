@@ -283,6 +283,8 @@ class EnvironmentVariablesHolder(ObjectHolder[build.EnvironmentVariables], Mutab
         self.held_object.prepend(name, values, kwargs['separator'])
 
 
+_DESCRIPTION_KW: KwargInfo[T.Optional[str]] = KwargInfo('description', (str, NoneType))
+
 class ConfigurationDataObject(MutableInterpreterObject, MesonInterpreterObject):
     def __init__(self, subproject: str, initial_values: T.Optional[T.Dict[str, T.Any]] = None) -> None:
         self.used = False # These objects become immutable after use in configure_file.
@@ -309,86 +311,61 @@ class ConfigurationDataObject(MutableInterpreterObject, MesonInterpreterObject):
     def mark_used(self) -> None:
         self.used = True
 
-    def validate_args(self, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> T.Tuple[str, T.Union[str, int, bool], T.Optional[str]]:
-        if len(args) == 1 and isinstance(args[0], list) and len(args[0]) == 2:
-            mlog.deprecation('Passing a list as the single argument to '
-                             'configuration_data.set is deprecated. This will '
-                             'become a hard error in the future.',
-                             location=self.current_node)
-            args = args[0]
-
-        if len(args) != 2:
-            raise InterpreterException("Configuration set requires 2 arguments.")
+    @typed_pos_args('configuration_data.set', str, (int, bool, str))
+    @typed_kwargs('configuration_data', _DESCRIPTION_KW)
+    @noArgsFlattening
+    def set_method(self, args: T.Tuple[str, T.Union[int, bool, str]], kwargs: 'kwargs.ConfData') -> None:
         if self.used:
             raise InterpreterException("Can not set values on configuration object that has been used.")
         name, val = args
-        if not isinstance(val, (int, str)):
-            msg = f'Setting a configuration data value to {val!r} is invalid, ' \
-                  'and will fail at configure_file(). If you are using it ' \
-                  'just to store some values, please use a dict instead.'
-            mlog.deprecation(msg, location=self.current_node)
-        desc = kwargs.get('description', None)
-        if not isinstance(name, str):
-            raise InterpreterException("First argument to set must be a string.")
-        if desc is not None and not isinstance(desc, str):
-            raise InterpreterException('Description must be a string.')
+        self.conf_data.values[name] = (val, kwargs['description'])
 
-        # TODO: Remove the cast once we get rid of the deprecation
-        return name, T.cast(T.Union[str, bool, int], val), desc
-
-    @noArgsFlattening
-    def set_method(self, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> None:
-        (name, val, desc) = self.validate_args(args, kwargs)
-        self.conf_data.values[name] = (val, desc)
-
-    def set_quoted_method(self, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> None:
-        (name, val, desc) = self.validate_args(args, kwargs)
-        if not isinstance(val, str):
-            raise InterpreterException("Second argument to set_quoted must be a string.")
+    @typed_pos_args('configuration_data.set_quoted', str, str)
+    @typed_kwargs('configuration_data.set_quoted', _DESCRIPTION_KW)
+    def set_quoted_method(self, args: T.Tuple[str, str], kwargs: 'kwargs.ConfData') -> None:
+        if self.used:
+            raise InterpreterException("Can not set values on configuration object that has been used.")
+        name, val = args
         escaped_val = '\\"'.join(val.split('"'))
-        self.conf_data.values[name] = ('"' + escaped_val + '"', desc)
+        self.conf_data.values[name] = ('"' + escaped_val + '"', kwargs['description'])
 
-    def set10_method(self, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> None:
-        (name, val, desc) = self.validate_args(args, kwargs)
-        if val:
-            self.conf_data.values[name] = (1, desc)
-        else:
-            self.conf_data.values[name] = (0, desc)
+    @typed_pos_args('configuration_data.set10', str, bool)
+    @typed_kwargs('configuration_data.set10', _DESCRIPTION_KW)
+    def set10_method(self, args: T.Tuple[str, bool], kwargs: 'kwargs.ConfData') -> None:
+        if self.used:
+            raise InterpreterException("Can not set values on configuration object that has been used.")
+        name, val = args
+        self.conf_data.values[name] = (int(val), kwargs['description'])
 
-    def has_method(self, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> bool:
+    @typed_pos_args('configuration_data.has', str)
+    @noKwargs
+    def has_method(self, args: T.Tuple[str], kwargs: TYPE_kwargs) -> bool:
         return args[0] in self.conf_data.values
 
     @FeatureNew('configuration_data.get()', '0.38.0')
+    @typed_pos_args('configuration_data.get', str, optargs=[(str, int, bool)])
+    @noKwargs
     @noArgsFlattening
-    def get_method(self, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> T.Union[str, int, bool]:
-        if len(args) < 1 or len(args) > 2:
-            raise InterpreterException('Get method takes one or two arguments.')
-        if not isinstance(args[0], str):
-            raise InterpreterException('The variable name must be a string.')
-        name = args[0]
+    def get_method(self, args: T.Tuple[str, T.Optional[T.Union[str, int, bool]]], kwargs: TYPE_kwargs) -> T.Union[str, int, bool]:
+        print(f'debug confdata.get optargs: {args=}')
+        name, default_value = args
         if name in self.conf_data:
             return self.conf_data.get(name)[0]
-        if len(args) > 1:
-            # Assertion does not work because setting other values is still
-            # supported, but deprecated. Use T.cast in the meantime (even though
-            # this is a lie).
-            # TODO: Fix this once the deprecation is removed
-            # assert isinstance(args[1], (int, str, bool))
-            return T.cast(T.Union[str, int, bool], args[1])
+        if default_value is not None:
+            assert isinstance(default_value, (int, str, bool))
+            return default_value
         raise InterpreterException(f'Entry {name} not in configuration data.')
 
     @FeatureNew('configuration_data.get_unquoted()', '0.44.0')
-    def get_unquoted_method(self, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> T.Union[str, int, bool]:
-        if len(args) < 1 or len(args) > 2:
-            raise InterpreterException('Get method takes one or two arguments.')
-        if not isinstance(args[0], str):
-            raise InterpreterException('The variable name must be a string.')
-        name = args[0]
+    @typed_pos_args('configuration_data.get_unquoted', str, optargs=[(str, int, bool)])
+    @noKwargs
+    def get_unquoted_method(self, args: T.Tuple[str, T.Optional[T.Union[str, int, bool]]], kwargs: TYPE_kwargs) -> T.Union[str, int, bool]:
+        name, default_value = args
         if name in self.conf_data:
             val = self.conf_data.get(name)[0]
-        elif len(args) > 1:
+        elif default_value is not None:
             assert isinstance(args[1], (str, int, bool))
-            val = args[1]
+            val = default_value
         else:
             raise InterpreterException(f'Entry {name} not in configuration data.')
         if isinstance(val, str) and val[0] == '"' and val[-1] == '"':
@@ -400,12 +377,14 @@ class ConfigurationDataObject(MutableInterpreterObject, MesonInterpreterObject):
 
     @FeatureNew('configuration_data.keys()', '0.57.0')
     @noPosargs
+    @noKwargs
     def keys_method(self, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> T.List[str]:
         return sorted(self.keys())
 
     def keys(self) -> T.List[str]:
         return list(self.conf_data.values.keys())
 
+    @typed_pos_args('configuration_data.merge_from', object)
     def merge_from_method(self, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> None:
         if len(args) != 1:
             raise InterpreterException('Merge_from takes one positional argument.')

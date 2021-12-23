@@ -239,3 +239,8 @@ class RunCommand(TypedDict):
     check: bool
     capture: T.Optional[bool]
     env: build.EnvironmentVariables
+
+
+class ConfData(TypedDict):
+
+    description: T.Optional[str]

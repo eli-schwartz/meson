@@ -7,8 +7,6 @@ set_variable('arr', ['bar', 'baz'])
 assert(arr == ['bar', 'baz'], 'set_variable(array) is broken')
 
 conf = configuration_data()
-conf.set('foo', ['bar', 'baz'])
-assert(conf.get('foo') == ['bar', 'baz'], 'configuration_data.set(array) is broken')
 
 arr = conf.get('does-not-exist', ['bar', 'baz'])
 assert(arr == ['bar', 'baz'], 'configuration_data.get with array fallback is broken')
@@ -24,8 +22,3 @@ assert(arr == ['bar', 'baz'], 'meson.get_external_property native:true with arra
 
 arr = meson.get_external_property('does-not-exist', ['bar', 'baz'], native: false)
 assert(arr == ['bar', 'baz'], 'meson.get_external_property native:false with array fallback is broken')
-
-# Test deprecated behaviour
-
-conf.set(['foo', 'bar'])
-message(conf.get('foo'))
