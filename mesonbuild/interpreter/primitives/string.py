@@ -179,3 +179,10 @@ class MesonVersionStringHolder(StringHolder):
     def version_compare_method(self, args: T.Tuple[str], kwargs: TYPE_kwargs) -> bool:
         self.interpreter.tmp_meson_version = args[0]
         return version_compare(self.held_object, args[0])
+
+class DependencyVariableString(str):
+    pass
+
+class DependencyVariableStringHolder(StringHolder):
+    def op_div(self, other: str) -> DependencyVariableString:
+        return DependencyVariableString(super().op_div(other))
