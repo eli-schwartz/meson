@@ -22,11 +22,17 @@ from . import NewExtensionModule
 
 from ..interpreterbase import (
     flatten, permittedKwargs, noKwargs,
-    InvalidArguments, FeatureNew
+    InvalidArguments, FeatureNew, KwargInfo,
+    typed_pos_args
 )
 
 if T.TYPE_CHECKING:
     from . import ModuleState
+
+def arch_args(name):
+    return typed_pos_args(name, (str, CudaCompiler), varargs=str)
+
+DETECTED_KWARG = KwargInfo('detected', )
 
 class CudaModule(NewExtensionModule):
 
@@ -39,17 +45,39 @@ class CudaModule(NewExtensionModule):
             "nvcc_arch_readable": self.nvcc_arch_readable,
         })
 
+    def _validate_nvcc_arch_args(self, args, kwargs):
+        argerror = InvalidArguments('The first argument must be an NVCC compiler object, or its version string!')
+
+        compiler = args[0]
+        cuda_version = self._version_from_compiler(compiler)
+        if isinstance(compiler, CudaCompiler):
+            cuda_version = compiler.version
+        else:
+            assert isinstance(compiler, str), 'for mypy'
+            cuda_version = compiler
+
+        arch_list = [] if not args[1] else flatten(args[1])
+        arch_list = [self._break_arch_string(a) for a in arch_list]
+        arch_list = flatten(arch_list)
+        if len(arch_list) > 1 and not set(arch_list).isdisjoint({'All', 'Common', 'Auto'}):
+            raise InvalidArguments('''The special architectures 'All', 'Common' and 'Auto' must appear alone, as a positional argument!''')
+        arch_list = arch_list[0] if len(arch_list) == 1 else arch_list
+
+        detected = kwargs.get('detected', self._detected_cc_from_compiler(compiler))
+        detected = flatten([detected])
+        detected = [self._break_arch_string(a) for a in detected]
+        detected = flatten(detected)
+        if not set(detected).isdisjoint({'All', 'Common', 'Auto'}):
+            raise InvalidArguments('''The special architectures 'All', 'Common' and 'Auto' must appear alone, as a positional argument!''')
+
+        return cuda_version, arch_list, detected
+
+
     @noKwargs
+    @typed_pos_args('cuda.min_driver_version', str)
     def min_driver_version(self, state: 'ModuleState',
                                  args: T.Tuple[str],
                                  kwargs: T.Dict[str, T.Any]) -> str:
-        argerror = InvalidArguments('min_driver_version must have exactly one positional argument: ' +
-                                    'a CUDA Toolkit version string. Beware that, since CUDA 11.0, ' +
-                                    'the CUDA Toolkit\'s components (including NVCC) are versioned ' +
-                                    'independently from each other (and the CUDA Toolkit as a whole).')
-
-        if len(args) != 1 or not isinstance(args[0], str):
-            raise argerror
 
         cuda_version = args[0]
         driver_version_table = [
@@ -118,36 +146,7 @@ class CudaModule(NewExtensionModule):
     def _version_from_compiler(c):
         if isinstance(c, CudaCompiler):
             return c.version
-        if isinstance(c, str):
-            return c
-        return 'unknown'
-
-    def _validate_nvcc_arch_args(self, args, kwargs):
-        argerror = InvalidArguments('The first argument must be an NVCC compiler object, or its version string!')
-
-        if len(args) < 1:
-            raise argerror
-        else:
-            compiler = args[0]
-            cuda_version = self._version_from_compiler(compiler)
-            if cuda_version == 'unknown':
-                raise argerror
-
-        arch_list = [] if len(args) <= 1 else flatten(args[1:])
-        arch_list = [self._break_arch_string(a) for a in arch_list]
-        arch_list = flatten(arch_list)
-        if len(arch_list) > 1 and not set(arch_list).isdisjoint({'All', 'Common', 'Auto'}):
-            raise InvalidArguments('''The special architectures 'All', 'Common' and 'Auto' must appear alone, as a positional argument!''')
-        arch_list = arch_list[0] if len(arch_list) == 1 else arch_list
-
-        detected = kwargs.get('detected', self._detected_cc_from_compiler(compiler))
-        detected = flatten([detected])
-        detected = [self._break_arch_string(a) for a in detected]
-        detected = flatten(detected)
-        if not set(detected).isdisjoint({'All', 'Common', 'Auto'}):
-            raise InvalidArguments('''The special architectures 'All', 'Common' and 'Auto' must appear alone, as a positional argument!''')
-
-        return cuda_version, arch_list, detected
+        return c
 
     def _filter_cuda_arch_list(self, cuda_arch_list, lo=None, hi=None, saturate=None):
         """
