@@ -59,7 +59,21 @@ def main() -> None:
     results = [run_test(t, t.args, should_fail(t.path), args.use_tmpdir) for t in tests]
     failed = False
     for test, result in zip(tests, results):
-        if (result is None) or ('MESON_SKIP_TEST' in result.stdo):
+        if result is None:
+            is_skipped = True
+            skip_reason = 'not run because preconditions were not met'
+        else:
+            for l in result.stdo.splitlines():
+                if 'Problem encountered: MESON_SKIP_TEST' in l or 'Assert failed: MESON_SKIP_TEST' in l:
+                    is_skipped = True
+                    offset = l.index('MESON_SKIP_TEST') + 16
+                    skip_reason = l[offset:].strip()
+                    break
+            else:
+                is_skipped = False
+                skip_reason = ''
+
+        if is_skipped:
             msg = mlog.yellow('SKIP:')
         elif result.msg:
             msg = mlog.red('FAIL:')
@@ -67,6 +81,8 @@ def main() -> None:
         else:
             msg = mlog.green('PASS:')
         mlog.log(msg, *test.display_name())
+        if skip_reason:
+            mlog.log(mlog.bold('Reason:'), skip_reason)
         if result is not None and result.msg and 'MESON_SKIP_TEST' not in result.stdo:
             mlog.log('reason:', result.msg)
             if result.step is BuildStep.configure:
