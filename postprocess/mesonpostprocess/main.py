@@ -96,7 +96,7 @@ def main() -> int:
     print(f'Scanning files in {meson_root} ...')
 
     # Start by scanning the meson root
-    for root, _, files in os.walk(meson_root):
+    for root, _, files in os.walk(meson_root / 'mesonbuild'):
         r_posix = Path(root).as_posix()
         if any({r_posix.endswith(f'/{x}') or f'/{x}/' in r_posix for x in SKIP_DIRS}):
             continue

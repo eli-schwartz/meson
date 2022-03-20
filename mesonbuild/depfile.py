@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import typing as T
+from collections import namedtuple
 
 
 def parse(lines: T.Iterable[str]) -> T.List[T.Tuple[T.List[str], T.List[str]]]:
@@ -57,10 +58,7 @@ def parse(lines: T.Iterable[str]) -> T.List[T.Tuple[T.List[str], T.List[str]]]:
             out += c
     return rules
 
-class Target(T.NamedTuple):
-
-    deps: T.Set[str]
-
+Target = namedtuple('Target', 'deps')
 
 class DepFile:
     def __init__(self, lines: T.Iterable[str]):

@@ -42,28 +42,6 @@ except ImportError:
     # This is only used for pkexec which is not, so this is fine.
     main_file = None
 
-if T.TYPE_CHECKING:
-    from .mesonlib import FileMode
-
-    try:
-        from typing import Protocol
-    except AttributeError:
-        from typing_extensions import Protocol  # type: ignore
-
-    class ArgumentType(Protocol):
-        """Typing information for the object returned by argparse."""
-        no_rebuild: bool
-        only_changed: bool
-        profile: bool
-        quiet: bool
-        wd: str
-        destdir: str
-        dry_run: bool
-        skip_subprojects: str
-        tags: str
-        strip: bool
-
-
 symlink_warning = '''Warning: trying to copy a symlink that points to a file. This will copy the file,
 but this will be changed in a future version of Meson to copy the symlink as is. Please update your
 build definitions so that it will not break when the change happens.'''

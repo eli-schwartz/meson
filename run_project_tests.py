@@ -58,44 +58,6 @@ from run_tests import get_backend_commands, get_backend_args_for_dir, Backend
 from run_tests import ensure_backend_detects_changes
 from run_tests import guess_backend
 
-if T.TYPE_CHECKING:
-    from types import FrameType
-    from mesonbuild.environment import Environment
-    from mesonbuild._typing import Protocol
-    from concurrent.futures import Future
-    from mesonbuild.modules.python import PythonIntrospectionDict
-
-    class CompilerArgumentType(Protocol):
-        cross_file: str
-        native_file: str
-        use_tmpdir: bool
-
-
-    class ArgumentType(CompilerArgumentType):
-
-        """Typing information for command line arguments."""
-
-        extra_args: T.List[str]
-        backend: str
-        num_workers: int
-        failfast: bool
-        no_unittests: bool
-        only: T.List[str]
-
-    # In previous python versions the global variables are lost in ProcessPoolExecutor.
-    # So, we use this tuple to restore some of them
-    class GlobalState(T.NamedTuple):
-        compile_commands:   T.List[str]
-        clean_commands:     T.List[str]
-        test_commands:      T.List[str]
-        install_commands:   T.List[str]
-        uninstall_commands: T.List[str]
-
-        backend:      'Backend'
-        backend_flags: T.List[str]
-
-        host_c_compiler: T.Optional[str]
-
 ALL_TESTS = ['cmake', 'common', 'native', 'warning-meson', 'failing-meson', 'failing-build', 'failing-test',
              'keyval', 'platform-osx', 'platform-windows', 'platform-linux',
              'java', 'C#', 'vala', 'cython', 'rust', 'd', 'objective c', 'objective c++',
@@ -1451,11 +1413,7 @@ def print_compilers(env: 'Environment', machine: MachineChoice) -> None:
             details = '[not found]'
         print(f'{lang:<7}: {details}')
 
-class ToolInfo(T.NamedTuple):
-    tool: str
-    args: T.List[str]
-    regex: T.Pattern
-    match_group: int
+ToolInfo = collections.namedtuple('ToolInfo', 'tool, args, regex, match_group')
 
 def print_tool_versions() -> None:
     tools: T.List[ToolInfo] = [
