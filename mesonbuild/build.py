@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
 from collections import defaultdict, OrderedDict
-from dataclasses import dataclass, field
 from functools import lru_cache
 import copy
 import hashlib
@@ -135,19 +133,22 @@ def get_target_macos_dylib_install_name(ld) -> str:
 class InvalidArguments(MesonException):
     pass
 
-@dataclass(eq=False)
 class DependencyOverride(HoldableObject):
-    dep: dependencies.Dependency
-    node: 'BaseNode'
-    explicit: bool = True
+    def __init__(self, dep: dependencies.Dependency, node: 'BaseNode', explicit: bool = True):
+        self.dep = dep
+        self.node = node
+        self.explicit = explicit
 
-@dataclass(eq=False)
 class Headers(HoldableObject):
-    sources: T.List[File]
-    install_subdir: T.Optional[str]
-    custom_install_dir: T.Optional[str]
-    custom_install_mode: 'FileMode'
-    subproject: str
+
+    def __init__(self, sources: T.List[File], install_subdir: T.Optional[str],
+                 custom_install_dir: T.Optional[str], custom_install_mode: 'FileMode',
+                 subproject: str):
+        self.sources = sources
+        self.install_subdir = install_subdir
+        self.custom_install_dir = custom_install_dir
+        self.custom_install_mode = custom_install_mode
+        self.subproject = subproject
 
     # TODO: we really don't need any of these methods, but they're preserved to
     # keep APIs relying on them working.
@@ -168,13 +169,16 @@ class Headers(HoldableObject):
         return self.custom_install_mode
 
 
-@dataclass(eq=False)
 class Man(HoldableObject):
-    sources: T.List[File]
-    custom_install_dir: T.Optional[str]
-    custom_install_mode: 'FileMode'
-    subproject: str
-    locale: T.Optional[str]
+
+    def __init__(self, sources: T.List[File], custom_install_dir: T.Optional[str],
+                 custom_install_mode: 'FileMode', subproject: str,
+                 locale: T.Optional[str]):
+        self.sources = sources
+        self.custom_install_dir = custom_install_dir
+        self.custom_install_mode = custom_install_mode
+        self.subproject = subproject
+        self.locale = locale
 
     def get_custom_install_dir(self) -> T.Optional[str]:
         return self.custom_install_dir
@@ -186,30 +190,40 @@ class Man(HoldableObject):
         return self.sources
 
 
-@dataclass(eq=False)
 class EmptyDir(HoldableObject):
-    path: str
-    install_mode: 'FileMode'
-    subproject: str
-    install_tag: T.Optional[str] = None
+
+    def __init__(self, path: str, install_mode: 'FileMode', subproject: str,
+                 install_tag: T.Optional[str] = None):
+        self.path = path
+        self.install_mode = install_mode
+        self.subproject = subproject
+        self.install_tag = install_tag
 
 
-@dataclass(eq=False)
 class InstallDir(HoldableObject):
-    source_subdir: str
-    installable_subdir: str
-    install_dir: str
-    install_mode: 'FileMode'
-    exclude: T.Tuple[T.Set[str], T.Set[str]]
-    strip_directory: bool
-    subproject: str
-    from_source_dir: bool = True
-    install_tag: T.Optional[str] = None
 
-@dataclass(eq=False)
+    def __init__(self, source_subdir: str, installable_subdir: str, install_dir: str,
+                 install_mode: 'FileMode',
+                 exclude: T.Tuple[T.Set[str], T.Set[str]],
+                 strip_directory: bool, subproject: str,
+                 from_source_dir: bool = True,
+                 install_tag: T.Optional[str] = None):
+        self.source_subdir = source_subdir
+        self.installable_subdir = installable_subdir
+        self.install_dir = install_dir
+        self.install_mode = install_mode
+        self.exclude = exclude
+        self.strip_directory = strip_directory
+        self.from_source_dir = from_source_dir
+        self.subproject = subproject
+        self.install_tag = install_tag
+
+
 class DepManifest:
-    version: str
-    license: T.List[str]
+
+    def __init__(self, version: str, license: T.List[str]):
+        self.version = version
+        self.license = license
 
     def to_json(self) -> T.Dict[str, T.Union[str, T.List[str]]]:
         return {
@@ -218,7 +232,6 @@ class DepManifest:
         }
 
 
-# literally everything isn't dataclass stuff
 class Build:
     """A class that holds the status of one build including
     all dependencies and so on.
@@ -353,17 +366,18 @@ class Build:
 
         return link_args.get(compiler.get_language(), [])
 
-@dataclass(eq=False)
 class IncludeDirs(HoldableObject):
 
     """Internal representation of an include_directories call."""
 
-    curdir: str
-    incdirs: T.List[str]
-    is_system: bool
-    # Interpreter has validated that all given directories
-    # actually exist.
-    extra_build_dirs: T.List[str] = field(default_factory=list)
+    def __init__(self, curdir: str, incdirs: T.List[str], is_system: bool, extra_build_dirs: T.Optional[T.List[str]] = None):
+        self.curdir = curdir
+        self.incdirs = incdirs
+        self.is_system = is_system
+
+        # Interpreter has validated that all given directories
+        # actually exist.
+        self.extra_build_dirs: T.List[str] = extra_build_dirs or []
 
     def __repr__(self) -> str:
         r = '<{} {}/{}>'
@@ -393,18 +407,21 @@ class IncludeDirs(HoldableObject):
                 strlist.append(os.path.join(builddir, self.curdir, idir))
         return strlist
 
-@dataclass(eq=False)
 class ExtractedObjects(HoldableObject):
     '''
     Holds a list of sources for which the objects must be extracted
     '''
-    target: 'BuildTarget'
-    srclist: T.List[File] = field(default_factory=list)
-    genlist: T.List['GeneratedTypes'] = field(default_factory=list)
-    objlist: T.List[T.Union[str, 'File', 'ExtractedObjects']] = field(default_factory=list)
-    recursive: bool = True
-
-    def __post_init__(self) -> None:
+    def __init__(self, target: 'BuildTarget',
+                 srclist: T.Optional[T.List[File]] = None,
+                 genlist: T.Optional[T.List['GeneratedTypes']] = None,
+                 objlist: T.Optional[T.List[T.Union[str, 'File', 'ExtractedObjects']]] = None,
+                 recursive: bool = True):
+        self.target = target
+        self.recursive = recursive
+        self.srclist: T.List[File] = srclist if srclist is not None else []
+        self.genlist: T.List['GeneratedTypes'] = genlist if genlist is not None else []
+        self.objlist: T.Optional[T.List[T.Union[str, 'File', 'ExtractedObjects']]] = \
+             objlist if objlist is not None else []
         if self.target.is_unity:
             self.check_unity_compatible()
 
@@ -453,7 +470,6 @@ class ExtractedObjects(HoldableObject):
         ]
 
 
-@dataclass(eq=False, order=False)
 class StructuredSources(HoldableObject):
 
     """A container for sources in languages that use filesystem hierarchy.
@@ -463,8 +479,8 @@ class StructuredSources(HoldableObject):
     represent the required filesystem layout.
     """
 
-    sources: T.DefaultDict[str, T.List[T.Union[str, File, CustomTarget, CustomTargetIndex, GeneratedList]]] = field(
-        default_factory=lambda: defaultdict(list))
+    def __init__(self, sources=None):
+        self.sources = sources if sources is not None else defaultdict(list)
 
     def __add__(self, other: StructuredSources) -> StructuredSources:
         sources = self.sources.copy()
@@ -571,16 +587,17 @@ class EnvironmentVariables(HoldableObject):
             env[name] = method(env, name, values, separator)
         return env
 
-@dataclass(eq=False)
 class Target(HoldableObject):
 
     # TODO: should Target be an abc.ABCMeta?
 
-    name: str
-    subdir: str
-    subproject: 'SubProject'
-    build_by_default: bool
-    for_machine: MachineChoice
+    def __init__(self, name, subdir, subproject, build_by_default, for_machine):
+        self.name = name
+        self.subdir = subdir
+        self.subproject = subproject
+        self.build_by_default = build_by_default
+        self.for_machine = for_machine
+        self.__post_init__()
 
     def __post_init__(self) -> None:
         if has_path_sep(self.name):
@@ -598,7 +615,6 @@ class Target(HoldableObject):
         if not hasattr(self, 'typename'):
             raise RuntimeError('Target type is not set for target class "{}". This is a bug'.format((type(self).__name__)))
 
-    # dataclass comparators?
     def __lt__(self, other: object) -> bool:
         if not isinstance(other, Target):
             return NotImplemented
@@ -1709,7 +1725,6 @@ class Generator(HoldableObject):
     def __init__(self, exe: T.Union['Executable', programs.ExternalProgram],
                  arguments: T.List[str],
                  output: T.List[str],
-                 # how2dataclass
                  *,
                  depfile: T.Optional[str] = None,
                  capture: bool = False,
@@ -1782,27 +1797,24 @@ class Generator(HoldableObject):
         return output
 
 
-@dataclass(eq=False)
 class GeneratedList(HoldableObject):
 
     """The output of generator.process."""
 
-    generator: Generator
-    subdir: str
-    preserve_path_from: T.Optional[str]
-    extra_args: T.List[str]
-
-    def __post_init__(self) -> None:
-        self.name = self.generator.exe
+    def __init__(self, generator: Generator, subdir: str,
+                 preserve_path_from: T.Optional[str],
+                 extra_args: T.List[str]):
+        self.generator = generator
+        self.name = generator.exe
         self.depends: T.Set['CustomTarget'] = set() # Things this target depends on (because e.g. a custom target was used as input)
+        self.subdir = subdir
         self.infilelist: T.List['File'] = []
         self.outfilelist: T.List[str] = []
         self.outmap: T.Dict[File, T.List[str]] = {}
         self.extra_depends = []  # XXX: Doesn't seem to be used?
         self.depend_files: T.List[File] = []
-
-        if self.extra_args is None:
-            self.extra_args: T.List[str] = []
+        self.preserve_path_from = preserve_path_from
+        self.extra_args: T.List[str] = extra_args if extra_args is not None else []
 
         if isinstance(self.generator.exe, programs.ExternalProgram):
             if not self.generator.exe.found():
@@ -2743,7 +2755,6 @@ class Jar(BuildTarget):
     def get_default_install_dir(self, environment: environment.Environment) -> T.Tuple[str, str]:
         return environment.get_jar_dir(), '{jardir}'
 
-@dataclass(eq=False)
 class CustomTargetIndex(HoldableObject):
 
     """A special opaque object returned by indexing a CustomTarget. This object
@@ -2752,8 +2763,10 @@ class CustomTargetIndex(HoldableObject):
     the sources.
     """
 
-    target: CustomTarget
-    output: str
+    def __init__(self, target, output):
+        self.target = target
+        self.output = output
+        self.__post_init__()
 
     def __post_init__(self) -> None:
         self.typename = 'custom'
@@ -2835,41 +2848,47 @@ class ConfigurationData(HoldableObject):
 
 # A bit poorly named, but this represents plain data files to copy
 # during install.
-@dataclass(eq=False)
 class Data(HoldableObject):
-    sources: T.List[File]
-    install_dir: str
-    install_dir_name: str
-    install_mode: 'FileMode'
-    subproject: str
-    rename: T.List[str] = None
-    install_tag: T.Optional[str] = None
-    data_type: str = None
-
-    def __post_init__(self) -> None:
-        if self.rename is None:
+    def __init__(self, sources: T.List[File], install_dir: str, install_dir_name: str,
+                 install_mode: 'FileMode', subproject: str,
+                 rename: T.List[str] = None,
+                 install_tag: T.Optional[str] = None,
+                 data_type: str = None):
+        self.sources = sources
+        self.install_dir = install_dir
+        self.install_dir_name = install_dir_name
+        self.install_mode = install_mode
+        self.install_tag = install_tag
+        if rename is None:
             self.rename = [os.path.basename(f.fname) for f in self.sources]
+        else:
+            self.rename = rename
+        self.subproject = subproject
+        self.data_type = data_type
 
-@dataclass(eq=False)
 class SymlinkData(HoldableObject):
-    target: str
-    name: str
-    install_dir: str
-    subproject: str
-    install_tag: T.Optional[str] = None
+    def __init__(self, target, name, install_dir, subproject, install_tag=None):
+        self.target = target
+        self.name = name
+        self.install_dir = install_dir
+        self.subproject = subproject
+        self.install_tag = install_tag
+        self.__post_init__()
 
     def __post_init__(self) -> None:
         if self.name != os.path.basename(self.name):
             raise InvalidArguments('Link name is "{}", but link names cannot contain path separators. '
                                    'The dir part should be in install_dir.'.format((self.name)))
 
-@dataclass(eq=False)
 class TestSetup:
-    exe_wrapper: T.List[str]
-    gdb: bool
-    timeout_multiplier: int
-    env: EnvironmentVariables
-    exclude_suites: T.List[str]
+    def __init__(self, exe_wrapper: T.List[str], gdb: bool,
+                 timeout_multiplier: int, env: EnvironmentVariables,
+                 exclude_suites: T.List[str]):
+        self.exe_wrapper = exe_wrapper
+        self.gdb = gdb
+        self.timeout_multiplier = timeout_multiplier
+        self.env = env
+        self.exclude_suites = exclude_suites
 
 def get_sources_string_names(sources, backend):
     '''

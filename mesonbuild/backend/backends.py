@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from collections import OrderedDict
-from dataclasses import dataclass, InitVar
 from functools import lru_cache
 from itertools import chain
 from pathlib import Path
@@ -62,11 +61,11 @@ if T.TYPE_CHECKING:
 # Assembly files cannot be unitified and neither can LLVM IR files
 LANGS_CANT_UNITY = ('d', 'fortran', 'vala')
 
-@dataclass(eq=False)
 class RegenInfo:
-    source_dir: str
-    build_dir: str
-    depfiles: T.List[str]
+    def __init__(self, source_dir: str, build_dir: str, depfiles: T.List[str]):
+        self.source_dir = source_dir
+        self.build_dir = build_dir
+        self.depfiles = depfiles
 
 class TestProtocol(enum.Enum):
 
@@ -98,27 +97,27 @@ class TestProtocol(enum.Enum):
         return 'tap'
 
 
-@dataclass(eq=False)
 class CleanTrees:
     '''
     Directories outputted by custom targets that have to be manually cleaned
     because on Linux `ninja clean` only deletes empty directories.
     '''
-    build_dir: str
-    trees: T.List[str]
+    def __init__(self, build_dir: str, trees: T.List[str]):
+        self.build_dir = build_dir
+        self.trees = trees
 
-@dataclass(eq=False)
 class InstallData:
-    source_dir: str
-    build_dir: str
-    prefix: str
-    libdir: str
-    strip_bin: T.List[str]
-    # TODO: in python 3.8 or with typing_Extensions this could be:
-    # `T.Union[T.Literal['preserve'], int]`, which would be more accurate.
-    install_umask: T.Union[str, int]
-    mesonintrospect: T.List[str]
-    version: str
+    def __init__(self, source_dir, build_dir, prefix, libdir, strip_bin,
+                 install_umask, mesonintrospect, version):
+        self.source_dir = source_dir
+        self.build_dir = build_dir
+        self.prefix = prefix
+        self.libdir = libdir
+        self.strip_bin = strip_bin
+        self.install_umask = install_umask
+        self.mesonintrospect = mesonintrospect
+        self.version = version
+        self.__post_init__()
 
     def __post_init__(self) -> None:
         self.targets: T.List[TargetInstallData] = []
@@ -130,52 +129,55 @@ class InstallData:
         self.install_scripts: T.List[ExecutableSerialisation] = []
         self.install_subdirs: T.List[SubdirInstallData] = []
 
-@dataclass(eq=False)
 class TargetInstallData:
-    fname: str
-    outdir: str
-    outdir_name: InitVar[str]
-    strip: bool
-    install_name_mappings: T.Mapping[str, str]
-    rpath_dirs_to_remove: T.Set[bytes]
-    install_rpath: str
-    # TODO: install_mode should just always be a FileMode object
-    install_mode: T.Optional['FileMode']
-    subproject: str
-    optional: bool = False
-    tag: T.Optional[str] = None
-    can_strip: bool = False
+    def __init__(self, fname, outdir, outdir_name, strip, install_name_mappings,
+                 rpath_dirs_to_remove, install_rpath, install_mode, subproject,
+                 optional=False, tag=None, can_strip=False):
+        self.fname = fname
+        self.outdir = outdir
+        self.strip = strip
+        self.install_name_mappings = install_name_mappings
+        self.rpath_dirs_to_remove = rpath_dirs_to_remove
+        self.install_rpath = install_rpath
+        self.install_mode = install_mode
+        self.subproject = subproject
+        self.optional = optional
+        self.tag = tag
+        self.can_strip = can_strip
+        self.__post_init__(outdir_name)
 
     def __post_init__(self, outdir_name: str) -> None:
         self.out_name = os.path.join(outdir_name, os.path.basename(self.fname))
 
-@dataclass(eq=False)
 class InstallEmptyDir:
-    path: str
-    install_mode: 'FileMode'
-    subproject: str
-    tag: T.Optional[str] = None
+    def __init__(self, path: str, install_mode: 'FileMode', subproject: str, tag: T.Optional[str] = None):
+        self.path = path
+        self.install_mode = install_mode
+        self.subproject = subproject
+        self.tag = tag
 
-@dataclass(eq=False)
 class InstallDataBase:
-    path: str
-    install_path: str
-    install_path_name: str
-    install_mode: 'FileMode'
-    subproject: str
-    tag: T.Optional[str] = None
-    data_type: T.Optional[str] = None
+    def __init__(self, path: str, install_path: str, install_path_name: str,
+                 install_mode: 'FileMode', subproject: str, tag: T.Optional[str] = None,
+                 data_type: T.Optional[str] = None):
+        self.path = path
+        self.install_path = install_path
+        self.install_path_name = install_path_name
+        self.install_mode = install_mode
+        self.subproject = subproject
+        self.tag = tag
+        self.data_type = data_type
 
-@dataclass(eq=False)
 class InstallSymlinkData:
-    target: str
-    name: str
-    install_path: str
-    subproject: str
-    tag: T.Optional[str] = None
-    allow_missing: bool = False
+    def __init__(self, target, name, install_path,
+                 subproject, tag=None, allow_missing=False):
+        self.target = target
+        self.name = name
+        self.install_path = install_path
+        self.subproject = subproject
+        self.tag = tag
+        self.allow_missing = allow_missing
 
-# cannot use dataclass here because "exclude" is out of order
 class SubdirInstallData(InstallDataBase):
     def __init__(self, path: str, install_path: str, install_path_name: str,
                  install_mode: 'FileMode', exclude: T.Tuple[T.Set[str], T.Set[str]],
@@ -183,51 +185,62 @@ class SubdirInstallData(InstallDataBase):
         super().__init__(path, install_path, install_path_name, install_mode, subproject, tag, data_type)
         self.exclude = exclude
 
-@dataclass(eq=False)
 class ExecutableSerialisation:
 
     # XXX: should capture and feed default to False, instead of None?
 
-    cmd_args: T.List[str]
-    env: T.Optional[build.EnvironmentVariables] = None
-    exe_wrapper: T.Optional['programs.ExternalProgram'] = None
-    workdir: T.Optional[str] = None
-    extra_paths: T.Optional[T.List] = None
-    capture: T.Optional[bool] = None
-    feed: T.Optional[bool] = None
-    tag: T.Optional[str] = None
-    verbose: bool = False
-
-    def __post_init__(self) -> None:
-        if self.exe_wrapper is not None:
-            assert isinstance(self.exe_wrapper, programs.ExternalProgram)
+    def __init__(self, cmd_args: T.List[str],
+                 env: T.Optional[build.EnvironmentVariables] = None,
+                 exe_wrapper: T.Optional['programs.ExternalProgram'] = None,
+                 workdir: T.Optional[str] = None,
+                 extra_paths: T.Optional[T.List] = None,
+                 capture: T.Optional[bool] = None,
+                 feed: T.Optional[bool] = None,
+                 tag: T.Optional[str] = None,
+                 verbose: bool = False,
+                 ) -> None:
+        self.cmd_args = cmd_args
+        self.env = env
+        if exe_wrapper is not None:
+            assert isinstance(exe_wrapper, programs.ExternalProgram)
+        self.exe_wrapper = exe_wrapper
+        self.workdir = workdir
+        self.extra_paths = extra_paths
+        self.capture = capture
+        self.feed = feed
         self.pickled = False
         self.skip_if_destdir = False
+        self.verbose = verbose
         self.subproject = ''
+        self.tag = tag
 
-@dataclass(eq=False)
 class TestSerialisation:
-    name: str
-    project_name: str
-    suite: T.List[str]
-    fname: T.List[str]
-    is_cross_built: bool
-    exe_wrapper: T.Optional[programs.ExternalProgram]
-    needs_exe_wrapper: bool
-    is_parallel: bool
-    cmd_args: T.List[str]
-    env: build.EnvironmentVariables
-    should_fail: bool
-    timeout: T.Optional[int]
-    workdir: T.Optional[str]
-    extra_paths: T.List[str]
-    protocol: TestProtocol
-    priority: int
-    cmd_is_built: bool
-    cmd_is_exe: bool
-    depends: T.List[str]
-    version: str
-    verbose: bool
+    def __init__(self, name, project_name, suite, fname, is_cross_built, exe_wrapper,
+                 needs_exe_wrapper, is_parallel, cmd_args, env, should_fail, timeout,
+                 workdir, extra_paths, protocol, priority, cmd_is_built, cmd_is_exe,
+                 depends, version, verbose):
+        self.name = name
+        self.project_name = project_name
+        self.suite = suite
+        self.fname = fname
+        self.is_cross_built = is_cross_built
+        self.exe_wrapper = exe_wrapper
+        self.needs_exe_wrapper = needs_exe_wrapper
+        self.is_parallel = is_parallel
+        self.cmd_args = cmd_args
+        self.env = env
+        self.should_fail = should_fail
+        self.timeout = timeout
+        self.workdir = workdir
+        self.extra_paths = extra_paths
+        self.protocol = protocol
+        self.priority = priority
+        self.cmd_is_built = cmd_is_built
+        self.cmd_is_exe = cmd_is_exe
+        self.depends = depends
+        self.version = version
+        self.verbose = verbose
+        self.__post_init__()
 
     def __post_init__(self) -> None:
         if self.exe_wrapper is not None:

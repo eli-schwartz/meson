@@ -18,7 +18,6 @@ from .disabler import Disabler
 from .exceptions import InterpreterException, InvalidArguments
 from ._unholder import _unholder
 
-from dataclasses import dataclass
 from functools import wraps
 import abc
 import itertools
@@ -112,9 +111,10 @@ def disablerIfNotFound(f: TV_func) -> TV_func:
         return ret
     return T.cast('TV_func', wrapped)
 
-@dataclass(repr=False, eq=False)
 class permittedKwargs:
-    permitted: T.Set[str]
+
+    def __init__(self, permitted: T.Set[str]):
+        self.permitted = permitted  # type: T.Set[str]
 
     def __call__(self, f: TV_func) -> TV_func:
         @wraps(f)
@@ -576,7 +576,6 @@ def typed_kwargs(name: str, *types: KwargInfo) -> T.Callable[..., T.Any]:
     return inner
 
 
-# This cannot be a dataclass due to https://github.com/python/mypy/issues/5374
 class FeatureCheckBase(metaclass=abc.ABCMeta):
     "Base class for feature version checks"
 
@@ -738,7 +737,6 @@ class FeatureDeprecated(FeatureCheckBase):
         mlog.warning(*args, location=location)
 
 
-# This cannot be a dataclass due to https://github.com/python/mypy/issues/5374
 class FeatureCheckKwargsBase(metaclass=abc.ABCMeta):
 
     @property
