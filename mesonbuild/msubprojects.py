@@ -15,36 +15,6 @@ from .mesonlib import quiet_git, GitException, Popen_safe, MesonException, windo
 from .wrap.wrap import PackageDefinition, Resolver, WrapException, ALL_TYPES
 from .wrap import wraptool
 
-if T.TYPE_CHECKING:
-    from typing_extensions import Protocol
-
-    class Arguments(Protocol):
-        sourcedir: str
-        num_processes: int
-        subprojects: T.List[str]
-        types: str
-        subprojects_func: T.Callable[[], bool]
-
-    class UpdateArguments(Arguments):
-        rebase: bool
-        reset: bool
-
-    class CheckoutArguments(Arguments):
-        b: bool
-        branch_name: str
-
-    class ForeachArguments(Arguments):
-        command: str
-        args: T.List[str]
-
-    class PurgeArguments(Arguments):
-        confirm: bool
-        include_cache: bool
-
-    class PackagefilesArguments(Arguments):
-        apply: bool
-        save: bool
-
 ALL_TYPES_STRING = ', '.join(ALL_TYPES)
 
 def read_archive_files(path: Path, base_path: Path) -> T.Set[Path]:

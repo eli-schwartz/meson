@@ -26,29 +26,6 @@ from ..interpreterbase import (
 from ..interpreterbase.decorators import ContainerTypeInfo, KwargInfo, typed_kwargs, typed_pos_args
 from ..mesonlib import OrderedSet
 
-if T.TYPE_CHECKING:
-    from typing_extensions import TypedDict
-
-    from . import ModuleState
-    from ..interpreter import Interpreter
-    from ..interpreterbase import TYPE_var, TYPE_kwargs
-
-    class AddKwargs(TypedDict):
-
-        when: T.List[T.Union[str, dependencies.Dependency]]
-        if_true: T.List[T.Union[mesonlib.FileOrString, build.GeneratedTypes, dependencies.Dependency]]
-        if_false: T.List[T.Union[mesonlib.FileOrString, build.GeneratedTypes]]
-
-    class AddAllKw(TypedDict):
-
-        when: T.List[T.Union[str, dependencies.Dependency]]
-        if_true: T.List[SourceSetImpl]
-
-    class ApplyKw(TypedDict):
-
-        strict: bool
-
-
 _WHEN_KW: KwargInfo[T.List[T.Union[str, dependencies.Dependency]]] = KwargInfo(
     'when',
     ContainerTypeInfo(list, (str, dependencies.Dependency)),

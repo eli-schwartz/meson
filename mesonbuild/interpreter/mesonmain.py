@@ -19,34 +19,6 @@ from ..interpreterbase import (MesonInterpreterObject, FeatureNew, FeatureDeprec
 from .primitives import MesonVersionString
 from .type_checking import NATIVE_KW, NoneType
 
-if T.TYPE_CHECKING:
-    from typing_extensions import Literal
-    from ..backend.backends import ExecutableSerialisation
-    from ..compilers import Compiler
-    from ..interpreterbase import TYPE_kwargs, TYPE_var
-    from .interpreter import Interpreter
-
-    from typing_extensions import TypedDict
-
-    class FuncOverrideDependency(TypedDict):
-
-        native: mesonlib.MachineChoice
-        static: T.Optional[bool]
-
-    class AddInstallScriptKW(TypedDict):
-
-        skip_if_destdir: bool
-        install_tag: str
-
-    class NativeKW(TypedDict):
-
-        native: mesonlib.MachineChoice
-
-    class AddDevenvKW(TypedDict):
-        method: Literal['set', 'prepend', 'append']
-        separator: str
-
-
 class MesonMain(MesonInterpreterObject):
     def __init__(self, build: 'build.Build', interpreter: 'Interpreter'):
         super().__init__(subproject=interpreter.subproject)

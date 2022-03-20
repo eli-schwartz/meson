@@ -37,45 +37,7 @@ from ..interpreterbase import (
 from ..mesonlib import MachineChoice
 from ..programs import ExternalProgram, NonExistingExternalProgram
 
-if T.TYPE_CHECKING:
-    from typing_extensions import TypedDict
-
-    from . import ModuleState
-    from ..build import SharedModule, Data
-    from ..dependencies import ExternalDependency, Dependency
-    from ..dependencies.factory import DependencyGenerator
-    from ..environment import Environment
-    from ..interpreter import Interpreter
-    from ..interpreter.kwargs import ExtractRequired
-    from ..interpreterbase.interpreterbase import TYPE_var, TYPE_kwargs
-
-    class PythonIntrospectionDict(TypedDict):
-
-        install_paths: T.Dict[str, str]
-        is_pypy: bool
-        is_venv: bool
-        link_libpython: bool
-        sysconfig_paths: T.Dict[str, str]
-        paths: T.Dict[str, str]
-        platform: str
-        suffix: str
-        variables: T.Dict[str, str]
-        version: str
-
-    class PyInstallKw(TypedDict):
-
-        pure: bool
-        subdir: str
-        install_tag: T.Optional[str]
-
-    class FindInstallationKw(ExtractRequired):
-
-        disabler: bool
-        modules: T.List[str]
-
-    _Base = ExternalDependency
-else:
-    _Base = object
+_Base = object
 
 
 mod_kwargs = {'subdir'}

@@ -25,56 +25,6 @@ from ..interpreterbase import FeatureNew
 from ..interpreterbase.decorators import ContainerTypeInfo, KwargInfo, noPosargs, typed_kwargs, typed_pos_args
 from ..scripts.gettext import read_linguas
 
-if T.TYPE_CHECKING:
-    from typing_extensions import Literal, TypedDict
-
-    from . import ModuleState
-    from ..build import Target
-    from ..interpreter import Interpreter
-    from ..interpreterbase import TYPE_var
-    from ..mparser import BaseNode
-    from ..programs import ExternalProgram
-
-    class MergeFile(TypedDict):
-
-        input: T.List[T.Union[
-            str, build.BuildTarget, build.CustomTarget, build.CustomTargetIndex,
-            build.ExtractedObjects, build.GeneratedList, ExternalProgram,
-            mesonlib.File]]
-        output: T.List[str]
-        build_by_default: bool
-        install: bool
-        install_dir: T.List[T.Union[str, bool]]
-        install_tag: T.List[str]
-        args: T.List[str]
-        data_dirs: T.List[str]
-        po_dir: str
-        type: Literal['xml', 'desktop']
-
-    class Gettext(TypedDict):
-
-        args: T.List[str]
-        data_dirs: T.List[str]
-        install: bool
-        install_dir: T.Optional[str]
-        languages: T.List[str]
-        preset: T.Optional[str]
-
-    class ItsJoinFile(TypedDict):
-
-        input: T.List[T.Union[
-            str, build.BuildTarget, build.CustomTarget, build.CustomTargetIndex,
-            build.ExtractedObjects, build.GeneratedList, ExternalProgram,
-            mesonlib.File]]
-        output: T.List[str]
-        build_by_default: bool
-        install: bool
-        install_dir: T.List[T.Union[str, bool]]
-        install_tag: T.List[str]
-        its_files: T.List[str]
-        mo_targets: T.List[T.Union[build.BuildTarget, build.CustomTarget, build.CustomTargetIndex]]
-
-
 _ARGS: KwargInfo[T.List[str]] = KwargInfo(
     'args',
     ContainerTypeInfo(list, str),

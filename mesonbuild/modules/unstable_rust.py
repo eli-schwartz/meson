@@ -23,28 +23,6 @@ from ..interpreter.interpreter import TEST_KWARGS
 from ..interpreterbase import ContainerTypeInfo, InterpreterException, KwargInfo, FeatureNew, typed_kwargs, typed_pos_args, noPosargs
 from ..mesonlib import File
 
-if T.TYPE_CHECKING:
-    from . import ModuleState
-    from ..interpreter import Interpreter
-    from ..interpreter import kwargs as _kwargs
-    from ..interpreter.interpreter import SourceInputs, SourceOutputs
-    from ..programs import ExternalProgram
-
-    from typing_extensions import TypedDict
-
-    class FuncTest(_kwargs.BaseTest):
-
-        dependencies: T.List[T.Union[Dependency, ExternalLibrary]]
-        is_parallel: bool
-
-    class FuncBindgen(TypedDict):
-
-        args: T.List[str]
-        c_args: T.List[str]
-        include_directories: T.List[IncludeDirs]
-        input: T.List[SourceInputs]
-        output: str
-
 
 class RustModule(ExtensionModule):
 

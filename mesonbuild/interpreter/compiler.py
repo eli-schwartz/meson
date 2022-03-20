@@ -20,65 +20,6 @@ from ..interpreterbase.decorators import ContainerTypeInfo, typed_kwargs, KwargI
 from .interpreterobjects import (extract_required_kwarg, extract_search_dirs)
 from .type_checking import REQUIRED_KW, in_set_validator, NoneType
 
-if T.TYPE_CHECKING:
-    from ..interpreter import Interpreter
-    from ..compilers import Compiler, RunResult
-    from ..interpreterbase import TYPE_var, TYPE_kwargs
-    from .kwargs import ExtractRequired, ExtractSearchDirs
-
-    from typing_extensions import TypedDict, Literal
-
-    class GetSupportedArgumentKw(TypedDict):
-
-        checked: Literal['warn', 'require', 'off']
-
-    class AlignmentKw(TypedDict):
-
-        prefix: str
-        args: T.List[str]
-        dependencies: T.List[dependencies.Dependency]
-
-    class CompileKW(TypedDict):
-
-        name: str
-        no_builtin_args: bool
-        include_directories: T.List[build.IncludeDirs]
-        args: T.List[str]
-        dependencies: T.List[dependencies.Dependency]
-
-    class CommonKW(TypedDict):
-
-        prefix: str
-        no_builtin_args: bool
-        include_directories: T.List[build.IncludeDirs]
-        args: T.List[str]
-        dependencies: T.List[dependencies.Dependency]
-
-    class CompupteIntKW(CommonKW):
-
-        guess: T.Optional[int]
-        high: T.Optional[int]
-        low: T.Optional[int]
-
-    class HeaderKW(CommonKW, ExtractRequired):
-        pass
-
-    class FindLibraryKW(ExtractRequired, ExtractSearchDirs):
-
-        disabler: bool
-        has_headers: T.List[str]
-        static: bool
-
-        # This list must be all of the `HeaderKW` values with `header_`
-        # prepended to the key
-        header_args: T.List[str]
-        header_dependencies: T.List[dependencies.Dependency]
-        header_include_directories: T.List[build.IncludeDirs]
-        header_no_builtin_args: bool
-        header_prefix: str
-        header_required: T.Union[bool, coredata.UserFeatureOption]
-
-
 class _TestMode(enum.Enum):
 
     """Whether we're doing a compiler or linker check."""

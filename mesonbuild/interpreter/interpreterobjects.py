@@ -28,20 +28,6 @@ from ..mesonlib import HoldableObject, OptionKey, listify, Popen_safe
 
 import typing as T
 
-if T.TYPE_CHECKING:
-    from . import kwargs
-    from ..cmake.interpreter import CMakeInterpreter
-    from ..envconfig import MachineInfo
-    from ..interpreterbase import SubProject
-    from .interpreter import Interpreter
-
-    from typing_extensions import TypedDict
-
-    class EnvironmentSeparatorKW(TypedDict):
-
-        separator: str
-
-
 def extract_required_kwarg(kwargs: 'kwargs.ExtractRequired',
                            subproject: 'SubProject',
                            feature_check: T.Optional[FeatureCheckBase] = None,

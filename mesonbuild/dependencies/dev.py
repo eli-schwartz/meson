@@ -37,18 +37,6 @@ from .factory import DependencyFactory
 from .misc import threads_factory
 from .pkgconfig import PkgConfigDependency
 
-if T.TYPE_CHECKING:
-    from ..envconfig import MachineInfo
-    from .. environment import Environment
-    from typing_extensions import TypedDict
-
-    class JNISystemDependencyKW(TypedDict):
-        modules: T.List[str]
-        # FIXME: When dependency() moves to typed Kwargs, this should inherit
-        # from its TypedDict type.
-        version: T.Optional[str]
-
-
 def get_shared_library_suffix(environment: 'Environment', for_machine: MachineChoice) -> str:
     """This is only guaranteed to work for languages that compile to machine
     code, not for languages like C# that use a bytecode and always end in .dll

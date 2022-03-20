@@ -29,25 +29,6 @@ from ..interpreterbase.decorators import ContainerTypeInfo, KwargInfo, typed_kwa
 from ..mesonlib import (EnvironmentException, MesonException, Popen_safe, MachineChoice,
                         get_variable_regex, do_replacement, join_args, OptionKey)
 
-if T.TYPE_CHECKING:
-    from typing_extensions import TypedDict
-
-    from . import ModuleState
-    from ..interpreter import Interpreter
-    from ..interpreterbase import TYPE_var
-
-    class Dependency(TypedDict):
-
-        subdir: str
-
-    class AddProject(TypedDict):
-
-        configure_options: T.List[str]
-        cross_configure_options: T.List[str]
-        verbose: bool
-        env: build.EnvironmentVariables
-
-
 class ExternalProject(NewExtensionModule):
     def __init__(self,
                  state: 'ModuleState',

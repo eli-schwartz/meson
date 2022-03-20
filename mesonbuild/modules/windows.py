@@ -27,28 +27,6 @@ from ..interpreterbase.decorators import ContainerTypeInfo, FeatureNew, KwargInf
 from ..mesonlib import MachineChoice, MesonException
 from ..programs import ExternalProgram
 
-if T.TYPE_CHECKING:
-    from . import ModuleState
-    from ..compilers import Compiler
-    from ..interpreter import Interpreter
-
-    from typing_extensions import TypedDict
-
-    class CompileResources(TypedDict):
-
-        depend_files: T.List[mesonlib.FileOrString]
-        depends: T.List[T.Union[build.BuildTarget, build.CustomTarget]]
-        include_directories: T.List[T.Union[str, build.IncludeDirs]]
-        args: T.List[str]
-
-    class RcKwargs(TypedDict):
-        output: str
-        input: T.List[T.Union[mesonlib.FileOrString, build.CustomTargetIndex]]
-        depfile: T.Optional[str]
-        depend_files: T.List[mesonlib.FileOrString]
-        depends: T.List[T.Union[build.BuildTarget, build.CustomTarget]]
-        command: T.List[T.Union[str, ExternalProgram]]
-
 class ResourceCompilerType(enum.Enum):
     windres = 1
     rc = 2

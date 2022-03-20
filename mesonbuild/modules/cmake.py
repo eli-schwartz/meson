@@ -42,33 +42,6 @@ from ..interpreterbase import (
     ContainerTypeInfo,
 )
 
-if T.TYPE_CHECKING:
-    from typing_extensions import TypedDict
-
-    from . import ModuleState
-    from ..interpreter import kwargs
-
-    class WriteBasicPackageVersionFile(TypedDict):
-
-        arch_independent: bool
-        compatibility: str
-        install_dir: T.Optional[str]
-        name: str
-        version: str
-
-    class ConfigurePackageConfigFile(TypedDict):
-
-        configuration: T.Union[build.ConfigurationData, dict]
-        input: T.Union[str, mesonlib.File]
-        install_dir: T.Optional[str]
-        name: str
-
-    class Subproject(kwargs.ExtractRequired):
-
-        options: T.Optional[CMakeSubprojectOptions]
-        cmake_options: T.List[str]
-
-
 COMPATIBILITIES = ['AnyNewerVersion', 'SameMajorVersion', 'SameMinorVersion', 'ExactVersion']
 
 # Taken from https://github.com/Kitware/CMake/blob/master/Modules/CMakePackageConfigHelpers.cmake
