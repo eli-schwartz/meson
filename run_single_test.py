@@ -13,7 +13,7 @@ import pathlib
 import typing as T
 
 from mesonbuild import mlog
-from run_project_tests import TestDef, load_test_json, run_test, BuildStep
+from run_project_tests import TestDef, load_test_json, run_tests, failing_logs
 from run_project_tests import setup_commands, detect_system_compiler, print_tool_versions
 
 if T.TYPE_CHECKING:
@@ -47,56 +47,16 @@ def main() -> None:
     if args.subtests:
         tests = [t for i, t in enumerate(tests) if i in args.subtests]
 
-    def should_fail(path: pathlib.Path) -> str:
-        dir_ = path.parent.stem
-        # FIXME: warning tets might not be handled correctly still…
-        if dir_.startswith(('failing', 'warning')):
-            if ' ' in dir_:
-                return dir_.split(' ')[1]
-            return 'meson'
-        return ''
-
-    results = [run_test(t, t.args, should_fail(t.path), args.use_tmpdir) for t in tests]
-    failed = False
-    for test, result in zip(tests, results):
-        if result is None:
-            is_skipped = True
-            skip_reason = 'not run because preconditions were not met'
-        else:
-            for l in result.stdo.splitlines():
-                if 'Problem encountered: MESON_SKIP_TEST' in l or 'Assert failed: MESON_SKIP_TEST' in l:
-                    is_skipped = True
-                    offset = l.index('MESON_SKIP_TEST') + 16
-                    skip_reason = l[offset:].strip()
-                    break
-            else:
-                is_skipped = False
-                skip_reason = ''
-
-        if is_skipped:
-            msg = mlog.yellow('SKIP:')
-        elif result.msg:
-            msg = mlog.red('FAIL:')
-            failed = True
-        else:
-            msg = mlog.green('PASS:')
-        mlog.log(msg, *test.display_name())
-        if skip_reason:
-            mlog.log(mlog.bold('Reason:'), skip_reason)
-        if result is not None and result.msg and 'MESON_SKIP_TEST' not in result.stdo:
-            mlog.log('reason:', result.msg)
-            if result.step is BuildStep.configure:
-                # For configure failures, instead of printing stdout,
-                # print the meson log if available since it's a superset
-                # of stdout and often has very useful information.
-                mlog.log(result.mlog)
-            else:
-                mlog.log(result.stdo)
-            for cmd_res in result.cicmds:
-                mlog.log(cmd_res)
-            mlog.log(result.stde)
-
-    exit(1 if failed else 0)
+    results = run_tests([('single test', tests, False)], 'meson-single-test', False, [], args.use_tmpdir, 1)
+    passing, failing, skipped = results
+    if failing > 0:
+        print('\nMesonlogs of failing tests\n')
+        for l in failing_logs:
+            try:
+                print(l, '\n')
+            except UnicodeError:
+                print(l.encode('ascii', errors='replace').decode(), '\n')
+    raise SystemExit(failing)
 
 if __name__ == "__main__":
     main()
