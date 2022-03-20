@@ -65,7 +65,7 @@ class EmscriptenMixin(Compiler):
         args = ['-s', 'USE_PTHREADS=1']
         count: int = env.coredata.options[OptionKey('thread_count', lang=self.language, machine=self.for_machine)].value
         if count:
-            args.extend(['-s', f'PTHREAD_POOL_SIZE={count}'])
+            args.extend(['-s', 'PTHREAD_POOL_SIZE={}'.format((count))])
         return args
 
     def get_options(self) -> 'coredata.KeyedOptionDictType':

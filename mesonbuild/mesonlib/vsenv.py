@@ -47,7 +47,7 @@ def _setup_vsenv(force: bool) -> bool:
     root = os.environ.get("ProgramFiles(x86)") or os.environ.get("ProgramFiles")
     bat_locator_bin = pathlib.Path(root, 'Microsoft Visual Studio/Installer/vswhere.exe')
     if not bat_locator_bin.exists():
-        raise MesonException(f'Could not find {bat_locator_bin}')
+        raise MesonException('Could not find {}'.format((bat_locator_bin)))
     bat_json = subprocess.check_output(
         [
             str(bat_locator_bin),
@@ -75,7 +75,7 @@ def _setup_vsenv(force: bool) -> bool:
         if not bat_path.exists():
             bat_path = bat_root / 'VC/Auxiliary/Build/vcvarsx86_amd64.bat'
     if not bat_path.exists():
-        raise MesonException(f'Could not find {bat_path}')
+        raise MesonException('Could not find {}'.format((bat_path)))
 
     mlog.log('Activating VS', bat_info[0]['catalog']['productDisplayVersion'])
     bat_separator = '---SPLIT---'

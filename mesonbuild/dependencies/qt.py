@@ -91,8 +91,8 @@ def _get_modules_lib_suffix(version: str, info: 'MachineInfo', is_debug: bool) -
             elif info.cpu_family == 'aarch64':
                 suffix += '_arm64-v8a'
             else:
-                mlog.warning(f'Android target arch "{info.cpu_family}"" for Qt5 is unknown, '
-                             'module detection may not work')
+                mlog.warning('Android target arch "{}"" for Qt5 is unknown, '
+                             'module detection may not work'.format((info.cpu_family)))
     return suffix
 
 
@@ -156,7 +156,7 @@ class _QtBase:
         return compiler.get_pic_args()
 
     def log_details(self) -> str:
-        return f'modules: {", ".join(sorted(self.requested_modules))}'
+        return 'modules: {}'.format((", ".join(sorted(self.requested_modules))))
 
 
 class QtPkgConfigDependency(_QtBase, PkgConfigDependency, metaclass=abc.ABCMeta):
@@ -200,7 +200,7 @@ class QtPkgConfigDependency(_QtBase, PkgConfigDependency, metaclass=abc.ABCMeta)
             debug_lib_name = self.qtpkgname + 'Core' + _get_modules_lib_suffix(self.version, self.env.machines[self.for_machine], True)
             is_debug = False
             for arg in self.get_link_args():
-                if arg == f'-l{debug_lib_name}' or arg.endswith(f'{debug_lib_name}.lib') or arg.endswith(f'{debug_lib_name}.a'):
+                if arg == '-l{}'.format((debug_lib_name)) or arg.endswith('{}.lib'.format((debug_lib_name))) or arg.endswith('{}.a'.format((debug_lib_name))):
                     is_debug = True
                     break
             libdir = self.get_pkgconfig_variable('libdir', [], None)
@@ -237,7 +237,7 @@ class QmakeQtDependency(_QtBase, ConfigToolDependency, metaclass=abc.ABCMeta):
 
     def __init__(self, name: str, env: 'Environment', kwargs: T.Dict[str, T.Any]):
         _QtBase.__init__(self, name, kwargs)
-        self.tools = [f'qmake-{self.qtname}', 'qmake']
+        self.tools = ['qmake-{}'.format((self.qtname)), 'qmake']
 
         # Add additional constraints that the Qt version is met, but preserve
         # any version requrements the user has set as well. For example, if Qt5
@@ -245,7 +245,7 @@ class QmakeQtDependency(_QtBase, ConfigToolDependency, metaclass=abc.ABCMeta):
         # lose that.
         kwargs = kwargs.copy()
         _vers = mesonlib.listify(kwargs.get('version', []))
-        _vers.extend([f'>= {self.qtver}', f'< {int(self.qtver) + 1}'])
+        _vers.extend(['>= {}'.format((self.qtver)), '< {}'.format((int(self.qtver) + 1))])
         kwargs['version'] = _vers
 
         ConfigToolDependency.__init__(self, name, env, kwargs)
@@ -296,7 +296,7 @@ class QmakeQtDependency(_QtBase, ConfigToolDependency, metaclass=abc.ABCMeta):
                 define_base = 'TESTLIB'
             else:
                 define_base = module.upper()
-            self.compile_args.append(f'-DQT_{define_base}_LIB')
+            self.compile_args.append('-DQT_{}_LIB'.format((define_base)))
 
             if self.private_headers:
                 priv_inc = self.get_private_includes(mincdir, module)
@@ -320,7 +320,7 @@ class QmakeQtDependency(_QtBase, ConfigToolDependency, metaclass=abc.ABCMeta):
                 self.is_found = False
 
     def _sanitize_version(self, version: str) -> str:
-        m = re.search(rf'({self.qtver}(\.\d+)+)', version)
+        m = re.search('({}(\\.\\d+)+)'.format((self.qtver)), version)
         if m:
             return m.group(0).rstrip('.')
         return version
@@ -387,7 +387,7 @@ class Qt4PkgConfigDependency(QtPkgConfigDependency):
         applications = ['moc', 'uic', 'rcc', 'lupdate', 'lrelease']
         for application in applications:
             try:
-                return os.path.dirname(core.get_pkgconfig_variable(f'{application}_location', [], None))
+                return os.path.dirname(core.get_pkgconfig_variable('{}_location'.format((application)), [], None))
             except mesonlib.MesonException:
                 pass
         return None

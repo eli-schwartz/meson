@@ -90,27 +90,27 @@ class InterpreterObject:
             if not getattr(method, 'no-second-level-holder-flattening', False):
                 args, kwargs = resolve_second_level_holders(args, kwargs)
             return method(args, kwargs)
-        raise InvalidCode(f'Unknown method "{method_name}" in object {self} of type {type(self).__name__}.')
+        raise InvalidCode('Unknown method "{}" in object {} of type {}.'.format((method_name), (self), (type(self).__name__)))
 
     def operator_call(self, operator: MesonOperator, other: TYPE_var) -> TYPE_var:
         if operator in self.trivial_operators:
             op = self.trivial_operators[operator]
             if op[0] is None and other is not None:
-                raise MesonBugException(f'The unary operator `{operator.value}` of {self.display_name()} was passed the object {other} of type {type(other).__name__}')
+                raise MesonBugException('The unary operator `{}` of {} was passed the object {} of type {}'.format((operator.value), (self.display_name()), (other), (type(other).__name__)))
             if op[0] is not None and not isinstance(other, op[0]):
-                raise InvalidArguments(f'The `{operator.value}` operator of {self.display_name()} does not accept objects of type {type(other).__name__} ({other})')
+                raise InvalidArguments('The `{}` operator of {} does not accept objects of type {} ({})'.format((operator.value), (self.display_name()), (type(other).__name__), (other)))
             return op[1](other)
         if operator in self.operators:
             return self.operators[operator](other)
-        raise InvalidCode(f'Object {self} of type {self.display_name()} does not support the `{operator.value}` operator.')
+        raise InvalidCode('Object {} of type {} does not support the `{}` operator.'.format((self), (self.display_name()), (operator.value)))
 
     # Default comparison operator support
     def _throw_comp_exception(self, other: TYPE_var, opt_type: str) -> T.NoReturn:
         raise InvalidArguments(textwrap.dedent(
-            f'''
-                Trying to compare values of different types ({self.display_name()}, {type(other).__name__}) using {opt_type}.
-                This was deprecated and undefined behavior previously and is as of 0.60.0 a hard error.
             '''
+                Trying to compare values of different types ({}, {}) using {}.
+                This was deprecated and undefined behavior previously and is as of 0.60.0 a hard error.
+            '''.format((self.display_name()), (type(other).__name__), (opt_type))
         ))
 
     def op_equals(self, other: TYPE_var) -> bool:
@@ -143,7 +143,7 @@ class ObjectHolder(InterpreterObject, T.Generic[InterpreterObjectTypeVar]):
         # HoldableObject, not the specialized type, so only do this assert in
         # non-type checking situations
         if not T.TYPE_CHECKING:
-            assert isinstance(obj, HoldableTypes), f'This is a bug: Trying to hold object of type `{type(obj).__name__}` that is not in `{HoldableTypes}`'
+            assert isinstance(obj, HoldableTypes), 'This is a bug: Trying to hold object of type `{}` that is not in `{}`'.format((type(obj).__name__), (HoldableTypes))
         self.held_object = obj
         self.interpreter = interpreter
         self.env = self.interpreter.environment
@@ -165,17 +165,17 @@ class ObjectHolder(InterpreterObject, T.Generic[InterpreterObjectTypeVar]):
         return self.held_object != other
 
     def __repr__(self) -> str:
-        return f'<[{type(self).__name__}] holds [{type(self.held_object).__name__}]: {self.held_object!r}>'
+        return '<[{}] holds [{}]: {!r}>'.format((type(self).__name__), (type(self.held_object).__name__), (self.held_object))
 
 class IterableObject(metaclass=ABCMeta):
     '''Base class for all objects that can be iterated over in a foreach loop'''
 
     def iter_tuple_size(self) -> T.Optional[int]:
         '''Return the size of the tuple for each iteration. Returns None if only a single value is returned.'''
-        raise MesonBugException(f'iter_tuple_size not implemented for {self.__class__.__name__}')
+        raise MesonBugException('iter_tuple_size not implemented for {}'.format((self.__class__.__name__)))
 
     def iter_self(self) -> T.Iterator[T.Union[TYPE_var, T.Tuple[TYPE_var, ...]]]:
-        raise MesonBugException(f'iter not implemented for {self.__class__.__name__}')
+        raise MesonBugException('iter not implemented for {}'.format((self.__class__.__name__)))
 
     def size(self) -> int:
-        raise MesonBugException(f'size not implemented for {self.__class__.__name__}')
+        raise MesonBugException('size not implemented for {}'.format((self.__class__.__name__)))

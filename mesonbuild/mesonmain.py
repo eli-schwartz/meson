@@ -200,7 +200,7 @@ def run_script_command(script_name, script_args):
     try:
         return module.run(script_args)
     except MesonException as e:
-        mlog.error(f'Error in {script_name} helper script:')
+        mlog.error('Error in {} helper script:'.format((script_name)))
         mlog.exception(e)
         return 1
 
@@ -218,7 +218,7 @@ def ensure_stdout_accepts_unicode():
 def run(original_args, mainfile):
     if sys.version_info < (3, 7):
         print('Meson works correctly only with python 3.7+.')
-        print(f'You have python {sys.version}.')
+        print('You have python {}.'.format((sys.version)))
         print('Please update your environment')
         return 1
 

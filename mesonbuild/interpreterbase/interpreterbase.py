@@ -99,7 +99,7 @@ class InterpreterBase:
     def load_root_meson_file(self) -> None:
         mesonfile = os.path.join(self.source_root, self.subdir, environment.build_filename)
         if not os.path.isfile(mesonfile):
-            raise InvalidArguments(f'Missing Meson file in {mesonfile}')
+            raise InvalidArguments('Missing Meson file in {}'.format((mesonfile)))
         with open(mesonfile, encoding='utf-8') as mf:
             code = mf.read()
         if code.isspace():
@@ -138,9 +138,9 @@ class InterpreterBase:
 
             error = 'first statement must be a call to project()'
             if found != p:
-                raise InvalidCode(f'Not the project root: {error}\n\nDid you mean to run meson from the directory: "{found}"?')
+                raise InvalidCode('Not the project root: {}\n\nDid you mean to run meson from the directory: "{}"?'.format((error), (found)))
             else:
-                raise InvalidCode(f'Invalid source tree: {error}')
+                raise InvalidCode('Invalid source tree: {}'.format((error)))
 
     def run(self) -> None:
         # Evaluate everything after the first line, which is project() because
@@ -261,10 +261,10 @@ class InterpreterBase:
             if isinstance(result, Disabler):
                 return result
             if not isinstance(result, InterpreterObject):
-                raise mesonlib.MesonBugException(f'Argument to not ({result}) is not an InterpreterObject but {type(result).__name__}.')
+                raise mesonlib.MesonBugException('Argument to not ({}) is not an InterpreterObject but {}.'.format((result), (type(result).__name__)))
             res = result.operator_call(MesonOperator.BOOL, None)
             if not isinstance(res, bool):
-                raise InvalidCode(f'If clause {result!r} does not evaluate to true or false.')
+                raise InvalidCode('If clause {!r} does not evaluate to true or false.'.format((result)))
             if res:
                 prev_meson_version = mesonlib.project_meson_versions[self.subproject]
                 if self.tmp_meson_version:
@@ -376,12 +376,12 @@ class InterpreterBase:
             try:
                 val = _unholder(self.variables[var])
                 if not isinstance(val, (str, int, float, bool)):
-                    raise InvalidCode(f'Identifier "{var}" does not name a formattable variable ' +
+                    raise InvalidCode('Identifier "{}" does not name a formattable variable '.format((var)) +
                                       '(has to be an integer, a string, a floating point number or a boolean).')
 
                 return str(val)
             except KeyError:
-                raise InvalidCode(f'Identifier "{var}" does not name a variable.')
+                raise InvalidCode('Identifier "{}" does not name a variable.'.format((var)))
 
         res = re.sub(r'@([_a-zA-Z][_0-9a-zA-Z]*)@', replace, node.value)
         return self._holderify(res)
@@ -394,18 +394,18 @@ class InterpreterBase:
 
         tsize = items.iter_tuple_size()
         if len(node.varnames) != (tsize or 1):
-            raise InvalidArguments(f'Foreach expects exactly {tsize or 1} variables for iterating over objects of type {items.display_name()}')
+            raise InvalidArguments('Foreach expects exactly {} variables for iterating over objects of type {}'.format((tsize or 1), (items.display_name())))
 
         for i in items.iter_self():
             if tsize is None:
                 if isinstance(i, tuple):
-                    raise mesonlib.MesonBugException(f'Iteration of {items} returned a tuple even though iter_tuple_size() is None')
+                    raise mesonlib.MesonBugException('Iteration of {} returned a tuple even though iter_tuple_size() is None'.format((items)))
                 self.set_variable(node.varnames[0], self._holderify(i))
             else:
                 if not isinstance(i, tuple):
-                    raise mesonlib.MesonBugException(f'Iteration of {items} did not return a tuple even though iter_tuple_size() is {tsize}')
+                    raise mesonlib.MesonBugException('Iteration of {} did not return a tuple even though iter_tuple_size() is {}'.format((items), (tsize)))
                 if len(i) != tsize:
-                    raise mesonlib.MesonBugException(f'Iteration of {items} did not return a tuple even though iter_tuple_size() is {tsize}')
+                    raise mesonlib.MesonBugException('Iteration of {} did not return a tuple even though iter_tuple_size() is {}'.format((items), (tsize)))
                 for j in range(tsize):
                     self.set_variable(node.varnames[j], self._holderify(i[j]))
             try:
@@ -472,13 +472,13 @@ class InterpreterBase:
         if is_disabled(args, kwargs):
             return Disabler()
         if not isinstance(obj, InterpreterObject):
-            raise InvalidArguments(f'Variable "{object_name}" is not callable.')
+            raise InvalidArguments('Variable "{}" is not callable.'.format((object_name)))
         # TODO: InterpreterBase **really** shouldn't be in charge of checking this
         if method_name == 'extract_objects':
             if isinstance(obj, ObjectHolder):
                 self.validate_extraction(obj.held_object)
             elif not isinstance(obj, Disabler):
-                raise InvalidArguments(f'Invalid operation "extract_objects" on variable "{object_name}" of type {type(obj).__name__}')
+                raise InvalidArguments('Invalid operation "extract_objects" on variable "{}" of type {}'.format((object_name), (type(obj).__name__)))
         obj.current_node = node
         res = obj.method_call(method_name, args, kwargs)
         return self._holderify(res) if res is not None else None
@@ -495,12 +495,12 @@ class InterpreterBase:
             for typ, cls in self.bound_holder_map.items():
                 if isinstance(res, typ):
                     return cls(res, T.cast('Interpreter', self))
-            raise mesonlib.MesonBugException(f'Object {res} of type {type(res).__name__} is neither in self.holder_map nor self.bound_holder_map.')
+            raise mesonlib.MesonBugException('Object {} of type {} is neither in self.holder_map nor self.bound_holder_map.'.format((res), (type(res).__name__)))
         elif isinstance(res, ObjectHolder):
-            raise mesonlib.MesonBugException(f'Returned object {res} of type {type(res).__name__} is an object holder.')
+            raise mesonlib.MesonBugException('Returned object {} of type {} is an object holder.'.format((res), (type(res).__name__)))
         elif isinstance(res, MesonInterpreterObject):
             return res
-        raise mesonlib.MesonBugException(f'Unknown returned object {res} of type {type(res).__name__} in the parameters.')
+        raise mesonlib.MesonBugException('Unknown returned object {} of type {} in the parameters.'.format((res), (type(res).__name__)))
 
     def _unholder_args(self,
                        args: T.List[InterpreterObject],
@@ -508,7 +508,7 @@ class InterpreterBase:
         return [_unholder(x) for x in args], {k: _unholder(v) for k, v in kwargs.items()}
 
     def unknown_function_called(self, func_name: str) -> None:
-        raise InvalidCode(f'Unknown function "{func_name}".')
+        raise InvalidCode('Unknown function "{}".'.format((func_name)))
 
     def reduce_arguments(
                 self,
@@ -532,7 +532,7 @@ class InterpreterBase:
             assert isinstance(val, mparser.BaseNode)
             reduced_val = self.evaluate_statement(val)
             if reduced_val is None:
-                raise InvalidArguments(f'Value of key {reduced_key} is void.')
+                raise InvalidArguments('Value of key {} is void.'.format((reduced_key)))
             if duplicate_key_error and reduced_key in reduced_kw:
                 raise InvalidArguments(duplicate_key_error.format(reduced_key))
             reduced_kw[reduced_key] = reduced_val
@@ -550,7 +550,7 @@ class InterpreterBase:
             raise InterpreterException('Kwargs argument must not contain a "kwargs" entry. Points for thinking meta, though. :P')
         for k, v in to_expand.items():
             if k in kwargs:
-                raise InterpreterException(f'Entry "{k}" defined both as a keyword argument and in a "kwarg" entry.')
+                raise InterpreterException('Entry "{}" defined both as a keyword argument and in a "kwarg" entry.'.format((k)))
             kwargs[k] = self._holderify(v)
         return kwargs
 
@@ -579,13 +579,13 @@ class InterpreterBase:
         else:
             # Ensure that we are always storing ObjectHolders
             if not isinstance(variable, InterpreterObject):
-                raise mesonlib.MesonBugException(f'set_variable in InterpreterBase called with a non InterpreterObject {variable} of type {type(variable).__name__}')
+                raise mesonlib.MesonBugException('set_variable in InterpreterBase called with a non InterpreterObject {} of type {}'.format((variable), (type(variable).__name__)))
         if not isinstance(varname, str):
             raise InvalidCode('First argument to set_variable must be a string.')
         if re.match('[_a-zA-Z][_0-9a-zA-Z]*$', varname) is None:
             raise InvalidCode('Invalid variable name: ' + varname)
         if varname in self.builtin:
-            raise InvalidCode(f'Tried to overwrite internal variable "{varname}"')
+            raise InvalidCode('Tried to overwrite internal variable "{}"'.format((varname)))
         self.variables[varname] = variable
 
     def get_variable(self, varname: str) -> InterpreterObject:
@@ -593,7 +593,7 @@ class InterpreterBase:
             return self.builtin[varname]
         if varname in self.variables:
             return self.variables[varname]
-        raise InvalidCode(f'Unknown variable "{varname}".')
+        raise InvalidCode('Unknown variable "{}".'.format((varname)))
 
     def validate_extraction(self, buildtarget: mesonlib.HoldableObject) -> None:
         raise InterpreterException('validate_extraction is not implemented in this context (please file a bug)')

@@ -79,10 +79,10 @@ class DictHolder(ObjectHolder[T.Dict[str, TYPE_var]], IterableObject):
             return self.held_object[args[0]]
         if args[1] is not None:
             return args[1]
-        raise InvalidArguments(f'Key {args[0]!r} is not in the dictionary.')
+        raise InvalidArguments('Key {!r} is not in the dictionary.'.format((args[0])))
 
     @typed_operator(MesonOperator.INDEX, str)
     def op_index(self, other: str) -> TYPE_var:
         if other not in self.held_object:
-            raise InvalidArguments(f'Key {other} is not in the dictionary.')
+            raise InvalidArguments('Key {} is not in the dictionary.'.format((other)))
         return self.held_object[other]

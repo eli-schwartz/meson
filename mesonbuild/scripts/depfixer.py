@@ -175,20 +175,20 @@ class Elf(DataSizes):
             # This script gets called to non-elf targets too
             # so just ignore them.
             if self.verbose:
-                print(f'File {self.bfile!r} is not an ELF file.')
+                print('File {!r} is not an ELF file.'.format((self.bfile)))
             sys.exit(0)
         if data[4] == 1:
             ptrsize = 32
         elif data[4] == 2:
             ptrsize = 64
         else:
-            sys.exit(f'File {self.bfile!r} has unknown ELF class.')
+            sys.exit('File {!r} has unknown ELF class.'.format((self.bfile)))
         if data[5] == 1:
             is_le = True
         elif data[5] == 2:
             is_le = False
         else:
-            sys.exit(f'File {self.bfile!r} has unknown ELF endianness.')
+            sys.exit('File {!r} has unknown ELF endianness.'.format((self.bfile)))
         return ptrsize, is_le
 
     def parse_header(self) -> None:
@@ -323,7 +323,7 @@ class Elf(DataSizes):
         rp_off = self.get_entry_offset(entrynum)
         if rp_off is None:
             if self.verbose:
-                print(f'File {fname!r} does not have an rpath. It should be a fully static executable.')
+                print('File {!r} does not have an rpath. It should be a fully static executable.'.format((fname)))
             return
         self.bf.seek(rp_off)
 

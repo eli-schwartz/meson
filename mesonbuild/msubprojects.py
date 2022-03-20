@@ -71,12 +71,12 @@ class Logger:
             self.should_erase_line = ''
 
     def print_progress(self) -> None:
-        line = f'Progress: {self.completed_tasks} / {self.total_tasks}'
+        line = 'Progress: {} / {}'.format((self.completed_tasks), (self.total_tasks))
         max_len = shutil.get_terminal_size().columns - len(line)
         running = ', '.join(self.running_tasks)
         if len(running) + 3 > max_len:
             running = running[:max_len - 6] + '...'
-        line = line + f' ({running})'
+        line = line + ' ({})'.format((running))
         print(self.should_erase_line, line, sep='', end='\r')
         self.should_erase_line = '\x1b[K'
 
@@ -289,7 +289,7 @@ class Runner:
                 self.log(mlog.red(str(e)))
                 return False
         elif url != origin_url:
-            self.log(f'  -> URL changed from {origin_url!r} to {url!r}')
+            self.log('  -> URL changed from {!r} to {!r}'.format((origin_url), (url)))
             return False
         try:
             # Same as `git branch --show-current` but compatible with older git version
@@ -387,7 +387,7 @@ class Runner:
         return True
 
     def update(self) -> bool:
-        self.log(f'Updating {self.wrap.name}...')
+        self.log('Updating {}...'.format((self.wrap.name)))
         if self.wrap.type == 'file':
             return self.update_file()
         elif self.wrap.type == 'git':
@@ -411,14 +411,14 @@ class Runner:
         if not branch_name:
             # It could be a detached git submodule for example.
             return True
-        self.log(f'Checkout {branch_name} in {self.wrap.name}...')
+        self.log('Checkout {} in {}...'.format((branch_name), (self.wrap.name)))
         if self.git_checkout(branch_name, create=options.b):
             self.git_show()
             return True
         return False
 
     def download(self) -> bool:
-        self.log(f'Download {self.wrap.name}...')
+        self.log('Download {}...'.format((self.wrap.name)))
         if os.path.isdir(self.repo_dir):
             self.log('  -> Already downloaded')
             return True
@@ -433,7 +433,7 @@ class Runner:
     def foreach(self) -> bool:
         options = T.cast('ForeachArguments', self.options)
 
-        self.log(f'Executing command in {self.repo_dir}')
+        self.log('Executing command in {}'.format((self.repo_dir)))
         if not os.path.isdir(self.repo_dir):
             self.log('  -> Not downloaded yet')
             return True
@@ -459,13 +459,13 @@ class Runner:
             redirect_file = Path(self.wrap.original_filename).resolve()
             if options.confirm:
                 redirect_file.unlink()
-            mlog.log(f'Deleting {redirect_file}')
+            mlog.log('Deleting {}'.format((redirect_file)))
 
         if self.wrap.type == 'redirect':
             redirect_file = Path(self.wrap.filename).resolve()
             if options.confirm:
                 redirect_file.unlink()
-            self.log(f'Deleting {redirect_file}')
+            self.log('Deleting {}'.format((redirect_file)))
 
         if options.include_cache:
             packagecache = Path(self.wrap_resolver.cachedir).resolve()
@@ -474,7 +474,7 @@ class Runner:
                 if subproject_cache_file.is_file():
                     if options.confirm:
                         subproject_cache_file.unlink()
-                    self.log(f'Deleting {subproject_cache_file}')
+                    self.log('Deleting {}'.format((subproject_cache_file)))
             except WrapException:
                 pass
 
@@ -483,7 +483,7 @@ class Runner:
                 if subproject_patch_file.is_file():
                     if options.confirm:
                         subproject_patch_file.unlink()
-                    self.log(f'Deleting {subproject_patch_file}')
+                    self.log('Deleting {}'.format((subproject_patch_file)))
             except WrapException:
                 pass
 
@@ -505,7 +505,7 @@ class Runner:
         if subproject_source_dir.is_symlink():
             if options.confirm:
                 subproject_source_dir.unlink()
-            self.log(f'Deleting {subproject_source_dir}')
+            self.log('Deleting {}'.format((subproject_source_dir)))
             return True
         if not subproject_source_dir.is_dir():
             return True
@@ -513,9 +513,9 @@ class Runner:
         try:
             if options.confirm:
                 windows_proof_rmtree(str(subproject_source_dir))
-            self.log(f'Deleting {subproject_source_dir}')
+            self.log('Deleting {}'.format((subproject_source_dir)))
         except OSError as e:
-            mlog.error(f'Unable to remove: {subproject_source_dir}: {e}')
+            mlog.error('Unable to remove: {}: {}'.format((subproject_source_dir), (e)))
             return False
 
         return True
@@ -534,7 +534,7 @@ class Runner:
             print('error: --apply and --save are mutually exclusive')
             return False
         if options.apply:
-            self.log(f'Re-applying patchfiles overlay for {self.wrap.name}...')
+            self.log('Re-applying patchfiles overlay for {}...'.format((self.wrap.name)))
             if not os.path.isdir(self.repo_dir):
                 self.log('  -> Not downloaded yet')
                 return True
@@ -556,7 +556,7 @@ class Runner:
             archive_files = read_archive_files(archive_path, base_path)
             directory_files = set(directory.glob('**/*'))
 
-            self.log(f'Saving {self.wrap.name} to {packagefiles}...')
+            self.log('Saving {} to {}...'.format((self.wrap.name), (packagefiles)))
             shutil.rmtree(packagefiles)
             for src_path in directory_files - archive_files:
                 if not src_path.is_file():
@@ -572,7 +572,7 @@ def add_common_arguments(p: argparse.ArgumentParser) -> None:
     p.add_argument('--sourcedir', default='.',
                    help='Path to source directory')
     p.add_argument('--types', default='',
-                   help=f'Comma-separated list of subproject types. Supported types are: {ALL_TYPES_STRING} (default: all)')
+                   help='Comma-separated list of subproject types. Supported types are: {} (default: all)'.format((ALL_TYPES_STRING)))
     p.add_argument('--num-processes', default=None, type=int,
                    help='How many parallel processes to use (Since 0.59.0).')
 
@@ -651,7 +651,7 @@ def run(options: 'Arguments') -> int:
     types = [t.strip() for t in options.types.split(',')] if options.types else []
     for t in types:
         if t not in ALL_TYPES:
-            raise MesonException(f'Unknown subproject type {t!r}, supported types are: {ALL_TYPES_STRING}')
+            raise MesonException('Unknown subproject type {!r}, supported types are: {}'.format((t), (ALL_TYPES_STRING)))
     tasks: T.List[T.Awaitable[bool]] = []
     task_names: T.List[str] = []
     loop = asyncio.get_event_loop()

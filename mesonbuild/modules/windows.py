@@ -162,8 +162,8 @@ class WindowsModule(ExtensionModule):
                                           state.subproject, location=state.current_node)
                     # This dance avoids a case where two indexs of the same
                     # target are given as separate arguments.
-                    yield (f'{src.get_id()}_{src.target.get_outputs().index(src.output)}',
-                           f'windows_compile_resources_{src.get_filename()}', src)
+                    yield ('{}_{}'.format((src.get_id()), (src.target.get_outputs().index(src.output))),
+                           'windows_compile_resources_{}'.format((src.get_filename())), src)
                 else:
                     if len(src.get_outputs()) > 1:
                         FeatureNew.single_use('windows.compile_resource CustomTarget with multiple outputs in positional arguments',
@@ -171,20 +171,20 @@ class WindowsModule(ExtensionModule):
                     for i, out in enumerate(src.get_outputs()):
                         # Chances are that src.get_filename() is already the name of that
                         # target, add a prefix to avoid name clash.
-                        yield f'{src.get_id()}_{i}', f'windows_compile_resources_{i}_{out}', src[i]
+                        yield '{}_{}'.format((src.get_id()), (i)), 'windows_compile_resources_{}_{}'.format((i), (out)), src[i]
 
         for name, name_formatted, src in get_names():
             # Path separators are not allowed in target names
             name = name.replace('/', '_').replace('\\', '_').replace(':', '_')
             name_formatted = name_formatted.replace('/', '_').replace('\\', '_').replace(':', '_')
-            output = f'{name}_@BASENAME@.{suffix}'
+            output = '{}_@BASENAME@.{}'.format((name), (suffix))
             command: T.List[T.Union[str, ExternalProgram]] = []
             command.append(rescomp)
             command.extend(res_args)
             depfile: T.Optional[str] = None
             # instruct binutils windres to generate a preprocessor depfile
             if rescomp_type == ResourceCompilerType.windres:
-                depfile = f'{output}.d'
+                depfile = '{}.d'.format((output))
                 command.extend(['--preprocessor-arg=-MD',
                                 '--preprocessor-arg=-MQ@OUTPUT@',
                                 '--preprocessor-arg=-MF@DEPFILE@'])

@@ -23,7 +23,7 @@ def _unholder(obj: InterpreterObject) -> TYPE_var:
     elif isinstance(obj, MesonInterpreterObject):
         return obj
     elif isinstance(obj, HoldableObject):
-        raise MesonBugException(f'Argument {obj} of type {type(obj).__name__} is not held by an ObjectHolder.')
+        raise MesonBugException('Argument {} of type {} is not held by an ObjectHolder.'.format((obj), (type(obj).__name__)))
     elif isinstance(obj, InterpreterObject):
-        raise InvalidArguments(f'Argument {obj} of type {type(obj).__name__} cannot be passed to a method or function')
-    raise MesonBugException(f'Unknown object {obj} of type {type(obj).__name__} in the parameters.')
+        raise InvalidArguments('Argument {} of type {} cannot be passed to a method or function'.format((obj), (type(obj).__name__)))
+    raise MesonBugException('Unknown object {} of type {} in the parameters.'.format((obj), (type(obj).__name__)))

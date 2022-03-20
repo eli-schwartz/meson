@@ -126,7 +126,7 @@ class RustCompiler(Compiler):
             if i[:2] == '-L':
                 for j in ['dependency', 'crate', 'native', 'framework', 'all']:
                     combined_len = len(j) + 3
-                    if i[:combined_len] == f'-L{j}=':
+                    if i[:combined_len] == '-L{}='.format((j)):
                         parameter_list[idx] = i[:combined_len] + os.path.normpath(os.path.join(build_dir, i[combined_len:]))
                         break
 
@@ -137,7 +137,7 @@ class RustCompiler(Compiler):
 
     @classmethod
     def use_linker_args(cls, linker: str) -> T.List[str]:
-        return ['-C', f'linker={linker}']
+        return ['-C', 'linker={}'.format((linker))]
 
     # Rust does not have a use_linker_args because it dispatches to a gcc-like
     # C compiler for dynamic linking, as such we invoke the C compiler's
@@ -167,13 +167,13 @@ class RustCompiler(Compiler):
 
     def get_colorout_args(self, colortype: str) -> T.List[str]:
         if colortype in {'always', 'never', 'auto'}:
-            return [f'--color={colortype}']
-        raise MesonException(f'Invalid color type for rust {colortype}')
+            return ['--color={}'.format((colortype))]
+        raise MesonException('Invalid color type for rust {}'.format((colortype)))
 
     def get_linker_always_args(self) -> T.List[str]:
         args: T.List[str] = []
         for a in super().get_linker_always_args():
-            args.extend(['-C', f'link-arg={a}'])
+            args.extend(['-C', 'link-arg={}'.format((a))])
         return args
 
     def get_werror_args(self) -> T.List[str]:

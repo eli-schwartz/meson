@@ -131,8 +131,8 @@ class ClangCompiler(GnuLikeCompiler):
         if shutil.which(linker):
             if not shutil.which(linker):
                 raise mesonlib.MesonException(
-                    f'Cannot find linker {linker}.')
-            return [f'-fuse-ld={linker}']
+                    'Cannot find linker {}.'.format((linker)))
+            return ['-fuse-ld={}'.format((linker))]
         return super().use_linker_args(linker)
 
     def get_has_func_attribute_extra_args(self, name: str) -> T.List[str]:
@@ -148,8 +148,8 @@ class ClangCompiler(GnuLikeCompiler):
         if mode == 'thin':
             # Thin LTO requires the use of gold, lld, ld64, or lld-link
             if not isinstance(self.linker, (AppleDynamicLinker, ClangClDynamicLinker, LLVMDynamicLinker, GnuGoldDynamicLinker)):
-                raise mesonlib.MesonException(f"LLVM's thinLTO only works with gnu gold, lld, lld-link, and ld64, not {self.linker.id}")
-            args.append(f'-flto={mode}')
+                raise mesonlib.MesonException("LLVM's thinLTO only works with gnu gold, lld, lld-link, and ld64, not {}".format((self.linker.id)))
+            args.append('-flto={}'.format((mode)))
         else:
             assert mode == 'default', 'someone forgot to wire something up'
             args.extend(super().get_lto_compile_args(threads=threads))
@@ -161,5 +161,5 @@ class ClangCompiler(GnuLikeCompiler):
         if threads > 0:
             if not mesonlib.version_compare(self.version, '>=4.0.0'):
                 raise mesonlib.MesonException('clang support for LTO threads requires clang >=4.0')
-            args.append(f'-flto-jobs={threads}')
+            args.append('-flto-jobs={}'.format((threads)))
         return args

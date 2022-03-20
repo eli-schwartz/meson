@@ -69,14 +69,14 @@ class CMakeExecutor:
         # Only search for CMake the first time and store the result in the class
         # definition
         if isinstance(CMakeExecutor.class_cmakebin[self.for_machine], NonExistingExternalProgram):
-            mlog.debug(f'CMake binary for {self.for_machine} is cached as not found')
+            mlog.debug('CMake binary for {} is cached as not found'.format((self.for_machine)))
             return None, None
         elif CMakeExecutor.class_cmakebin[self.for_machine] is not None:
-            mlog.debug(f'CMake binary for {self.for_machine} is cached.')
+            mlog.debug('CMake binary for {} is cached.'.format((self.for_machine)))
         else:
             assert CMakeExecutor.class_cmakebin[self.for_machine] is None
 
-            mlog.debug(f'CMake binary for {self.for_machine} is not cached')
+            mlog.debug('CMake binary for {} is not cached'.format((self.for_machine)))
             for potential_cmakebin in find_external_program(
                     environment, self.for_machine, 'cmake', 'CMake',
                     environment.default_cmake, allow_default_for_cross=False):
@@ -85,7 +85,7 @@ class CMakeExecutor:
                     continue
                 if not silent:
                     mlog.log('Found CMake:', mlog.bold(potential_cmakebin.get_path()),
-                             f'({version_if_ok})')
+                             '({})'.format((version_if_ok)))
                 CMakeExecutor.class_cmakebin[self.for_machine] = potential_cmakebin
                 CMakeExecutor.class_cmakevers[self.for_machine] = version_if_ok
                 break
@@ -102,7 +102,7 @@ class CMakeExecutor:
 
     def check_cmake(self, cmakebin: 'ExternalProgram') -> T.Optional[str]:
         if not cmakebin.found():
-            mlog.log(f'Did not find CMake {cmakebin.name!r}')
+            mlog.log('Did not find CMake {!r}'.format((cmakebin.name)))
             return None
         try:
             p, out = Popen_safe(cmakebin.get_command() + ['--version'])[0:2]
@@ -200,9 +200,9 @@ class CMakeExecutor:
         return rc, out, err
 
     def _call_impl(self, args: T.List[str], build_dir: Path, env: T.Optional[T.Dict[str, str]]) -> TYPE_result:
-        mlog.debug(f'Calling CMake ({self.cmakebin.get_command()}) in {build_dir} with:')
+        mlog.debug('Calling CMake ({}) in {} with:'.format((self.cmakebin.get_command()), (build_dir)))
         for i in args:
-            mlog.debug(f'  - "{i}"')
+            mlog.debug('  - "{}"'.format((i)))
         if not self.print_cmout:
             return self._call_quiet(args, build_dir, env)
         else:

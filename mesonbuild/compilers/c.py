@@ -59,7 +59,7 @@ class CCompiler(CLikeCompiler, Compiler):
         try:
             return C_FUNC_ATTRIBUTES[name]
         except KeyError:
-            raise MesonException(f'Unknown function attribute "{name}"')
+            raise MesonException('Unknown function attribute "{}"'.format((name)))
 
     language = 'c'
 
@@ -495,7 +495,7 @@ class ClangClCCompiler(_ClangCStds, ClangClCompiler, VisualStudioLikeCCompilerMi
         key = OptionKey('std', machine=self.for_machine, lang=self.language)
         std = options[key].value
         if std != "none":
-            return [f'/clang:-std={std}']
+            return ['/clang:-std={}'.format((std))]
         return []
 
 
@@ -596,7 +596,7 @@ class CcrxCCompiler(CcrxCompiler, CCompiler):
         return ['-optimize=0']
 
     def get_output_args(self, target: str) -> T.List[str]:
-        return [f'-output=obj={target}']
+        return ['-output=obj={}'.format((target))]
 
     def get_werror_args(self) -> T.List[str]:
         return ['-change_message=error']
@@ -642,7 +642,7 @@ class Xc16CCompiler(Xc16Compiler, CCompiler):
         return ['-O0']
 
     def get_output_args(self, target: str) -> T.List[str]:
-        return [f'-o{target}']
+        return ['-o{}'.format((target))]
 
     def get_werror_args(self) -> T.List[str]:
         return ['-change_message=error']
@@ -675,7 +675,7 @@ class CompCertCCompiler(CompCertCompiler, CCompiler):
         return ['-O0']
 
     def get_output_args(self, target: str) -> T.List[str]:
-        return [f'-o{target}']
+        return ['-o{}'.format((target))]
 
     def get_werror_args(self) -> T.List[str]:
         return ['-Werror']

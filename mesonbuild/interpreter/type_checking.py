@@ -28,7 +28,7 @@ def in_set_validator(choices: T.Set[str]) -> T.Callable[[str], T.Optional[str]]:
 
     def inner(check: str) -> T.Optional[str]:
         if check not in choices:
-            return f"must be one of {', '.join(sorted(choices))}, not {check}"
+            return "must be one of {}, not {}".format((', '.join(sorted(choices))), (check))
         return None
 
     return inner
@@ -41,7 +41,7 @@ def _language_validator(l: T.List[str]) -> T.Optional[str]:
     """
     diff = {a.lower() for a in l}.difference(compilers.all_languages)
     if diff:
-        return f'unknown languages: {", ".join(diff)}'
+        return 'unknown languages: {}'.format((", ".join(diff)))
     return None
 
 
@@ -66,18 +66,18 @@ def _install_mode_validator(mode: T.List[T.Union[str, bool, int]]) -> T.Optional
     if isinstance(perms, str):
         if not len(perms) == 9:
             return ('permissions string must be exactly 9 characters in the form rwxr-xr-x,'
-                    f' got {len(perms)}')
+                    ' got {}'.format((len(perms))))
         for i in [0, 3, 6]:
             if perms[i] not in {'-', 'r'}:
-                return f'permissions character {i+1} must be "-" or "r", not {perms[i]}'
+                return 'permissions character {} must be "-" or "r", not {}'.format((i+1), (perms[i]))
         for i in [1, 4, 7]:
             if perms[i] not in {'-', 'w'}:
-                return f'permissions character {i+1} must be "-" or "w", not {perms[i]}'
+                return 'permissions character {} must be "-" or "w", not {}'.format((i+1), (perms[i]))
         for i in [2, 5]:
             if perms[i] not in {'-', 'x', 's', 'S'}:
-                return f'permissions character {i+1} must be "-", "s", "S", or "x", not {perms[i]}'
+                return 'permissions character {} must be "-", "s", "S", or "x", not {}'.format((i+1), (perms[i]))
         if perms[8] not in {'-', 'x', 't', 'T'}:
-            return f'permission character 9 must be "-", "t", "T", or "x", not {perms[8]}'
+            return 'permission character 9 must be "-", "t", "T", or "x", not {}'.format((perms[8]))
 
         if len(mode) >= 2 and not isinstance(mode[1], (int, str, bool)):
             return 'second componenent can only be a string, number, or False'
@@ -142,7 +142,7 @@ def _env_validator(value: T.Union[EnvironmentVariables, T.List['TYPE_var'], T.Di
     def _splitter(v: str) -> T.Optional[str]:
         split = v.split('=', 1)
         if len(split) == 1:
-            return f'"{v}" is not two string values separated by an "="'
+            return '"{}" is not two string values separated by an "="'.format((v))
         return None
 
     if isinstance(value, str):
@@ -152,7 +152,7 @@ def _env_validator(value: T.Union[EnvironmentVariables, T.List['TYPE_var'], T.Di
     elif isinstance(value, list):
         for i in listify(value):
             if not isinstance(i, str):
-                return f"All array elements must be a string, not {i!r}"
+                return "All array elements must be a string, not {!r}".format((i))
             v = _splitter(i)
             if v is not None:
                 return v
@@ -161,9 +161,9 @@ def _env_validator(value: T.Union[EnvironmentVariables, T.List['TYPE_var'], T.Di
         for k, dv in value.items():
             if allow_dict_list:
                 if any(i for i in listify(dv) if not isinstance(i, str)):
-                    return f"Dictionary element {k} must be a string or list of strings not {dv!r}"
+                    return "Dictionary element {} must be a string or list of strings not {!r}".format((k), (dv))
             elif not isinstance(dv, str):
-                return f"Dictionary element {k} must be a string not {dv!r}"
+                return "Dictionary element {} must be a string not {!r}".format((k), (dv))
     # We know that otherwise we have an EnvironmentVariables object or None, and
     # we're okay at this point
     return None
@@ -262,9 +262,9 @@ def _output_validator(outputs: T.List[str]) -> T.Optional[str]:
         elif i.strip() == '':
             return 'Output must not consist only of whitespace.'
         elif has_path_sep(i):
-            return f'Output {i!r} must not contain a path segment.'
+            return 'Output {!r} must not contain a path segment.'.format((i))
         elif '@INPUT' in i:
-            return f'output {i!r} contains "@INPUT", which is invalid. Did you mean "@PLAINNAME@" or "@BASENAME@?'
+            return 'output {!r} contains "@INPUT", which is invalid. Did you mean "@PLAINNAME@" or "@BASENAME@?'.format((i))
 
     return None
 

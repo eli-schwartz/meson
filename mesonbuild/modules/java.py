@@ -50,9 +50,9 @@ class JavaModule(NewExtensionModule):
             file = mesonlib.File.from_source_file(state.source_root, state.subdir, args[0])
 
         if package:
-            header = f'{package.replace(".", "_")}_{pathlib.Path(file.fname).stem}.h'
+            header = '{}_{}.h'.format((package.replace(".", "_")), (pathlib.Path(file.fname).stem))
         else:
-            header = f'{pathlib.Path(file.fname).stem}.h'
+            header = '{}.h'.format((pathlib.Path(file.fname).stem))
 
         javac = self.__get_java_compiler(state)
 
@@ -95,9 +95,9 @@ class JavaModule(NewExtensionModule):
         for clazz in classes:
             underscore_clazz = clazz.replace(".", "_")
             if package:
-                headers.append(f'{package.replace(".", "_")}_{underscore_clazz}.h')
+                headers.append('{}_{}.h'.format((package.replace(".", "_")), (underscore_clazz)))
             else:
-                headers.append(f'{underscore_clazz}.h')
+                headers.append('{}.h'.format((underscore_clazz)))
 
         javac = self.__get_java_compiler(state)
 
@@ -112,7 +112,7 @@ class JavaModule(NewExtensionModule):
 
         prefix = classes[0] if not package else package
 
-        target = CustomTarget(f'{prefix}-native-headers', state.subdir, state.subproject, command,
+        target = CustomTarget('{}-native-headers'.format((prefix)), state.subdir, state.subproject, command,
                               sources=args[0], outputs=headers, backend=state.backend)
 
         # It is only known that 1.8.0 won't pre-create the directory. 11 and 16

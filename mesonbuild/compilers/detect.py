@@ -241,7 +241,7 @@ def _get_compilers(env: 'Environment', lang: str, for_machine: MachineChoice) ->
         compilers = [comp]
     else:
         if not env.machines.matches_build_machine(for_machine):
-            raise EnvironmentException(f'{lang!r} compiler binary not defined in cross or native file')
+            raise EnvironmentException('{!r} compiler binary not defined in cross or native file'.format((lang)))
         compilers = [[x] for x in defaults[lang]]
         ccache = BinaryTable.detect_compiler_cache()
 
@@ -256,11 +256,11 @@ def _handle_exceptions(
         exceptions: T.Mapping[str, T.Union[Exception, str]],
         binaries: T.List[T.List[str]],
         bintype: str = 'compiler') -> T.NoReturn:
-    errmsg = f'Unknown {bintype}(s): {binaries}'
+    errmsg = 'Unknown {}(s): {}'.format((bintype), (binaries))
     if exceptions:
         errmsg += '\nThe following exception(s) were encountered:'
         for c, e in exceptions.items():
-            errmsg += f'\nRunning "{c}" gave "{e}"'
+            errmsg += '\nRunning "{}" gave "{}"'.format((c), (e))
     raise EnvironmentException(errmsg)
 
 
@@ -573,13 +573,13 @@ def _detect_c_or_cpp_compiler(env: 'Environment', lang: str, for_machine: Machin
                 if version != 'unknown version':
                     break
             else:
-                raise EnvironmentException(f'Failed to detect MSVC compiler version: stderr was\n{err!r}')
+                raise EnvironmentException('Failed to detect MSVC compiler version: stderr was\n{!r}'.format((err)))
             cl_signature = lookat.split('\n')[0]
             match = re.search(r'.*(x86|x64|ARM|ARM64)([^_A-Za-z0-9]|$)', cl_signature)
             if match:
                 target = match.group(1)
             else:
-                m = f'Failed to detect MSVC compiler target architecture: \'cl /?\' output is\n{cl_signature}'
+                m = 'Failed to detect MSVC compiler target architecture: \'cl /?\' output is\n{}'.format((cl_signature))
                 raise EnvironmentException(m)
             cls = VisualStudioCCompiler if lang == 'c' else VisualStudioCPPCompiler
             linker = guess_win_linker(env, ['link'], cls, for_machine)
@@ -657,7 +657,7 @@ def _detect_c_or_cpp_compiler(env: 'Environment', lang: str, for_machine: Machin
                 exe_wrap, full_version=full_version, linker=linker)
 
     _handle_exceptions(popen_exceptions, compilers)
-    raise EnvironmentException(f'Unknown compiler {compilers}')
+    raise EnvironmentException('Unknown compiler {}'.format((compilers)))
 
 def detect_c_compiler(env: 'Environment', for_machine: MachineChoice) -> Compiler:
     return _detect_c_or_cpp_compiler(env, 'c', for_machine)
@@ -698,7 +698,7 @@ def detect_cuda_compiler(env: 'Environment', for_machine: MachineChoice) -> Comp
         env.coredata.add_lang_args(cls.language, cls, for_machine, env)
         linker = CudaLinker(compiler, for_machine, CudaCompiler.LINKER_PREFIX, [], version=CudaLinker.parse_version())
         return cls(ccache + compiler, version, for_machine, is_cross, exe_wrap, host_compiler=cpp_compiler, info=info, linker=linker)
-    raise EnvironmentException(f'Could not find suitable CUDA compiler: "{"; ".join([" ".join(c) for c in compilers])}"')
+    raise EnvironmentException('Could not find suitable CUDA compiler: "{}"'.format(("; ".join([" ".join(c) for c in compilers]))))
 
 def detect_fortran_compiler(env: 'Environment', for_machine: MachineChoice) -> Compiler:
     popen_exceptions: T.Dict[str, T.Union[Exception, str]] = {}
@@ -1044,7 +1044,7 @@ def detect_rust_compiler(env: 'Environment', for_machine: MachineChoice) -> Rust
 
                     # Also ensure that we pass any extra arguments to the linker
                     for l in exelist:
-                        compiler.extend(['-C', f'link-arg={l}'])
+                        compiler.extend(['-C', 'link-arg={}'.format((l))])
 
                 # This trickery with type() gets us the class of the linker
                 # so we can initialize a new copy for the Rust Compiler
@@ -1111,8 +1111,8 @@ def detect_d_compiler(env: 'Environment', for_machine: MachineChoice) -> Compile
         # up to date language version at time (2016).
         if os.path.basename(exelist[-1]).startswith(('ldmd', 'gdmd')):
             raise EnvironmentException(
-                f'Meson does not support {exelist[-1]} as it is only a DMD frontend for another compiler.'
-                'Please provide a valid value for DC or unset it so that Meson can resolve the compiler by itself.')
+                'Meson does not support {} as it is only a DMD frontend for another compiler.'
+                'Please provide a valid value for DC or unset it so that Meson can resolve the compiler by itself.'.format((exelist[-1])))
         try:
             p, out = Popen_safe(exelist + ['--version'])[0:2]
         except OSError as e:

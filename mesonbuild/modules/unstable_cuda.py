@@ -296,7 +296,7 @@ class CudaModule(NewExtensionModule):
                 }.get(arch_name, (None, None))
 
             if arch_bin is None:
-                raise InvalidArguments(f'Unknown CUDA Architecture Name {arch_name}!')
+                raise InvalidArguments('Unknown CUDA Architecture Name {}!'.format((arch_name)))
 
             cuda_arch_bin += arch_bin
 

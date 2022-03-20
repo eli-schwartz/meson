@@ -241,7 +241,7 @@ def set_meson_command(mainfile: str) -> None:
         _meson_command = python_command + [mainfile]
     # We print this value for unit tests.
     if 'MESON_COMMAND_TESTS' in os.environ:
-        mlog.log(f'meson_command is {_meson_command!r}')
+        mlog.log('meson_command is {!r}'.format((_meson_command)))
 
 
 def get_meson_command() -> T.Optional['ImmutableListProtocol[str]']:
@@ -272,11 +272,11 @@ def check_direntry_issues(direntry_array: T.Union[T.Iterable[T.Union[str, bytes]
         for de in direntry_array:
             if is_ascii_string(de):
                 continue
-            mlog.warning(textwrap.dedent(f'''
-                You are using {e!r} which is not a Unicode-compatible
-                locale but you are trying to access a file system entry called {de!r} which is
+            mlog.warning(textwrap.dedent('''
+                You are using {!r} which is not a Unicode-compatible
+                locale but you are trying to access a file system entry called {!r} which is
                 not pure ASCII. This may cause problems.
-                '''), file=sys.stderr)
+                '''.format((e), (de))), file=sys.stderr)
 
 class HoldableObject(metaclass=abc.ABCMeta):
     ''' Dummy base class for all objects that can be
@@ -338,9 +338,9 @@ class FileMode:
             return -1
         eg = 'rwxr-xr-x'
         if not isinstance(perms_s, str):
-            raise MesonException(f'Install perms must be a string. For example, {eg!r}')
+            raise MesonException('Install perms must be a string. For example, {!r}'.format((eg)))
         if len(perms_s) != 9 or not cls.symbolic_perms_regex.match(perms_s):
-            raise MesonException(f'File perms {perms_s!r} must be exactly 9 chars. For example, {eg!r}')
+            raise MesonException('File perms {!r} must be exactly 9 chars. For example, {!r}'.format((perms_s), (eg)))
         perms = 0
         # Owner perms
         if perms_s[0] == 'r':
@@ -410,7 +410,7 @@ class File(HoldableObject):
     @lru_cache(maxsize=None)
     def from_source_file(source_root: str, subdir: str, fname: str) -> 'File':
         if not os.path.isfile(os.path.join(source_root, subdir, fname)):
-            raise MesonException(f'File {fname} does not exist.')
+            raise MesonException('File {} does not exist.'.format((fname)))
         return File(False, subdir, fname)
 
     @staticmethod
@@ -468,7 +468,7 @@ def get_compiler_for_source(compilers: T.Iterable['Compiler'], src: 'FileOrStrin
     for comp in compilers:
         if comp.can_compile(src):
             return comp
-    raise MesonException(f'No specified compiler can handle file {src!s}')
+    raise MesonException('No specified compiler can handle file {!s}'.format((src)))
 
 
 def classify_unity_sources(compilers: T.Iterable['Compiler'], sources: T.Sequence['FileOrString']) -> T.Dict['Compiler', T.List['FileOrString']]:
@@ -527,7 +527,7 @@ class PerMachine(T.Generic[_T]):
         return unfreeze
 
     def __repr__(self) -> str:
-        return f'PerMachine({self.build!r}, {self.host!r})'
+        return 'PerMachine({!r}, {!r})'.format((self.build), (self.host))
 
 
 class PerThreeMachine(PerMachine[_T]):
@@ -562,7 +562,7 @@ class PerThreeMachine(PerMachine[_T]):
         return self.build == self[machine]
 
     def __repr__(self) -> str:
-        return f'PerThreeMachine({self.build!r}, {self.host!r}, {self.target!r})'
+        return 'PerThreeMachine({!r}, {!r}, {!r})'.format((self.build), (self.host), (self.target))
 
 
 class PerMachineDefaultable(PerMachine[T.Optional[_T]]):
@@ -583,7 +583,7 @@ class PerMachineDefaultable(PerMachine[T.Optional[_T]]):
         return freeze
 
     def __repr__(self) -> str:
-        return f'PerMachineDefaultable({self.build!r}, {self.host!r})'
+        return 'PerMachineDefaultable({!r}, {!r})'.format((self.build), (self.host))
 
     @classmethod
     def default(cls, is_cross: bool, build: _T, host: _T) -> PerMachine[_T]:
@@ -621,7 +621,7 @@ class PerThreeMachineDefaultable(PerMachineDefaultable, PerThreeMachine[T.Option
         return freeze
 
     def __repr__(self) -> str:
-        return f'PerThreeMachineDefaultable({self.build!r}, {self.host!r}, {self.target!r})'
+        return 'PerThreeMachineDefaultable({!r}, {!r}, {!r})'.format((self.build), (self.host), (self.target))
 
 
 def is_sunos() -> bool:
@@ -704,7 +704,7 @@ def darwin_get_object_archs(objpath: str) -> 'ImmutableListProtocol[str]':
     '''
     _, stdo, stderr = Popen_safe(['lipo', '-info', objpath])
     if not stdo:
-        mlog.debug(f'lipo {objpath}: {stderr}')
+        mlog.debug('lipo {}: {}'.format((objpath), (stderr)))
         return None
     stdo = stdo.rsplit(': ', 1)[1]
     # Convert from lipo-style archs to meson-style CPUs
@@ -767,7 +767,7 @@ class Version:
         return '{} (V={})'.format(self._s, str(self._v))
 
     def __repr__(self) -> str:
-        return f'<Version: {self._s}>'
+        return '<Version: {}>'.format((self._s))
 
     def __lt__(self, other: object) -> bool:
         if isinstance(other, Version):
@@ -1035,7 +1035,7 @@ if is_windows():
     # https://blogs.msdn.microsoft.com/twistylittlepassagesallalike/2011/04/23/everyone-quotes-command-line-arguments-the-wrong-way/
 
     _whitespace = ' \t\n\r'
-    _find_unsafe_char = re.compile(fr'[{_whitespace}"]').search
+    _find_unsafe_char = re.compile('[{}"]'.format((_whitespace))).search
 
     def quote_arg(arg: str) -> str:
         if arg and not _find_unsafe_char(arg):
@@ -1135,8 +1135,8 @@ def do_replacement(regex: T.Pattern[str], line: str,
                 elif isinstance(var, int):
                     var_str = str(var)
                 else:
-                    msg = f'Tried to replace variable {varname!r} value with ' \
-                          f'something other than a string or int: {var!r}'
+                    msg = 'Tried to replace variable {!r} value with ' \
+                          'something other than a string or int: {!r}'.format((varname), (var))
                     raise MesonException(msg)
             else:
                 missing_variables.add(varname)
@@ -1177,7 +1177,7 @@ def do_define(regex: T.Pattern[str], line: str, confdata: 'ConfigurationData',
             result = v
         else:
             result = get_cmake_define(line, confdata)
-        result = f'#define {varname} {result}\n'
+        result = '#define {} {}\n'.format((varname), (result))
         (result, missing_variable) = do_replacement(regex, result, variable_format, confdata)
         return result
     else:
@@ -1221,7 +1221,7 @@ def do_conf_str(src: str, data: list, confdata: 'ConfigurationData',
             line = do_define(regex, line, confdata, variable_format)
         else:
             if not line_is_valid(line, variable_format):
-                raise MesonException(f'Format error in {src}: saw "{line.strip()}" when format set to "{variable_format}"')
+                raise MesonException('Format error in {}: saw "{}" when format set to "{}"'.format((src), (line.strip()), (variable_format)))
             line, missing = do_replacement(regex, line, variable_format, confdata)
             missing_variables.update(missing)
             if missing:
@@ -1237,7 +1237,7 @@ def do_conf_file(src: str, dst: str, confdata: 'ConfigurationData',
         with open(src, encoding=encoding, newline='') as f:
             data = f.readlines()
     except Exception as e:
-        raise MesonException(f'Could not read input file {src}: {e!s}')
+        raise MesonException('Could not read input file {}: {!s}'.format((src), (e)))
 
     (result, missing_variables, confdata_useless) = do_conf_str(src, data, confdata, variable_format, encoding)
     dst_tmp = dst + '~'
@@ -1245,7 +1245,7 @@ def do_conf_file(src: str, dst: str, confdata: 'ConfigurationData',
         with open(dst_tmp, 'w', encoding=encoding, newline='') as f:
             f.writelines(result)
     except Exception as e:
-        raise MesonException(f'Could not write output file {dst}: {e!s}')
+        raise MesonException('Could not write output file {}: {!s}'.format((dst), (e)))
     shutil.copymode(src, dst_tmp)
     replace_if_different(dst, dst_tmp)
     return missing_variables, confdata_useless
@@ -1285,11 +1285,11 @@ def dump_conf_header(ofilename: str, cdata: 'ConfigurationData', output_format: 
                         ofile.write('; %s\n' % line)
             if isinstance(v, bool):
                 if v:
-                    ofile.write(f'{prefix}define {k}\n\n')
+                    ofile.write('{}define {}\n\n'.format((prefix), (k)))
                 else:
-                    ofile.write(f'{prefix}undef {k}\n\n')
+                    ofile.write('{}undef {}\n\n'.format((prefix), (k)))
             elif isinstance(v, (int, str)):
-                ofile.write(f'{prefix}define {k} {v}\n\n')
+                ofile.write('{}define {} {}\n\n'.format((prefix), (k), (v)))
             else:
                 raise MesonException('Unknown data type in configuration file entry: ' + k)
     replace_if_different(ofilename, ofilename_tmp)
@@ -1460,14 +1460,14 @@ def _substitute_values_check_errors(command: T.List[str], values: T.Dict[str, T.
         # Error out if any input-derived templates are present in the command
         match = iter_regexin_iter(inregex, command)
         if match:
-            raise MesonException(f'Command cannot have {match!r}, since no input files were specified')
+            raise MesonException('Command cannot have {!r}, since no input files were specified'.format((match)))
     else:
         if len(values['@INPUT@']) > 1:
             # Error out if @PLAINNAME@ or @BASENAME@ is present in the command
             match = iter_regexin_iter(inregex[1:], command)
             if match:
-                raise MesonException(f'Command cannot have {match!r} when there is '
-                                     'more than one input file')
+                raise MesonException('Command cannot have {!r} when there is '
+                                     'more than one input file'.format((match)))
         # Error out if an invalid @INPUTnn@ template was specified
         for each in command:
             if not isinstance(each, str):
@@ -1480,7 +1480,7 @@ def _substitute_values_check_errors(command: T.List[str], values: T.Dict[str, T.
         # Error out if any output-derived templates are present in the command
         match = iter_regexin_iter(outregex, command)
         if match:
-            raise MesonException(f'Command cannot have {match!r} since there are no outputs')
+            raise MesonException('Command cannot have {!r} since there are no outputs'.format((match)))
     else:
         # Error out if an invalid @OUTPUTnn@ template was specified
         for each in command:
@@ -1592,7 +1592,7 @@ def get_filenames_templates_dict(inputs: T.List[str], outputs: T.List[str]) -> T
         values['@INPUT@'] = inputs
         for (ii, vv) in enumerate(inputs):
             # Write out @INPUT0@, @INPUT1@, ...
-            values[f'@INPUT{ii}@'] = vv
+            values['@INPUT{}@'.format((ii))] = vv
         if len(inputs) == 1:
             # Just one value, substitute @PLAINNAME@ and @BASENAME@
             values['@PLAINNAME@'] = plain = os.path.basename(inputs[0])
@@ -1601,7 +1601,7 @@ def get_filenames_templates_dict(inputs: T.List[str], outputs: T.List[str]) -> T
         # Gather values derived from the outputs, similar to above.
         values['@OUTPUT@'] = outputs
         for (ii, vv) in enumerate(outputs):
-            values[f'@OUTPUT{ii}@'] = vv
+            values['@OUTPUT{}@'.format((ii))] = vv
         # Outdir should be the same for all outputs
         values['@OUTDIR@'] = os.path.dirname(outputs[0])
         # Many external programs fail on empty arguments.
@@ -1827,7 +1827,7 @@ class ProgressBarFallback:  # lgtm [py/iter-returns-non-self]
         if self.total and bar_type == 'download':
             print('Download size:', self.total)
         if desc:
-            print(f'{desc}: ', end='')
+            print('{}: '.format((desc)), end='')
 
     # Pretend to be an iterator when called as one and don't print any
     # progress
@@ -2126,17 +2126,17 @@ class OptionKey:
     def __str__(self) -> str:
         out = self.name
         if self.lang:
-            out = f'{self.lang}_{out}'
+            out = '{}_{}'.format((self.lang), (out))
         if self.machine is MachineChoice.BUILD:
-            out = f'build.{out}'
+            out = 'build.{}'.format((out))
         if self.module:
-            out = f'{self.module}.{out}'
+            out = '{}.{}'.format((self.module), (out))
         if self.subproject:
-            out = f'{self.subproject}:{out}'
+            out = '{}:{}'.format((self.subproject), (out))
         return out
 
     def __repr__(self) -> str:
-        return f'OptionKey({self.name!r}, {self.subproject!r}, {self.machine!r}, {self.lang!r}, {self.module!r}, {self.type!r})'
+        return 'OptionKey({!r}, {!r}, {!r}, {!r}, {!r}, {!r})'.format((self.name), (self.subproject), (self.machine), (self.lang), (self.module), (self.type))
 
     @classmethod
     def from_string(cls, raw: str) -> 'OptionKey':
@@ -2162,7 +2162,7 @@ class OptionKey:
             raw3 = raw2
 
         from ..compilers import all_languages
-        if any(raw3.startswith(f'{l}_') for l in all_languages):
+        if any(raw3.startswith('{}_'.format((l))) for l in all_languages):
             lang, opt = raw3.split('_', 1)
         else:
             lang, opt = None, raw3

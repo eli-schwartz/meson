@@ -105,7 +105,7 @@ def gnulike_default_include_dirs(compiler: T.Tuple[str, ...], lang: str) -> 'Imm
     lang = lang_map[lang]
     env = os.environ.copy()
     env["LC_ALL"] = 'C'
-    cmd = list(compiler) + [f'-x{lang}', '-E', '-v', '-']
+    cmd = list(compiler) + ['-x{}'.format((lang)), '-E', '-v', '-']
     p = subprocess.Popen(
         cmd,
         stdin=subprocess.DEVNULL,
@@ -316,8 +316,8 @@ class GnuLikeCompiler(Compiler, metaclass=abc.ABCMeta):
     def use_linker_args(cls, linker: str) -> T.List[str]:
         if linker not in {'gold', 'bfd', 'lld'}:
             raise mesonlib.MesonException(
-                f'Unsupported linker, only bfd, gold, and lld are supported, not {linker}.')
-        return [f'-fuse-ld={linker}']
+                'Unsupported linker, only bfd, gold, and lld are supported, not {}.'.format((linker)))
+        return ['-fuse-ld={}'.format((linker))]
 
     def get_coverage_args(self) -> T.List[str]:
         return ['--coverage']
@@ -392,7 +392,7 @@ class GnuCompiler(GnuLikeCompiler):
             if mesonlib.version_compare(self.version, '>= 10.0'):
                 return ['-flto=auto']
             # This matches clang's behavior of using the number of cpus
-            return [f'-flto={multiprocessing.cpu_count()}']
+            return ['-flto={}'.format((multiprocessing.cpu_count()))]
         elif threads > 0:
-            return [f'-flto={threads}']
+            return ['-flto={}'.format((threads))]
         return super().get_lto_compile_args(threads=threads)

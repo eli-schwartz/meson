@@ -52,10 +52,10 @@ def run(args: T.List[str]) -> int:
     data.read(cmd)
 
     if 'cross_file' in data['properties']:
-        meson_cmd.extend([f'--cross-file={os.path.abspath(f)}' for f in literal_eval(data['properties']['cross_file'])])
+        meson_cmd.extend(['--cross-file={}'.format((os.path.abspath(f))) for f in literal_eval(data['properties']['cross_file'])])
 
     if 'native_file' in data['properties']:
-        meson_cmd.extend([f'--native-file={os.path.abspath(f)}' for f in literal_eval(data['properties']['native_file'])])
+        meson_cmd.extend(['--native-file={}'.format((os.path.abspath(f))) for f in literal_eval(data['properties']['native_file'])])
 
     exelist = detect_scanbuild()
     if not exelist:

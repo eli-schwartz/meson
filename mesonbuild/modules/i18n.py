@@ -230,13 +230,13 @@ class I18nModule(ExtensionModule):
                 self.nogettext_warning(state.current_node)
                 return ModuleReturnValue(None, [])
         packagename = args[0]
-        pkg_arg = f'--pkgname={packagename}'
+        pkg_arg = '--pkgname={}'.format((packagename))
 
         languages = kwargs['languages']
         lang_arg = '--langs=' + '@@'.join(languages) if languages else None
 
         _datadirs = ':'.join(self._get_data_dirs(state, kwargs['data_dirs']))
-        datadirs = f'--datadirs={_datadirs}' if _datadirs else None
+        datadirs = '--datadirs={}'.format((_datadirs)) if _datadirs else None
 
         extra_args = kwargs['args']
         targets: T.List['Target'] = []
@@ -267,12 +267,12 @@ class I18nModule(ExtensionModule):
             po_file = mesonlib.File.from_source_file(state.environment.source_dir,
                                                      state.subdir, l+'.po')
             gmotarget = build.CustomTarget(
-                f'{packagename}-{l}.mo',
+                '{}-{}.mo'.format((packagename), (l)),
                 path.join(state.subdir, l, 'LC_MESSAGES'),
                 state.subproject,
                 [self.tools['msgfmt'], '@INPUT@', '-o', '@OUTPUT@'],
                 [po_file],
-                [f'{packagename}.mo'],
+                ['{}.mo'.format((packagename))],
                 install=install,
                 # We have multiple files all installed as packagename+'.mo' in different install subdirs.
                 # What we really wanted to do, probably, is have a rename: kwarg, but that's not available
@@ -295,7 +295,7 @@ class I18nModule(ExtensionModule):
         if extra_arg:
             updatepoargs.append(extra_arg)
         for tool in ['msginit', 'msgmerge']:
-            updatepoargs.append(f'--{tool}=' + self.tools[tool].get_path())
+            updatepoargs.append('--{}='.format((tool)) + self.tools[tool].get_path())
         updatepotarget = build.RunTarget(packagename + '-update-po', updatepoargs, [], state.subdir, state.subproject)
         targets.append(updatepotarget)
 

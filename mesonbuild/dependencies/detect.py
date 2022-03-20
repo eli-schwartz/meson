@@ -88,7 +88,7 @@ def find_external_dependency(name: str, env: 'Environment', kwargs: T.Dict[str, 
         raise DependencyException('Keyword "method" must be a string.')
     lname = name.lower()
     if lname not in _packages_accept_language and 'language' in kwargs:
-        raise DependencyException(f'{name} dependency does not accept "language" keyword argument')
+        raise DependencyException('{} dependency does not accept "language" keyword argument'.format((name)))
     if not isinstance(kwargs.get('version', ''), (str, list)):
         raise DependencyException('Keyword "Version" must be string or list.')
 
@@ -146,7 +146,7 @@ def find_external_dependency(name: str, env: 'Environment', kwargs: T.Dict[str, 
         tried = ''
 
     mlog.log(type_text, mlog.bold(display_name), details + 'found:', mlog.red('NO'),
-             f'(tried {tried})' if tried else '')
+             '(tried {})'.format((tried)) if tried else '')
 
     if required:
         # if an exception occurred with the first detection method, re-raise it
@@ -157,8 +157,8 @@ def find_external_dependency(name: str, env: 'Environment', kwargs: T.Dict[str, 
 
         # we have a list of failed ExternalDependency objects, so we can report
         # the methods we tried to find the dependency
-        raise DependencyException(f'Dependency "{name}" not found' +
-                                  (f', tried {tried}' if tried else ''))
+        raise DependencyException('Dependency "{}" not found'.format((name)) +
+                                  (', tried {}'.format((tried)) if tried else ''))
 
     return NotFoundDependency(name, env)
 

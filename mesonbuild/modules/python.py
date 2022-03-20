@@ -106,15 +106,15 @@ class PythonPkgConfigDependency(PkgConfigDependency, _PythonDependencyBase):
                  kwargs: T.Dict[str, T.Any], installation: 'PythonInstallation',
                  libpc: bool = False):
         if libpc:
-            mlog.debug(f'Searching for {name!r} via pkgconfig lookup in LIBPC')
+            mlog.debug('Searching for {!r} via pkgconfig lookup in LIBPC'.format((name)))
         else:
-            mlog.debug(f'Searching for {name!r} via fallback pkgconfig lookup in default paths')
+            mlog.debug('Searching for {!r} via fallback pkgconfig lookup in default paths'.format((name)))
 
         PkgConfigDependency.__init__(self, name, environment, kwargs)
         _PythonDependencyBase.__init__(self, installation, kwargs.get('embed', False))
 
         if libpc and not self.is_found:
-            mlog.debug(f'"python-{self.version}" could not be found in LIBPC, this is likely due to a relocated python installation')
+            mlog.debug('"python-{}" could not be found in LIBPC, this is likely due to a relocated python installation'.format((self.version)))
 
 
 class PythonFrameworkDependency(ExtraFrameworkDependency, _PythonDependencyBase):
@@ -146,7 +146,7 @@ class PythonSystemDependency(SystemDependency, _PythonDependencyBase):
             libdir = os.path.join(self.variables.get('base'), 'bin')
             libdirs = [libdir]
         else:
-            libname = f'python{self.version}'
+            libname = 'python{}'.format((self.version))
             if 'DEBUG_EXT' in self.variables:
                 libname += self.variables['DEBUG_EXT']
             if 'ABIFLAGS' in self.variables:
@@ -174,26 +174,26 @@ class PythonSystemDependency(SystemDependency, _PythonDependencyBase):
             elif pycc.startswith(('i686', 'i386')):
                 return '32'
             else:
-                mlog.log(f'MinGW Python built with unknown CC {pycc!r}, please file a bug')
+                mlog.log('MinGW Python built with unknown CC {!r}, please file a bug'.format((pycc)))
                 return None
         elif self.platform == 'win32':
             return '32'
         elif self.platform in ('win64', 'win-amd64'):
             return '64'
-        mlog.log(f'Unknown Windows Python platform {self.platform!r}')
+        mlog.log('Unknown Windows Python platform {!r}'.format((self.platform)))
         return None
 
     def _get_windows_link_args(self) -> T.Optional[T.List[str]]:
         if self.platform.startswith('win'):
             vernum = self.variables.get('py_version_nodot')
             if self.static:
-                libpath = Path('libs') / f'libpython{vernum}.a'
+                libpath = Path('libs') / 'libpython{}.a'.format((vernum))
             else:
                 comp = self.get_compiler()
                 if comp.id == "gcc":
-                    libpath = Path(f'python{vernum}.dll')
+                    libpath = Path('python{}.dll'.format((vernum)))
                 else:
-                    libpath = Path('libs') / f'python{vernum}.lib'
+                    libpath = Path('libs') / 'python{}.lib'.format((vernum))
             # base_prefix to allow for virtualenvs.
             lib = Path(self.variables.get('base_prefix')) / libpath
         elif self.platform == 'mingw':
@@ -226,13 +226,13 @@ class PythonSystemDependency(SystemDependency, _PythonDependencyBase):
             arch = '64'
         else:
             # We can't cross-compile Python 3 dependencies on Windows yet
-            mlog.log(f'Unknown architecture {arch!r} for',
+            mlog.log('Unknown architecture {!r} for'.format((arch)),
                      mlog.bold(self.name))
             self.is_found = False
             return
         # Pyarch ends in '32' or '64'
         if arch != pyarch:
-            mlog.log('Need', mlog.bold(self.name), f'for {arch}-bit, but found {pyarch}-bit')
+            mlog.log('Need', mlog.bold(self.name), 'for {}-bit, but found {}-bit'.format((arch), (pyarch)))
             self.is_found = False
             return
         # This can fail if the library is not found
@@ -268,7 +268,7 @@ def python_factory(env: 'Environment', for_machine: 'MachineChoice',
     if DependencyMethods.PKGCONFIG in methods:
         pkg_libdir = installation.variables.get('LIBPC')
         pkg_embed = '-embed' if embed and mesonlib.version_compare(installation.version, '>=3.8') else ''
-        pkg_name = f'python-{pkg_version}{pkg_embed}'
+        pkg_name = 'python-{}{}'.format((pkg_version), (pkg_embed))
 
         # If python-X.Y.pc exists in LIBPC, we will try to use it
         def wrap_in_pythons_pc_dir(name: str, env: 'Environment', kwargs: T.Dict[str, T.Any],
@@ -435,10 +435,10 @@ class PythonExternalProgram(ExternalProgram):
         if not state:
             # This happens only from run_project_tests.py
             return rel_path
-        value = state.get_option(f'{key}dir', module='python')
+        value = state.get_option('{}dir'.format((key)), module='python')
         if value:
             if state.is_user_defined_option('install_env', module='python'):
-                raise mesonlib.MesonException(f'python.{key}dir and python.install_env are mutually exclusive')
+                raise mesonlib.MesonException('python.{}dir and python.install_env are mutually exclusive'.format((key)))
             return value
 
         install_env = state.get_option('install_env', module='python')
@@ -591,7 +591,7 @@ class PythonInstallation(ExternalProgramHolder):
         except KeyError:
             if fallback is not None:
                 return fallback
-            raise InvalidArguments(f'{path_name} is not a valid path name')
+            raise InvalidArguments('{} is not a valid path name'.format((path_name)))
 
     @typed_pos_args('python_installation.has_variable', str)
     @noKwargs
@@ -607,7 +607,7 @@ class PythonInstallation(ExternalProgramHolder):
         except KeyError:
             if fallback is not None:
                 return fallback
-            raise InvalidArguments(f'{var_name} is not a valid variable name')
+            raise InvalidArguments('{} is not a valid variable name'.format((var_name)))
 
     @noPosargs
     @noKwargs
@@ -710,7 +710,7 @@ class PythonModule(ExtensionModule):
             for mod in want_modules:
                 p, *_ = mesonlib.Popen_safe(
                     python.command +
-                    ['-c', f'import {mod}'])
+                    ['-c', 'import {}'.format((mod))])
                 if p.returncode != 0:
                     missing_modules.append(mod)
                 else:

@@ -89,12 +89,12 @@ class MesonMain(MesonInterpreterObject):
         largs: T.List[T.Union[str, build.Executable, ExternalProgram]] = []
 
         if isinstance(prog, (build.Executable, ExternalProgram)):
-            FeatureNew.single_use(f'Passing executable/found program object to script parameter of {name}',
+            FeatureNew.single_use('Passing executable/found program object to script parameter of {}'.format((name)),
                                   '0.55.0', self.subproject, location=self.current_node)
             largs.append(prog)
         else:
             if isinstance(prog, mesonlib.File):
-                FeatureNew.single_use(f'Passing file object to script parameter of {name}',
+                FeatureNew.single_use('Passing file object to script parameter of {}'.format((name)),
                                       '0.57.0', self.subproject, location=self.current_node)
             found = self.interpreter.find_program_impl([prog])
             largs.append(found)
@@ -136,8 +136,8 @@ class MesonMain(MesonInterpreterObject):
 
         if new:
             FeatureNew.single_use(
-                f'Calling "{name}" with File, CustomTarget, Index of CustomTarget, '
-                'Executable, or ExternalProgram',
+                'Calling "{}" with File, CustomTarget, Index of CustomTarget, '
+                'Executable, or ExternalProgram'.format((name)),
                 '0.55.0', self.interpreter.subproject, location=self.current_node)
         return script_args
 
@@ -298,7 +298,7 @@ class MesonMain(MesonInterpreterObject):
         try:
             return clist[cname]
         except KeyError:
-            raise InterpreterException(f'Tried to access compiler for language "{cname}", not specified for {for_machine.get_lower_case_name()} machine.')
+            raise InterpreterException('Tried to access compiler for language "{}", not specified for {} machine.'.format((cname), (for_machine.get_lower_case_name())))
 
     @noPosargs
     @noKwargs
@@ -325,7 +325,7 @@ class MesonMain(MesonInterpreterObject):
             abspath = exe.absolute_path(self.interpreter.environment.source_dir,
                                         self.interpreter.environment.build_dir)
             if not os.path.exists(abspath):
-                raise InterpreterException(f'Tried to override {name} with a file that does not exist.')
+                raise InterpreterException('Tried to override {} with a file that does not exist.'.format((name)))
             exe = OverrideProgram(name, [abspath])
         self.interpreter.add_find_program_override(name, exe)
 
@@ -417,7 +417,7 @@ class MesonMain(MesonInterpreterObject):
         except KeyError:
             if fallback is not None:
                 return fallback
-            raise InterpreterException(f'Unknown property for {machine.get_lower_case_name()} machine: {propname}')
+            raise InterpreterException('Unknown property for {} machine: {}'.format((machine.get_lower_case_name()), (propname)))
 
     @noArgsFlattening
     @FeatureDeprecated('meson.get_cross_property', '0.58.0', 'Use meson.get_external_property() instead')
@@ -450,7 +450,7 @@ class MesonMain(MesonInterpreterObject):
         env = args[0]
         msg = ENV_KW.validator(env)
         if msg:
-            raise build.InvalidArguments(f'"add_devenv": {msg}')
+            raise build.InvalidArguments('"add_devenv": {}'.format((msg)))
         converted = env_convertor_with_method(env, kwargs['method'], kwargs['separator'])
         assert isinstance(converted, build.EnvironmentVariables)
         self.build.devenv.append(converted)

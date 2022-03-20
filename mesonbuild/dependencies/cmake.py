@@ -46,7 +46,7 @@ class CMakeDependency(ExternalDependency):
     class_working_generator: T.Optional[str] = None
 
     def _gen_exception(self, msg: str) -> DependencyException:
-        return DependencyException(f'Dependency {self.name} not found: {msg}')
+        return DependencyException('Dependency {} not found: {}'.format((self.name), (msg)))
 
     def _main_cmake_file(self) -> str:
         return 'CMakeLists.txt'
@@ -120,7 +120,7 @@ class CMakeDependency(ExternalDependency):
         self.cmakebin = CMakeExecutor(environment, CMakeDependency.class_cmake_version, self.for_machine, silent=self.silent)
         if not self.cmakebin.found():
             self.cmakebin = None
-            msg = f'CMake binary for machine {self.for_machine} not found. Giving up.'
+            msg = 'CMake binary for machine {} not found. Giving up.'.format((self.for_machine))
             if self.required:
                 raise DependencyException(msg)
             mlog.debug(msg)
@@ -153,7 +153,7 @@ class CMakeDependency(ExternalDependency):
         self._detect_dep(name, package_version, modules, components, cm_args)
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__} {self.name}: {self.is_found} {self.version_reqs}>'
+        return '<{} {}: {} {}>'.format((self.__class__.__name__), (self.name), (self.is_found), (self.version_reqs))
 
     def _get_cmake_info(self, cm_args: T.List[str]) -> T.Optional[CMakeInfo]:
         mlog.debug("Extracting basic cmake information")
@@ -187,8 +187,8 @@ class CMakeDependency(ExternalDependency):
                 CMakeDependency.class_working_generator = i
                 break
 
-            mlog.debug(f'CMake failed to gather system information for generator {i} with error code {ret1}')
-            mlog.debug(f'OUT:\n{out1}\n\n\nERR:\n{err1}\n\n')
+            mlog.debug('CMake failed to gather system information for generator {} with error code {}'.format((i), (ret1)))
+            mlog.debug('OUT:\n{}\n\n\nERR:\n{}\n\n'.format((out1), (err1)))
 
         # Check if any generator succeeded
         if ret1 != 0:
@@ -234,10 +234,10 @@ class CMakeDependency(ExternalDependency):
             common_paths=common_paths,
         )
 
-        mlog.debug(f'  -- Module search paths:    {res.module_paths}')
-        mlog.debug(f'  -- CMake root:             {res.cmake_root}')
-        mlog.debug(f'  -- CMake architectures:    {res.archs}')
-        mlog.debug(f'  -- CMake lib search paths: {res.common_paths}')
+        mlog.debug('  -- Module search paths:    {}'.format((res.module_paths)))
+        mlog.debug('  -- CMake root:             {}'.format((res.cmake_root)))
+        mlog.debug('  -- CMake architectures:    {}'.format((res.archs)))
+        mlog.debug('  -- CMake lib search paths: {}'.format((res.common_paths)))
 
         return res
 
@@ -334,7 +334,7 @@ class CMakeDependency(ExternalDependency):
 
             # Mac framework support
             if machine.is_darwin():
-                for j in [f'{lname}.framework', f'{lname}.app']:
+                for j in ['{}.framework'.format((lname)), '{}.app'.format((lname))]:
                     for k in content:
                         if k[1] != j:
                             continue
@@ -342,7 +342,7 @@ class CMakeDependency(ExternalDependency):
                             return True
 
         # Check the environment path
-        env_path = os.environ.get(f'{name}_DIR')
+        env_path = os.environ.get('{}_DIR'.format((name)))
         if env_path and find_module(env_path):
             return True
 
@@ -382,9 +382,9 @@ class CMakeDependency(ExternalDependency):
 
             # Prepare options
             cmake_opts = []
-            cmake_opts += [f'-DNAME={name}']
+            cmake_opts += ['-DNAME={}'.format((name))]
             cmake_opts += ['-DARCHS={}'.format(';'.join(self.cmakeinfo.archs))]
-            cmake_opts += [f'-DVERSION={package_version}']
+            cmake_opts += ['-DVERSION={}'.format((package_version))]
             cmake_opts += ['-DCOMPS={}'.format(';'.join([x[0] for x in comp_mapped]))]
             cmake_opts += args
             cmake_opts += self.traceparser.trace_args()
@@ -402,8 +402,8 @@ class CMakeDependency(ExternalDependency):
                 CMakeDependency.class_working_generator = i
                 break
 
-            mlog.debug(f'CMake failed for generator {i} and package {name} with error code {ret1}')
-            mlog.debug(f'OUT:\n{out1}\n\n\nERR:\n{err1}\n\n')
+            mlog.debug('CMake failed for generator {} and package {} with error code {}'.format((i), (name), (ret1)))
+            mlog.debug('OUT:\n{}\n\n\nERR:\n{}\n\n'.format((out1), (err1)))
 
         # Check if any generator succeeded
         if ret1 != 0:
@@ -444,8 +444,8 @@ class CMakeDependency(ExternalDependency):
             for i in self.traceparser.targets:
                 tg = i.lower()
                 lname = name.lower()
-                if f'{lname}::{lname}' == tg or lname == tg.replace('::', ''):
-                    mlog.debug(f'Guessed CMake target \'{i}\'')
+                if '{}::{}'.format((lname), (lname)) == tg or lname == tg.replace('::', ''):
+                    mlog.debug('Guessed CMake target \'{}\''.format((i)))
                     modules = [(i, True)]
                     autodetected_module_list = True
                     break
@@ -457,27 +457,27 @@ class CMakeDependency(ExternalDependency):
             for k, v in self.traceparser.targets.items():
                 tg = k.lower()
                 lname = name.lower()
-                if tg.startswith(f'{lname}::'):
+                if tg.startswith('{}::'.format((lname))):
                     partial_modules += [v]
             if partial_modules:
-                mlog.warning(textwrap.dedent(f'''\
-                    Could not find and exact match for the CMake dependency {name}.
+                mlog.warning(textwrap.dedent('''\
+                    Could not find and exact match for the CMake dependency {}.
 
                     However, Meson found the following partial matches:
 
-                        {[x.name for x in partial_modules]}
+                        {}
 
                     Using imported is recommended, since this approach is less error prone
                     and better supported by Meson. Consider explicitly specifying one of
                     these in the dependency call with:
 
-                        dependency('{name}', modules: ['{name}::<name>', ...])
+                        dependency('{}', modules: ['{}::<name>', ...])
 
-                    Meson will now continue to use the old-style {name}_LIBRARIES CMake
+                    Meson will now continue to use the old-style {}_LIBRARIES CMake
                     variables to extract the dependency information since no explicit
                     target is currently specified.
 
-                '''))
+                '''.format((name), ([x.name for x in partial_modules]), (name), (name), (name))))
                 mlog.debug('More info for the partial match targets:')
                 for tgt in partial_modules:
                     mlog.debug(tgt)
@@ -508,17 +508,17 @@ class CMakeDependency(ExternalDependency):
 
             # Try to use old style variables if no module is specified
             if len(libs) > 0:
-                self.compile_args = list(map(lambda x: f'-I{x}', incDirs)) + defs
+                self.compile_args = list(map(lambda x: '-I{}'.format((x)), incDirs)) + defs
                 self.link_args = []
                 for j in libs:
                     rtgt = resolve_cmake_trace_targets(j, self.traceparser, self.env, clib_compiler=self.clib_compiler)
                     self.link_args += rtgt.libraries
-                    self.compile_args += [f'-I{x}' for x in rtgt.include_directories]
+                    self.compile_args += ['-I{}'.format((x)) for x in rtgt.include_directories]
                     self.compile_args += rtgt.public_compile_opts
-                mlog.debug(f'using old-style CMake variables for dependency {name}')
-                mlog.debug(f'Include Dirs:         {incDirs}')
-                mlog.debug(f'Compiler Definitions: {defs}')
-                mlog.debug(f'Libraries:            {libs}')
+                mlog.debug('using old-style CMake variables for dependency {}'.format((name)))
+                mlog.debug('Include Dirs:         {}'.format((incDirs)))
+                mlog.debug('Compiler Definitions: {}'.format((defs)))
+                mlog.debug('Libraries:            {}'.format((libs)))
                 return
 
             # Even the old-style approach failed. Nothing else we can do here
@@ -558,15 +558,15 @@ class CMakeDependency(ExternalDependency):
         compileOptions = sorted(set(compileOptions))
         libraries = sorted(set(libraries))
 
-        mlog.debug(f'Include Dirs:         {incDirs}')
-        mlog.debug(f'Compiler Options:     {compileOptions}')
-        mlog.debug(f'Libraries:            {libraries}')
+        mlog.debug('Include Dirs:         {}'.format((incDirs)))
+        mlog.debug('Compiler Options:     {}'.format((compileOptions)))
+        mlog.debug('Libraries:            {}'.format((libraries)))
 
-        self.compile_args = compileOptions + [f'-I{x}' for x in incDirs]
+        self.compile_args = compileOptions + ['-I{}'.format((x)) for x in incDirs]
         self.link_args = libraries
 
     def _get_build_dir(self) -> Path:
-        build_dir = Path(self.cmake_root_dir) / f'cmake_{self.name}'
+        build_dir = Path(self.cmake_root_dir) / 'cmake_{}'.format((self.name))
         build_dir.mkdir(parents=True, exist_ok=True)
         return build_dir
 
@@ -640,4 +640,4 @@ class CMakeDependency(ExternalDependency):
                     return v
         if default_value is not None:
             return default_value
-        raise DependencyException(f'Could not get cmake variable and no default provided for {self!r}')
+        raise DependencyException('Could not get cmake variable and no default provided for {!r}'.format((self)))

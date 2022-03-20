@@ -53,7 +53,7 @@ class DependencyScanner:
         elif suffix in lang_suffixes['cpp']:
             self.scan_cpp_file(fname)
         else:
-            sys.exit(f'Can not scan files with suffix .{suffix}.')
+            sys.exit('Can not scan files with suffix .{}.'.format((suffix)))
 
     def scan_fortran_file(self, fname: str) -> None:
         fpath = pathlib.Path(fname)
@@ -76,7 +76,7 @@ class DependencyScanner:
                 assert exported_module not in modules_in_this_file
                 modules_in_this_file.add(exported_module)
                 if exported_module in self.provided_by:
-                    raise RuntimeError(f'Multiple files provide module {exported_module}.')
+                    raise RuntimeError('Multiple files provide module {}.'.format((exported_module)))
                 self.sources_with_exports.append(fname)
                 self.provided_by[exported_module] = fname
                 self.exports[fname] = exported_module
@@ -90,7 +90,7 @@ class DependencyScanner:
                 parent_module_name_full = submodule_export_match.group(1).lower()
                 parent_module_name = parent_module_name_full.split(':')[0]
                 submodule_name = submodule_export_match.group(2).lower()
-                concat_name = f'{parent_module_name}:{submodule_name}'
+                concat_name = '{}:{}'.format((parent_module_name), (submodule_name))
                 self.sources_with_exports.append(fname)
                 self.provided_by[concat_name] = fname
                 self.exports[fname] = concat_name
@@ -120,7 +120,7 @@ class DependencyScanner:
             if export_match:
                 exported_module = export_match.group(1)
                 if exported_module in self.provided_by:
-                    raise RuntimeError(f'Multiple files provide module {exported_module}.')
+                    raise RuntimeError('Multiple files provide module {}.'.format((exported_module)))
                 self.sources_with_exports.append(fname)
                 self.provided_by[exported_module] = fname
                 self.exports[fname] = exported_module
@@ -141,7 +141,7 @@ class DependencyScanner:
                 extension = 'smod'
             else:
                 extension = 'mod'
-            return os.path.join(self.target_data.private_dir, f'{namebase}.{extension}')
+            return os.path.join(self.target_data.private_dir, '{}.{}'.format((namebase), (extension)))
         elif suffix in lang_suffixes['cpp']:
             return '{}.ifc'.format(self.exports[src])
         else:

@@ -93,7 +93,7 @@ def write_gdb_script(privatedir: Path, install_data: 'InstallData') -> None:
                     add_gdb_auto_load(autoload_path, d.path, path)
                     have_gdb_helpers = True
     if have_gdb_helpers:
-        gdbinit_line = f'add-auto-load-scripts-directory {autoload_basedir}\n'
+        gdbinit_line = 'add-auto-load-scripts-directory {}\n'.format((autoload_basedir))
         gdbinit_path = bdir / '.gdbinit'
         first_time = False
         try:
@@ -111,7 +111,7 @@ def run(options: argparse.Namespace) -> int:
     privatedir = Path(options.wd) / 'meson-private'
     buildfile = privatedir / 'build.dat'
     if not buildfile.is_file():
-        raise MesonException(f'Directory {options.wd!r} does not seem to be a Meson build directory.')
+        raise MesonException('Directory {!r} does not seem to be a Meson build directory.'.format((options.wd)))
     b = build.load(options.wd)
 
     devenv, varnames = get_env(b, options.wd)
@@ -119,8 +119,8 @@ def run(options: argparse.Namespace) -> int:
         if options.command:
             raise MesonException('--dump option does not allow running other command.')
         for name in varnames:
-            print(f'{name}={quote_arg(devenv[name])}')
-            print(f'export {name}')
+            print('{}={}'.format((name), (quote_arg(devenv[name]))))
+            print('export {}'.format((name)))
         return 0
 
     install_data = minstall.load_install_data(str(privatedir / 'install.dat'))
@@ -130,7 +130,7 @@ def run(options: argparse.Namespace) -> int:
 
     args = options.command
     if not args:
-        prompt_prefix = f'[{b.project_name}]'
+        prompt_prefix = '[{}]'.format((b.project_name))
         shell_env = os.environ.get("SHELL")
         # Prefer $SHELL in a MSYS2 bash despite it being Windows
         if shell_env and os.path.exists(shell_env):
@@ -140,11 +140,11 @@ def run(options: argparse.Namespace) -> int:
             if shell == 'powershell.exe':
                 args = ['powershell.exe']
                 args += ['-NoLogo', '-NoExit']
-                prompt = f'function global:prompt {{  "{prompt_prefix} PS " + $PWD + "> "}}'
+                prompt = 'function global:prompt {{  "{} PS " + $PWD + "> "}}'.format((prompt_prefix))
                 args += ['-Command', prompt]
             else:
                 args = [os.environ.get("COMSPEC", r"C:\WINDOWS\system32\cmd.exe")]
-                args += ['/k', f'prompt {prompt_prefix} $P$G']
+                args += ['/k', 'prompt {} $P$G'.format((prompt_prefix))]
         else:
             args = [os.environ.get("SHELL", os.path.realpath("/bin/sh"))]
         if "bash" in args[0]:
@@ -152,9 +152,9 @@ def run(options: argparse.Namespace) -> int:
             tmprc = tempfile.NamedTemporaryFile(mode='w')
             tmprc.write('[ -e ~/.bashrc ] && . ~/.bashrc\n')
             if not os.environ.get("MESON_DISABLE_PS1_OVERRIDE"):
-                tmprc.write(f'export PS1="{prompt_prefix} $PS1"\n')
+                tmprc.write('export PS1="{} $PS1"\n'.format((prompt_prefix)))
             for f in bash_completion_files(b, install_data):
-                tmprc.write(f'. "{f}"\n')
+                tmprc.write('. "{}"\n'.format((f)))
             tmprc.flush()
             args.append("--rcfile")
             args.append(tmprc.name)

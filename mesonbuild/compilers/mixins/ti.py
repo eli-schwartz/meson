@@ -109,7 +109,7 @@ class TICompiler(Compiler):
         return ['-Ooff']
 
     def get_output_args(self, target: str) -> T.List[str]:
-        return [f'--output_file={target}']
+        return ['--output_file={}'.format((target))]
 
     def get_werror_args(self) -> T.List[str]:
         return ['--emit_warnings_as_errors']
@@ -144,4 +144,4 @@ class TICompiler(Compiler):
         return parameter_list
 
     def get_dependency_gen_args(self, outtarget: str, outfile: str) -> T.List[str]:
-        return ['--preproc_with_compile', f'--preproc_dependency={outfile}']
+        return ['--preproc_with_compile', '--preproc_dependency={}'.format((outfile))]

@@ -43,7 +43,7 @@ class CythonCompiler(Compiler):
         code = 'print("hello world")'
         with self.cached_compile(code, environment.coredata) as p:
             if p.returncode != 0:
-                raise EnvironmentException(f'Cython compiler {self.id!r} cannot compile programs')
+                raise EnvironmentException('Cython compiler {!r} cannot compile programs'.format((self.id)))
 
     def get_buildtype_args(self, buildtype: str) -> T.List[str]:
         # Cython doesn't implement this, but Meson requires an implementation
@@ -80,7 +80,7 @@ class CythonCompiler(Compiler):
     def get_option_compile_args(self, options: 'KeyedOptionDictType') -> T.List[str]:
         args: T.List[str] = []
         key = options[OptionKey('version', machine=self.for_machine, lang=self.language)]
-        args.append(f'-{key.value}')
+        args.append('-{}'.format((key.value)))
         lang = options[OptionKey('language', machine=self.for_machine, lang=self.language)]
         if lang.value == 'cpp':
             args.append('--cplus')

@@ -217,7 +217,7 @@ class GnuFortranCompiler(GnuCompiler, FortranCompiler):
         # fortran,
         search_dirs: T.List[str] = []
         for d in self.get_compiler_dirs(env, 'libraries'):
-            search_dirs.append(f'-L{d}')
+            search_dirs.append('-L{}'.format((d)))
         return search_dirs + ['-lgfortran', '-lm']
 
     def has_header(self, hname: str, prefix: str, env: 'Environment', *,
@@ -229,7 +229,7 @@ class GnuFortranCompiler(GnuCompiler, FortranCompiler):
         __has_include which breaks with GCC-Fortran 10:
         https://github.com/mesonbuild/meson/issues/7017
         '''
-        code = f'{prefix}\n#include <{hname}>'
+        code = '{}\n#include <{}>'.format((prefix), (hname))
         return self.compiles(code, env, extra_args=extra_args,
                              dependencies=dependencies, mode='preprocess', disable_cache=disable_cache)
 
@@ -482,7 +482,7 @@ class FlangFortranCompiler(ClangCompiler, FortranCompiler):
         # XXX: Untested....
         search_dirs: T.List[str] = []
         for d in self.get_compiler_dirs(env, 'libraries'):
-            search_dirs.append(f'-L{d}')
+            search_dirs.append('-L{}'.format((d)))
         return search_dirs + ['-lflang', '-lpgmath']
 
 class ArmLtdFlangFortranCompiler(FlangFortranCompiler):

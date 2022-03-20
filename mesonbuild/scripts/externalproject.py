@@ -35,7 +35,7 @@ class ExternalProject:
 
     def write_depfile(self) -> None:
         with open(self.depfile, 'w', encoding='utf-8') as f:
-            f.write(f'{self.stampfile}: \\\n')
+            f.write('{}: \\\n'.format((self.stampfile)))
             for dirpath, dirnames, filenames in os.walk(self.src_dir):
                 dirnames[:] = [d for d in dirnames if not d.startswith('.')]
                 for fname in filenames:
@@ -58,7 +58,7 @@ class ExternalProject:
         is_make = self.make[0] == 'make'
         make_cmd = self.make.copy()
         if is_make and self.gnu_make():
-            make_cmd.append(f'-j{multiprocessing.cpu_count()}')
+            make_cmd.append('-j{}'.format((multiprocessing.cpu_count())))
         rc = self._run('build', make_cmd)
         if rc != 0:
             return rc
@@ -66,7 +66,7 @@ class ExternalProject:
         install_cmd = self.make.copy()
         install_env = {}
         if is_make:
-            install_cmd.append(f'DESTDIR={self.install_dir}')
+            install_cmd.append('DESTDIR={}'.format((self.install_dir)))
         else:
             install_env['DESTDIR'] = self.install_dir
         install_cmd.append('install')
@@ -81,7 +81,7 @@ class ExternalProject:
 
     def _run(self, step: str, command: T.List[str], env: T.Optional[T.Dict[str, str]] = None) -> int:
         m = 'Running command ' + str(command) + ' in directory ' + str(self.build_dir) + '\n'
-        log_filename = Path(self.log_dir, f'{self.name}-{step}.log')
+        log_filename = Path(self.log_dir, '{}-{}.log'.format((self.name), (step)))
         output = None
         if not self.verbose:
             output = open(log_filename, 'w', encoding='utf-8')
@@ -96,7 +96,7 @@ class ExternalProject:
                              cwd=self.build_dir,
                              env=run_env)
         if p.returncode != 0:
-            m = f'{step} step returned error code {p.returncode}.'
+            m = '{} step returned error code {}.'.format((step), (p.returncode))
             if not self.verbose:
                 m += '\nSee logs: ' + str(log_filename)
             print(m)

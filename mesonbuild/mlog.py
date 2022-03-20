@@ -130,7 +130,7 @@ class AnsiDecorator:
         if with_codes and self.code:
             text = self.code + self.text + AnsiDecorator.plain_code
         if self.quoted:
-            text = f'"{text}"'
+            text = '"{}"'.format((text))
         return text
 
     def __len__(self) -> int:
@@ -239,7 +239,7 @@ def debug(*args: TV_Loggable, **kwargs: T.Any) -> None:
 def _debug_log_cmd(cmd: str, args: T.List[str]) -> None:
     if not _in_ci:
         return
-    args = [f'"{x}"' for x in args]  # Quote all args, just in case
+    args = ['"{}"'.format((x)) for x in args]  # Quote all args, just in case
     debug('!meson_ci!/{} {}'.format(cmd, ' '.join(args)))
 
 def cmd_ci_include(file: str) -> None:
@@ -293,7 +293,7 @@ def log_once(*args: TV_Loggable, is_error: bool = False,
 # This would more accurately embody what this function can handle, but we
 # don't have that yet, so instead we'll do some casting to work around it
 def get_error_location_string(fname: str, lineno: int) -> str:
-    return f'{fname}:{lineno}:'
+    return '{}:{}:'.format((fname), (lineno))
 
 def _log_error(severity: str, *rargs: TV_Loggable,
                once: bool = False, fatal: bool = True, **kwargs: T.Any) -> None:
@@ -367,7 +367,7 @@ def exception(e: Exception, prefix: T.Optional[AnsiDecorator] = None) -> None:
         # Mypy doesn't follow hasattr, and it's pretty easy to visually inspect
         # that this is correct, so we'll just ignore it.
         path = get_relative_path(Path(e.file), Path(os.getcwd()))  # type: ignore
-        args.append(f'{path}:{e.lineno}:{e.colno}:')  # type: ignore
+        args.append('{}:{}:{}:'.format((path), (e.lineno), (e.colno)))  # type: ignore
     if prefix:
         args.append(prefix)
     args.append(str(e))

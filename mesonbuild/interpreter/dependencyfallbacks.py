@@ -123,8 +123,8 @@ class DependencyFallbacksHolder(MesonInterpreterObject):
         default_options = stringlistify(func_kwargs.get('default_options', []))
         if static is not None and not any('default_library' in i for i in default_options):
             default_library = 'static' if static else 'shared'
-            opt = f'default_library={default_library}'
-            mlog.log(f'Building fallback subproject with {opt}')
+            opt = 'default_library={}'.format((default_library))
+            mlog.log('Building fallback subproject with {}'.format((opt)))
             default_options.append(opt)
             func_kwargs['default_options'] = default_options
 
@@ -173,7 +173,7 @@ class DependencyFallbacksHolder(MesonInterpreterObject):
         # Legacy: Use the variable name if provided instead of relying on the
         # subproject to override one of our dependency names
         if not varname:
-            mlog.warning(f'Subproject {subp_name!r} did not override {self._display_name!r} dependency and no variable name specified')
+            mlog.warning('Subproject {!r} did not override {!r} dependency and no variable name specified'.format((subp_name), (self._display_name)))
             mlog.log('Dependency', mlog.bold(self._display_name), 'from subproject',
                      mlog.bold(subproject.subdir), 'found:', mlog.red('NO'))
             return self._notfound_dependency()
@@ -190,7 +190,7 @@ class DependencyFallbacksHolder(MesonInterpreterObject):
             mlog.log('Dependency', mlog.bold(self._display_name), 'from subproject',
                      mlog.bold(subproject.subdir), 'found:', mlog.red('NO'),
                      'found', mlog.normal_cyan(found), 'but need:',
-                     mlog.bold(', '.join([f"'{e}'" for e in wanted])))
+                     mlog.bold(', '.join(["'{}'".format((e)) for e in wanted])))
             return self._notfound_dependency()
 
         mlog.log('Dependency', mlog.bold(self._display_name), 'from subproject',
@@ -232,7 +232,7 @@ class DependencyFallbacksHolder(MesonInterpreterObject):
                 mlog.log('Dependency', mlog.bold(name),
                          'found:', mlog.red('NO'),
                          'found', mlog.normal_cyan(found_vers), 'but need:',
-                         mlog.bold(', '.join([f"'{e}'" for e in wanted_vers])),
+                         mlog.bold(', '.join(["'{}'".format((e)) for e in wanted_vers])),
                          *info)
                 return self._notfound_dependency()
             if found_vers:
@@ -248,7 +248,7 @@ class DependencyFallbacksHolder(MesonInterpreterObject):
         except InvalidArguments:
             var_dep = None
         if not isinstance(var_dep, Dependency):
-            mlog.warning(f'Variable {varname!r} in the subproject {subproject.subdir!r} is',
+            mlog.warning('Variable {!r} in the subproject {!r} is'.format((varname), (subproject.subdir)),
                          'not found' if var_dep is None else 'not a dependency object')
             return None
         return var_dep
@@ -260,7 +260,7 @@ class DependencyFallbacksHolder(MesonInterpreterObject):
         if subproject and varname:
             var_dep = self._get_subproject_variable(subproject, varname)
             if var_dep and cached_dep.found() and var_dep != cached_dep:
-                mlog.warning(f'Inconsistency: Subproject has overridden the dependency with another variable than {varname!r}')
+                mlog.warning('Inconsistency: Subproject has overridden the dependency with another variable than {!r}'.format((varname)))
 
     def _handle_featurenew_dependencies(self, name: str) -> None:
         'Do a feature check on dependencies used by this subproject'
@@ -364,7 +364,7 @@ class DependencyFallbacksHolder(MesonInterpreterObject):
                 # This was the last candidate or the dependency has been cached
                 # as not-found, or cached dependency version does not match,
                 # otherwise func() would have returned None instead.
-                raise DependencyException(f'Dependency {self._display_name!r} is required but not found.')
+                raise DependencyException('Dependency {!r} is required but not found.'.format((self._display_name)))
             elif dep:
                 # Same as above, but the dependency is not required.
                 return dep

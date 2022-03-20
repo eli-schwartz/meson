@@ -154,7 +154,7 @@ class DependenciesHelper:
             elif isinstance(obj, str):
                 processed_libs.append(obj)
             else:
-                raise mesonlib.MesonException(f'library argument of type {type(obj).__name__} not a string, library or dependency object.')
+                raise mesonlib.MesonException('library argument of type {} not a string, library or dependency object.'.format((type(obj).__name__)))
 
         return processed_libs, processed_reqs, processed_cflags
 
@@ -348,7 +348,7 @@ class PkgConfigModule(ExtensionModule):
             varnames |= {k}
             varstrings |= {v}
         for optname in optnames:
-            optvar = f'${{{optname}}}'
+            optvar = '${{{}}}'.format((optname))
             if any(x.startswith(optvar) for x in varstrings):
                 if optname in varnames:
                     redundant_vars_warning = True
@@ -390,20 +390,20 @@ class PkgConfigModule(ExtensionModule):
             for k, v in variables:
                 ofile.write('{}={}\n'.format(k, self._escape(v)))
             for k, v in unescaped_variables:
-                ofile.write(f'{k}={v}\n')
+                ofile.write('{}={}\n'.format((k), (v)))
             ofile.write('\n')
-            ofile.write(f'Name: {name}\n')
+            ofile.write('Name: {}\n'.format((name)))
             if len(description) > 0:
-                ofile.write(f'Description: {description}\n')
+                ofile.write('Description: {}\n'.format((description)))
             if len(url) > 0:
-                ofile.write(f'URL: {url}\n')
-            ofile.write(f'Version: {version}\n')
+                ofile.write('URL: {}\n'.format((url)))
+            ofile.write('Version: {}\n'.format((version)))
             reqs_str = deps.format_reqs(deps.pub_reqs)
             if len(reqs_str) > 0:
-                ofile.write(f'Requires: {reqs_str}\n')
+                ofile.write('Requires: {}\n'.format((reqs_str)))
             reqs_str = deps.format_reqs(deps.priv_reqs)
             if len(reqs_str) > 0:
-                ofile.write(f'Requires.private: {reqs_str}\n')
+                ofile.write('Requires.private: {}\n'.format((reqs_str)))
             if len(conflicts) > 0:
                 ofile.write('Conflicts: {}\n'.format(' '.join(conflicts)))
 
@@ -443,7 +443,7 @@ class PkgConfigModule(ExtensionModule):
                         if not is_custom_target and l.name_suffix_set:
                             mlog.warning(msg.format(l.name, 'name_suffix', lname, pcfile))
                         if is_custom_target or 'cs' not in l.compilers:
-                            yield f'-l{lname}'
+                            yield '-l{}'.format((lname))
 
             def get_uninstalled_include_dirs(libs):
                 result = []
@@ -523,7 +523,7 @@ class PkgConfigModule(ExtensionModule):
             default_subdirs = []
             blocked_vars = ['libraries', 'libraries_private', 'require_private', 'extra_cflags', 'subdirs']
             if any(k in kwargs for k in blocked_vars):
-                raise mesonlib.MesonException(f'Cannot combine dataonly with any of {blocked_vars}')
+                raise mesonlib.MesonException('Cannot combine dataonly with any of {}'.format((blocked_vars)))
             default_install_dir = os.path.join(state.environment.get_datadir(), 'pkgconfig')
 
         subdirs = mesonlib.stringlistify(kwargs.get('subdirs', default_subdirs))
@@ -571,7 +571,7 @@ class PkgConfigModule(ExtensionModule):
             variables = []
             for name, value in vardict.items():
                 if not dataonly and name in reserved:
-                    raise mesonlib.MesonException(f'Variable "{name}" is reserved')
+                    raise mesonlib.MesonException('Variable "{}" is reserved'.format((name)))
                 variables.append((name, value))
             return variables
 

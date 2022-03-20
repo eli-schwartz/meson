@@ -84,7 +84,7 @@ class CMakeToolchain:
         for key, value in vars.items():
             res += 'set(' + key
             for i in value:
-                res += f' "{i}"'
+                res += ' "{}"'.format((i))
             res += ')\n'
         return res
 
@@ -113,7 +113,7 @@ class CMakeToolchain:
             self.update_cmake_compiler_state()
             res += '# CMake compiler state variables\n'
             for lang, vars in self.cmakestate:
-                res += f'# -- Variables for language {lang}\n'
+                res += '# -- Variables for language {}\n'.format((lang))
                 res += self._print_vars(vars)
                 res += '\n'
             res += '\n'
@@ -140,7 +140,7 @@ class CMakeToolchain:
 
         res = ''
         for name, v in self.cmakestate.cmake_cache.items():
-            res += f'{name}:{v.type}={";".join(v.value)}\n'
+            res += '{}:{}={}\n'.format((name), (v.type), (";".join(v.value)))
         return res
 
     def get_defaults(self) -> T.Dict[str, T.List[str]]:
@@ -217,10 +217,10 @@ class CMakeToolchain:
         mlog.debug('CMake Toolchain: Calling CMake once to generate the compiler state')
         languages     = list(self.compilers.keys())
         lang_ids      = [language_map.get(x, x.upper()) for x in languages]
-        cmake_content = dedent(f'''
+        cmake_content = dedent('''
             cmake_minimum_required(VERSION 3.7)
-            project(CompInfo {' '.join(lang_ids)})
-        ''')
+            project(CompInfo {})
+        '''.format((' '.join(lang_ids))))
 
         build_dir = Path(self.env.scratch_dir) / '__CMake_compiler_info__'
         build_dir.mkdir(parents=True, exist_ok=True)
@@ -237,7 +237,7 @@ class CMakeToolchain:
         cmake_args = []
         cmake_args += trace.trace_args()
         cmake_args += cmake_get_generator_args(self.env)
-        cmake_args += [f'-DCMAKE_TOOLCHAIN_FILE={temp_toolchain_file.as_posix()}', '.']
+        cmake_args += ['-DCMAKE_TOOLCHAIN_FILE={}'.format((temp_toolchain_file.as_posix())), '.']
         rc, _, raw_trace = self.cmakebin.call(cmake_args, build_dir=build_dir, disable_cache=True)
 
         if rc != 0:
@@ -252,7 +252,7 @@ class CMakeToolchain:
 
         for lang in languages:
             lang_cmake = language_map.get(lang, lang.upper())
-            file_name  = f'CMake{lang_cmake}Compiler.cmake'
+            file_name  = 'CMake{}Compiler.cmake'.format((lang_cmake))
             vars = vars_by_file.setdefault(file_name, {})
-            vars[f'CMAKE_{lang_cmake}_COMPILER_FORCED'] = ['1']
+            vars['CMAKE_{}_COMPILER_FORCED'.format((lang_cmake))] = ['1']
             self.cmakestate.update(lang, vars)

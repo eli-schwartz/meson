@@ -124,7 +124,7 @@ class CMakeSubproject(ModuleObject):
         tgt = args[0]
         res = self.cm_interpreter.target_info(tgt)
         if res is None:
-            raise InterpreterException(f'The CMake target {tgt} does not exist\n' +
+            raise InterpreterException('The CMake target {} does not exist\n'.format((tgt)) +
                                        '  Use the following command in your meson.build to list all available targets:\n\n' +
                                        '    message(\'CMaket targets:\\n - \' + \'\\n - \'.join(<cmake_subproject>.target_list()))')
 
@@ -143,7 +143,7 @@ class CMakeSubproject(ModuleObject):
     def dependency(self, state, args, kwargs):
         info = self._args_to_info(args)
         if info['func'] == 'executable':
-            raise InvalidArguments(f'{args[0]} is an executable and does not support the dependency() method. Use target() instead.')
+            raise InvalidArguments('{} is an executable and does not support the dependency() method. Use target() instead.'.format((args[0])))
         orig = self.get_variable(state, [info['dep']], {})
         assert isinstance(orig, dependencies.Dependency)
         actual = orig.include_type
@@ -277,7 +277,7 @@ class CmakeModule(ExtensionModule):
 
         p, stdout, stderr = mesonlib.Popen_safe(cmakebin.get_command() + ['--system-information', '-G', 'Ninja'])[0:3]
         if p.returncode != 0:
-            mlog.log(f'error retrieving cmake information: returnCode={p.returncode} stdout={stdout} stderr={stderr}')
+            mlog.log('error retrieving cmake information: returnCode={} stdout={} stderr={}'.format((p.returncode), (stdout), (stderr)))
             return False
 
         match = re.search('\nCMAKE_ROOT \\"([^"]+)"\n', stdout.strip())
@@ -313,11 +313,11 @@ class CmakeModule(ExtensionModule):
             pkgroot = os.path.join(state.environment.coredata.get_option(mesonlib.OptionKey('libdir')), 'cmake', name)
             pkgroot_name = os.path.join('{libdir}', 'cmake', name)
 
-        template_file = os.path.join(self.cmake_root, 'Modules', f'BasicConfigVersion-{compatibility}.cmake.in')
+        template_file = os.path.join(self.cmake_root, 'Modules', 'BasicConfigVersion-{}.cmake.in'.format((compatibility)))
         if not os.path.exists(template_file):
-            raise mesonlib.MesonException(f'your cmake installation doesn\'t support the {compatibility} compatibility')
+            raise mesonlib.MesonException('your cmake installation doesn\'t support the {} compatibility'.format((compatibility)))
 
-        version_file = os.path.join(state.environment.scratch_dir, f'{name}ConfigVersion.cmake')
+        version_file = os.path.join(state.environment.scratch_dir, '{}ConfigVersion.cmake'.format((name)))
 
         conf = {
             'CVF_VERSION': (version, ''),
@@ -339,7 +339,7 @@ class CmakeModule(ExtensionModule):
             with open(infile, encoding='utf-8') as fin:
                 data = fin.readlines()
         except Exception as e:
-            raise mesonlib.MesonException(f'Could not read input file {infile}: {e!s}')
+            raise mesonlib.MesonException('Could not read input file {}: {!s}'.format((infile), (e)))
 
         result = []
         regex = mesonlib.get_variable_regex('cmake@')
@@ -376,7 +376,7 @@ class CmakeModule(ExtensionModule):
 
         name = kwargs['name']
 
-        (ofile_path, ofile_fname) = os.path.split(os.path.join(state.subdir, f'{name}Config.cmake'))
+        (ofile_path, ofile_fname) = os.path.split(os.path.join(state.subdir, '{}Config.cmake'.format((name))))
         ofile_abs = os.path.join(state.environment.build_dir, ofile_path, ofile_fname)
 
         install_dir = kwargs['install_dir']

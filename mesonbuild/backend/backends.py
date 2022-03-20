@@ -85,7 +85,7 @@ class TestProtocol(enum.Enum):
             return cls.GTEST
         elif string == 'rust':
             return cls.RUST
-        raise MesonException(f'unknown test format {string}')
+        raise MesonException('unknown test format {}'.format((string)))
 
     def __str__(self) -> str:
         cls = type(self)
@@ -292,13 +292,13 @@ class Backend:
                                              self.environment.get_source_dir())
 
     def generate(self) -> None:
-        raise RuntimeError(f'generate is not implemented in {type(self).__name__}')
+        raise RuntimeError('generate is not implemented in {}'.format((type(self).__name__)))
 
     def get_target_filename(self, t: T.Union[build.Target, build.CustomTargetIndex], *, warn_multi_output: bool = True) -> str:
         if isinstance(t, build.CustomTarget):
             if warn_multi_output and len(t.get_outputs()) != 1:
-                mlog.warning(f'custom_target {t.name!r} has more than one output! '
-                             'Using the first one.')
+                mlog.warning('custom_target {!r} has more than one output! '
+                             'Using the first one.'.format((t.name)))
             filename = t.get_outputs()[0]
         elif isinstance(t, build.CustomTargetIndex):
             filename = t.get_outputs()[0]
@@ -362,14 +362,14 @@ class Backend:
             return os.path.join(self.get_target_dir(target), target.get_filename())
         elif isinstance(target, (build.CustomTarget, build.CustomTargetIndex)):
             if not target.is_linkable_target():
-                raise MesonException(f'Tried to link against custom target "{target.name}", which is not linkable.')
+                raise MesonException('Tried to link against custom target "{}", which is not linkable.'.format((target.name)))
             return os.path.join(self.get_target_dir(target), target.get_filename())
         elif isinstance(target, build.Executable):
             if target.import_filename:
                 return os.path.join(self.get_target_dir(target), target.get_import_filename())
             else:
                 return None
-        raise AssertionError(f'BUG: Tried to link to {target!r} which is not linkable')
+        raise AssertionError('BUG: Tried to link to {!r} which is not linkable'.format((target)))
 
     @lru_cache(maxsize=None)
     def get_target_dir(self, target: T.Union[build.Target, build.CustomTargetIndex]) -> str:
@@ -422,7 +422,7 @@ class Backend:
                               suffix: str, number: int) -> mesonlib.File:
         # There is a potential conflict here, but it is unlikely that
         # anyone both enables unity builds and has a file called foo-unity.cpp.
-        osrc = f'{target.name}-unity{number}.{suffix}'
+        osrc = '{}-unity{}.{}'.format((target.name), (number), (suffix))
         return mesonlib.File.from_built_file(self.get_target_private_dir(target), osrc)
 
     def generate_unity_files(self, target: build.BuildTarget, unity_src: str) -> T.List[mesonlib.File]:
@@ -458,7 +458,7 @@ class Backend:
                     ofile = init_language_file(comp.get_default_suffix(), unity_file_number)
                     unity_file_number += 1
                     files_in_current = 0
-                ofile.write(f'#include<{src}>\n')
+                ofile.write('#include<{}>\n'.format((src)))
                 files_in_current += 1
             if ofile:
                 ofile.close()
@@ -660,7 +660,7 @@ class Backend:
         hasher.update(bytes(str(capture), encoding='utf-8'))
         hasher.update(bytes(str(feed), encoding='utf-8'))
         digest = hasher.hexdigest()
-        scratch_file = f'meson_exe_{basename}_{digest}.dat'
+        scratch_file = 'meson_exe_{}_{}.dat'.format((basename), (digest))
         exe_data = os.path.join(self.environment.get_scratch_dir(), scratch_file)
         with open(exe_data, 'wb') as f:
             pickle.dump(es, f)
@@ -738,7 +738,7 @@ class Backend:
                 for dir in symbols_match.group(1).split(':'):
                     # Prevent usage of --just-symbols to specify rpath
                     if Path(dir).is_dir():
-                        raise MesonException(f'Invalid arg for --just-symbols, {dir} is a directory.')
+                        raise MesonException('Invalid arg for --just-symbols, {} is a directory.'.format((dir)))
         return dirs
 
     @lru_cache(maxsize=None)
@@ -764,7 +764,7 @@ class Backend:
                     continue
                 if libdir.startswith(self.environment.get_source_dir()):
                     rel_to_src = libdir[len(self.environment.get_source_dir()) + 1:]
-                    assert not os.path.isabs(rel_to_src), f'rel_to_src: {rel_to_src} is absolute'
+                    assert not os.path.isabs(rel_to_src), 'rel_to_src: {} is absolute'.format((rel_to_src))
                     paths.add(os.path.join(self.build_to_src, rel_to_src))
                 else:
                     paths.add(libdir)
@@ -890,14 +890,14 @@ class Backend:
     def create_msvc_pch_implementation(self, target: build.BuildTarget, lang: str, pch_header: str) -> str:
         # We have to include the language in the file name, otherwise
         # pch.c and pch.cpp will both end up as pch.obj in VS backends.
-        impl_name = f'meson_pch-{lang}.{lang}'
+        impl_name = 'meson_pch-{}.{}'.format((lang), (lang))
         pch_rel_to_build = os.path.join(self.get_target_private_dir(target), impl_name)
         # Make sure to prepend the build dir, since the working directory is
         # not defined. Otherwise, we might create the file in the wrong path.
         pch_file = os.path.join(self.build_dir, pch_rel_to_build)
         os.makedirs(os.path.dirname(pch_file), exist_ok=True)
 
-        content = f'#include "{os.path.basename(pch_header)}"'
+        content = '#include "{}"'.format((os.path.basename(pch_header)))
         pch_file_tmp = pch_file + '.tmp'
         with open(pch_file_tmp, 'w', encoding='utf-8') as f:
             f.write(content)
@@ -1022,7 +1022,7 @@ class Backend:
         args: T.List[str] = []
         for d in deps:
             if not d.is_linkable_target():
-                raise RuntimeError(f'Tried to link with a non-library target "{d.get_basename()}".')
+                raise RuntimeError('Tried to link with a non-library target "{}".'.format((d.get_basename())))
             arg = self.get_target_filename_for_linking(d)
             if not arg:
                 continue
@@ -1228,7 +1228,7 @@ class Backend:
             # to the future by a minuscule amount, less than
             # 0.001 seconds. I don't know why.
             if delta > 0.001:
-                raise MesonException(f'Clock skew detected. File {absf} has a time stamp {delta:.4f}s in the future.')
+                raise MesonException('Clock skew detected. File {} has a time stamp {:.4f}s in the future.'.format((absf), (delta)))
 
     def build_target_to_cmd_array(self, bt: T.Union[build.BuildTarget, programs.ExternalProgram]) -> T.List[str]:
         if isinstance(bt, build.BuildTarget):
@@ -1253,7 +1253,7 @@ class Backend:
             m = regex.search(arg)
             while m is not None:
                 index = int(m.group(1))
-                src = f'@OUTPUT{index}@'
+                src = '@OUTPUT{}@'.format((index))
                 arg = arg.replace(src, os.path.join(private_dir, output_list[index]))
                 m = regex.search(arg)
             newargs.append(arg)
@@ -1427,8 +1427,8 @@ class Backend:
                     i = i.replace('@CURRENT_SOURCE_DIR@', os.path.join(source_root, target.subdir))
                 if '@DEPFILE@' in i:
                     if target.depfile is None:
-                        msg = f'Custom target {target.name!r} has @DEPFILE@ but no depfile ' \
-                              'keyword argument.'
+                        msg = 'Custom target {!r} has @DEPFILE@ but no depfile ' \
+                              'keyword argument.'.format((target.name))
                         raise MesonException(msg)
                     dfilename = os.path.join(outdir, target.depfile)
                     i = i.replace('@DEPFILE@', dfilename)
@@ -1439,7 +1439,7 @@ class Backend:
                         pdir = self.get_target_private_dir(target)
                     i = i.replace('@PRIVATE_DIR@', pdir)
             else:
-                raise RuntimeError(f'Argument {i} is of unknown type {type(i)}')
+                raise RuntimeError('Argument {} is of unknown type {}'.format((i), (type(i))))
             cmd.append(i)
         # Substitute the rest of the template strings
         values = mesonlib.get_filenames_templates_dict(inputs, outputs)
@@ -1484,7 +1484,7 @@ class Backend:
 
         for s in self.build.postconf_scripts:
             name = ' '.join(s.cmd_args)
-            mlog.log(f'Running postconf script {name!r}')
+            mlog.log('Running postconf script {!r}'.format((name)))
             run_exe(s, env)
 
     @lru_cache(maxsize=1)
@@ -1689,7 +1689,7 @@ class Backend:
 
             for f in h.get_sources():
                 if not isinstance(f, File):
-                    raise MesonException(f'Invalid header type {f!r} can\'t be installed')
+                    raise MesonException('Invalid header type {!r} can\'t be installed'.format((f)))
                 abspath = f.absolute_path(srcdir, builddir)
                 i = InstallDataBase(abspath, outdir, outdir_name, h.get_custom_install_mode(), h.subproject, tag='devel')
                 d.headers.append(i)
@@ -1708,7 +1708,7 @@ class Backend:
                         subdir = os.path.join('{mandir}', 'man' + num)
                 fname = f.fname
                 if m.locale: # strip locale from file name
-                    fname = fname.replace(f'.{m.locale}', '')
+                    fname = fname.replace('.{}'.format((m.locale)), '')
                 srcabs = f.absolute_path(self.environment.get_source_dir(), self.environment.get_build_dir())
                 dstname = os.path.join(subdir, os.path.basename(fname))
                 dstabs = dstname.replace('{mandir}', manroot)
@@ -1806,7 +1806,7 @@ class Backend:
                     elif isinstance(j, (build.BuildTarget, build.CustomTarget)):
                         compiler += j.get_outputs()
                     else:
-                        raise RuntimeError(f'Type "{type(j).__name__}" is not supported in get_introspection_data. This is a bug')
+                        raise RuntimeError('Type "{}" is not supported in get_introspection_data. This is a bug'.format((type(j).__name__)))
 
             return [{
                 'language': 'unknown',

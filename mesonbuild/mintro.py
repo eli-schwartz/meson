@@ -432,7 +432,7 @@ def get_infodir(builddir: T.Optional[str] = None) -> str:
 
 def get_info_file(infodir: str, kind: T.Optional[str] = None) -> str:
     return os.path.join(infodir,
-                        'meson-info.json' if not kind else f'intro-{kind}.json')
+                        'meson-info.json' if not kind else 'intro-{}.json'.format((kind)))
 
 def load_info_file(infodir: str, kind: T.Optional[str] = None) -> T.Any:
     with open(get_info_file(infodir, kind), encoding='utf-8') as fp:
@@ -503,7 +503,7 @@ updated_introspection_files = []  # type: T.List[str]
 def write_intro_info(intro_info: T.Sequence[T.Tuple[str, T.Union[dict, T.List[T.Any]]]], info_dir: str) -> None:
     global updated_introspection_files
     for kind, data in intro_info:
-        out_file = os.path.join(info_dir, f'intro-{kind}.json')
+        out_file = os.path.join(info_dir, 'intro-{}.json'.format((kind)))
         tmp_file = os.path.join(info_dir, 'tmp_dump.json')
         with open(tmp_file, 'w', encoding='utf-8') as fp:
             json.dump(data, fp)
@@ -550,7 +550,7 @@ def write_meson_info_file(builddata: build.Build, errors: list, build_files_upda
         if not intro_types[i].func:
             continue
         intro_info[i] = {
-            'file': f'intro-{i}.json',
+            'file': 'intro-{}.json'.format((i)),
             'updated': i in updated_introspection_files
         }
 

@@ -120,9 +120,9 @@ class ConfigToolDependency(ExternalDependency):
         if self.config is None:
             found_msg.append(mlog.red('NO'))
             if version is not None and req_version:
-                found_msg.append(f'found {version!r} but need {req_version!r}')
+                found_msg.append('found {!r} but need {!r}'.format((version), (req_version)))
             elif req_version:
-                found_msg.append(f'need {req_version!r}')
+                found_msg.append('need {!r}'.format((req_version)))
         else:
             found_msg += [mlog.green('YES'), '({})'.format(' '.join(self.config)), version]
 
@@ -134,19 +134,19 @@ class ConfigToolDependency(ExternalDependency):
         p, out, err = Popen_safe(self.config + args)
         if p.returncode != 0:
             if self.required:
-                raise DependencyException(f'Could not generate {stage} for {self.name}.\n{err}')
+                raise DependencyException('Could not generate {} for {}.\n{}'.format((stage), (self.name), (err)))
             return []
         return split_args(out)
 
     def get_configtool_variable(self, variable_name: str) -> str:
-        p, out, _ = Popen_safe(self.config + [f'--{variable_name}'])
+        p, out, _ = Popen_safe(self.config + ['--{}'.format((variable_name))])
         if p.returncode != 0:
             if self.required:
                 raise DependencyException(
                     'Could not get variable "{}" for dependency {}'.format(
                         variable_name, self.name))
         variable = out.strip()
-        mlog.debug(f'Got config-tool variable {variable_name} : {variable}')
+        mlog.debug('Got config-tool variable {} : {}'.format((variable_name), (variable)))
         return variable
 
     def log_tried(self) -> str:
@@ -171,4 +171,4 @@ class ConfigToolDependency(ExternalDependency):
                 self.required = restore
         if default_value is not None:
             return default_value
-        raise DependencyException(f'Could not get config-tool variable and no default provided for {self!r}')
+        raise DependencyException('Could not get config-tool variable and no default provided for {!r}'.format((self)))

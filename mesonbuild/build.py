@@ -585,18 +585,18 @@ class Target(HoldableObject):
     def __post_init__(self) -> None:
         if has_path_sep(self.name):
             # Fix failing test 53 when this becomes an error.
-            mlog.warning(textwrap.dedent(f'''\
-                Target "{self.name}" has a path separator in its name.
+            mlog.warning(textwrap.dedent('''\
+                Target "{}" has a path separator in its name.
                 This is not supported, it can cause unexpected failures and will become
                 a hard error in the future.
-            '''))
+            '''.format((self.name))))
         self.install = False
         self.build_always_stale = False
         self.option_overrides_base: T.Dict[OptionKey, str] = {}
         self.option_overrides_compiler: T.Dict[OptionKey, str] = {}
         self.extra_files = []  # type: T.List[File]
         if not hasattr(self, 'typename'):
-            raise RuntimeError(f'Target type is not set for target class "{type(self).__name__}". This is a bug')
+            raise RuntimeError('Target type is not set for target class "{}". This is a bug'.format((type(self).__name__)))
 
     # dataclass comparators?
     def __lt__(self, other: object) -> bool:
@@ -781,7 +781,7 @@ class BuildTarget(Target):
         self.check_unknown_kwargs(kwargs)
         self.process_compilers()
         if not any([self.sources, self.generated, self.objects, self.link_whole, self.structured_sources]):
-            raise InvalidArguments(f'Build target {name} has no sources.')
+            raise InvalidArguments('Build target {} has no sources.'.format((name)))
         self.process_compilers_late()
         self.validate_sources()
         self.validate_install(environment)
@@ -797,7 +797,7 @@ class BuildTarget(Target):
         return repr_str.format(self.__class__.__name__, self.get_id(), self.filename)
 
     def __str__(self):
-        return f"{self.name}"
+        return "{}".format((self.name))
 
     def validate_install(self, environment):
         if self.for_machine is MachineChoice.BUILD and self.need_install:
@@ -826,12 +826,12 @@ class BuildTarget(Target):
                 self.objects.append(s)
             elif isinstance(s, (GeneratedList, CustomTarget)):
                 msg = 'Generated files are not allowed in the \'objects\' kwarg ' + \
-                    f'for target {self.name!r}.\nIt is meant only for ' + \
+                    'for target {!r}.\nIt is meant only for '.format((self.name)) + \
                     'pre-built object files that are shipped with the\nsource ' + \
                     'tree. Try adding it in the list of sources.'
                 raise InvalidArguments(msg)
             else:
-                raise InvalidArguments(f'Bad object of type {type(s).__name__!r} in target {self.name!r}.')
+                raise InvalidArguments('Bad object of type {!r} in target {!r}.'.format((type(s).__name__), (self.name)))
 
     def process_sourcelist(self, sources: T.List['SourceOutputs']) -> None:
         """Split sources into generated and static sources.
@@ -1000,7 +1000,7 @@ class BuildTarget(Target):
                     logger_fun(comp.get_display_language(), 'linker for the', self.for_machine.get_lower_case_name(), 'machine:',
                                mlog.bold(' '.join(comp.linker.get_exelist())), comp.linker.id, comp.linker.version)
                 if comp is None:
-                    raise MesonException(f'Cannot find required compiler {value}')
+                    raise MesonException('Cannot find required compiler {}'.format((value)))
                 self.compilers[value] = comp
 
     def validate_sources(self):
@@ -1011,7 +1011,7 @@ class BuildTarget(Target):
                 check_sources = list(self.sources)
                 compiler = self.compilers[lang]
                 if not self.can_compile_remove_sources(compiler, check_sources):
-                    raise InvalidArguments(f'No {lang} sources found in target {self.name!r}')
+                    raise InvalidArguments('No {} sources found in target {!r}'.format((lang), (self.name)))
                 if check_sources:
                     m = '{0} targets can only contain {0} files:\n'.format(lang.capitalize())
                     m += '\n'.join([repr(c) for c in check_sources])
@@ -1068,16 +1068,16 @@ class BuildTarget(Target):
                 else:
                     FeatureNew.single_use('File argument for extract_objects', '0.50.0', self.subproject)
                 if src not in sources_set:
-                    raise MesonException(f'Tried to extract unknown source {src}.')
+                    raise MesonException('Tried to extract unknown source {}.'.format((src)))
                 obj_src.append(src)
             elif isinstance(src, (CustomTarget, CustomTargetIndex, GeneratedList)):
                 FeatureNew.single_use('Generated sources for extract_objects', '0.61.0', self.subproject)
                 target = src.target if isinstance(src, CustomTargetIndex) else src
                 if src not in generated_set and target not in generated_set:
-                    raise MesonException(f'Tried to extract unknown source {target.get_basename()}.')
+                    raise MesonException('Tried to extract unknown source {}.'.format((target.get_basename())))
                 obj_gen.append(src)
             else:
-                raise MesonException(f'Object extraction arguments must be strings, Files or targets (got {type(src).__name__}).')
+                raise MesonException('Object extraction arguments must be strings, Files or targets (got {}).'.format((type(src).__name__)))
         return ExtractedObjects(self, obj_src, obj_gen)
 
     def extract_all_objects(self, recursive: bool = True) -> ExtractedObjects:
@@ -1232,7 +1232,7 @@ class BuildTarget(Target):
             assert isinstance(i, File)
             trial = os.path.join(environment.get_source_dir(), i.subdir, i.fname)
             if not os.path.isfile(trial):
-                raise InvalidArguments(f'Tried to add non-existing extra file {i}.')
+                raise InvalidArguments('Tried to add non-existing extra file {}.'.format((i)))
         self.extra_files = extra_files
         self.install_rpath: str = kwargs.get('install_rpath', '')
         if not isinstance(self.install_rpath, str):
@@ -1246,7 +1246,7 @@ class BuildTarget(Target):
                 raise InvalidArguments('Resource argument is not a string.')
             trial = os.path.join(environment.get_source_dir(), self.subdir, r)
             if not os.path.isfile(trial):
-                raise InvalidArguments(f'Tried to add non-existing resource {r}.')
+                raise InvalidArguments('Tried to add non-existing resource {}.'.format((r)))
         self.resources = resources
         if 'name_prefix' in kwargs:
             name_prefix = kwargs['name_prefix']
@@ -1301,14 +1301,14 @@ class BuildTarget(Target):
     def validate_win_subsystem(self, value: str) -> str:
         value = value.lower()
         if re.fullmatch(r'(boot_application|console|efi_application|efi_boot_service_driver|efi_rom|efi_runtime_driver|native|posix|windows)(,\d+(\.\d+)?)?', value) is None:
-            raise InvalidArguments(f'Invalid value for win_subsystem: {value}.')
+            raise InvalidArguments('Invalid value for win_subsystem: {}.'.format((value)))
         return value
 
     def _extract_pic_pie(self, kwargs, arg: str, environment, option: str):
         # Check if we have -fPIC, -fpic, -fPIE, or -fpie in cflags
         all_flags = self.extra_args['c'] + self.extra_args['cpp']
         if '-f' + arg.lower() in all_flags or '-f' + arg.upper() in all_flags:
-            mlog.warning(f"Use the '{arg}' kwarg instead of passing '-f{arg}' manually to {self.name!r}")
+            mlog.warning("Use the '{}' kwarg instead of passing '-f{}' manually to {!r}".format((arg), (arg), (self.name)))
             return True
 
         k = OptionKey(option)
@@ -1320,7 +1320,7 @@ class BuildTarget(Target):
             val = False
 
         if not isinstance(val, bool):
-            raise InvalidArguments(f'Argument {arg} to {self.name!r} must be boolean')
+            raise InvalidArguments('Argument {} to {!r} must be boolean'.format((arg), (self.name)))
         return val
 
     def get_filename(self) -> str:
@@ -1414,10 +1414,10 @@ You probably should put it in link_with instead.''')
                     raise InvalidArguments('Tried to use subproject object as a dependency.\n'
                                            'You probably wanted to use a dependency declared in it instead.\n'
                                            'Access it by calling get_variable() on the subproject object.')
-                raise InvalidArguments(f'Argument is of an unacceptable type {type(dep).__name__!r}.\nMust be '
+                raise InvalidArguments('Argument is of an unacceptable type {!r}.\nMust be '
                                        'either an external dependency (returned by find_library() or '
                                        'dependency()) or an internal dependency (returned by '
-                                       'declare_dependency()).')
+                                       'declare_dependency()).'.format((type(dep).__name__)))
             self.added_deps.add(dep)
 
     def get_external_deps(self) -> T.List[dependencies.Dependency]:
@@ -1431,23 +1431,23 @@ You probably should put it in link_with instead.''')
             if isinstance(self, StaticLibrary) and self.need_install:
                 if isinstance(t, (CustomTarget, CustomTargetIndex)):
                     if not t.should_install():
-                        mlog.warning(f'Try to link an installed static library target {self.name} with a'
+                        mlog.warning('Try to link an installed static library target {} with a'
                                      'custom target that is not installed, this might cause problems'
-                                     'when you try to use this static library')
+                                     'when you try to use this static library'.format((self.name)))
                 elif t.is_internal():
                     # When we're a static library and we link_with to an
                     # internal/convenience library, promote to link_whole.
                     return self.link_whole(t)
             if not isinstance(t, (Target, CustomTargetIndex)):
-                raise InvalidArguments(f'{t!r} is not a target.')
+                raise InvalidArguments('{!r} is not a target.'.format((t)))
             if not t.is_linkable_target():
-                raise InvalidArguments(f"Link target '{t!s}' is not linkable.")
+                raise InvalidArguments("Link target '{!s}' is not linkable.".format((t)))
             if isinstance(self, SharedLibrary) and isinstance(t, StaticLibrary) and not t.pic:
-                msg = f"Can't link non-PIC static library {t.name!r} into shared library {self.name!r}. "
+                msg = "Can't link non-PIC static library {!r} into shared library {!r}. ".format((t.name), (self.name))
                 msg += "Use the 'pic' option to static_library to build with PIC."
                 raise InvalidArguments(msg)
             if self.for_machine is not t.for_machine:
-                msg = f'Tried to mix libraries for machines {self.for_machine} and {t.for_machine} in target {self.name!r}'
+                msg = 'Tried to mix libraries for machines {} and {} in target {!r}'.format((self.for_machine), (t.for_machine), (self.name))
                 if self.environment.is_cross_build():
                     raise InvalidArguments(msg + ' This is not possible in a cross build.')
                 else:
@@ -1458,20 +1458,20 @@ You probably should put it in link_with instead.''')
         for t in listify(target):
             if isinstance(t, (CustomTarget, CustomTargetIndex)):
                 if not t.is_linkable_target():
-                    raise InvalidArguments(f'Custom target {t!r} is not linkable.')
+                    raise InvalidArguments('Custom target {!r} is not linkable.'.format((t)))
                 if not t.get_filename().endswith('.a'):
                     raise InvalidArguments('Can only link_whole custom targets that are .a archives.')
                 if isinstance(self, StaticLibrary):
                     # FIXME: We could extract the .a archive to get object files
                     raise InvalidArguments('Cannot link_whole a custom target into a static library')
             elif not isinstance(t, StaticLibrary):
-                raise InvalidArguments(f'{t!r} is not a static library.')
+                raise InvalidArguments('{!r} is not a static library.'.format((t)))
             elif isinstance(self, SharedLibrary) and not t.pic:
-                msg = f"Can't link non-PIC static library {t.name!r} into shared library {self.name!r}. "
+                msg = "Can't link non-PIC static library {!r} into shared library {!r}. ".format((t.name), (self.name))
                 msg += "Use the 'pic' option to static_library to build with PIC."
                 raise InvalidArguments(msg)
             if self.for_machine is not t.for_machine:
-                msg = f'Tried to mix libraries for machines {self.for_machine} and {t.for_machine} in target {self.name!r}'
+                msg = 'Tried to mix libraries for machines {} and {} in target {!r}'.format((self.for_machine), (t.for_machine), (self.name))
                 if self.environment.is_cross_build():
                     raise InvalidArguments(msg + ' This is not possible in a cross build.')
                 else:
@@ -1494,7 +1494,7 @@ You probably should put it in link_with instead.''')
             return
         elif len(pchlist) == 1:
             if not environment.is_header(pchlist[0]):
-                raise InvalidArguments(f'PCH argument {pchlist[0]} is not a header.')
+                raise InvalidArguments('PCH argument {} is not a header.'.format((pchlist[0])))
         elif len(pchlist) == 2:
             if environment.is_header(pchlist[0]):
                 if not environment.is_source(pchlist[1]):
@@ -1504,7 +1504,7 @@ You probably should put it in link_with instead.''')
                     raise InvalidArguments('PCH definition must contain one header and at most one source.')
                 pchlist = [pchlist[1], pchlist[0]]
             else:
-                raise InvalidArguments(f'PCH argument {pchlist[0]} is of unknown type.')
+                raise InvalidArguments('PCH argument {} is of unknown type.'.format((pchlist[0])))
 
             if os.path.dirname(pchlist[0]) != os.path.dirname(pchlist[1]):
                 raise InvalidArguments('PCH files must be stored in the same folder.')
@@ -1517,7 +1517,7 @@ You probably should put it in link_with instead.''')
             if not isinstance(f, str):
                 raise MesonException('PCH arguments must be strings.')
             if not os.path.isfile(os.path.join(self.environment.source_dir, self.subdir, f)):
-                raise MesonException(f'File {f} does not exist.')
+                raise MesonException('File {} does not exist.'.format((f)))
         self.pch[language] = pchlist
 
     def add_include_dirs(self, args: T.Sequence['IncludeDirs'], set_is_system: T.Optional[str] = None) -> None:
@@ -1585,11 +1585,11 @@ You probably should put it in link_with instead.''')
                     prelinker = all_compilers[l]
                 except KeyError:
                     raise MesonException(
-                        f'Could not get a prelinker linker for build target {self.name!r}. '
-                        f'Requires a compiler for language "{l}", but that is not '
-                        'a project language.')
+                        'Could not get a prelinker linker for build target {!r}. '
+                        'Requires a compiler for language "{}", but that is not '
+                        'a project language.'.format((self.name), (l)))
                 return prelinker
-        raise MesonException(f'Could not determine prelinker for {self.name!r}.')
+        raise MesonException('Could not determine prelinker for {!r}.'.format((self.name)))
 
     def get_clink_dynamic_linker_and_stdlibs(self) -> T.Tuple['Compiler', T.List[str]]:
         '''
@@ -1619,9 +1619,9 @@ You probably should put it in link_with instead.''')
                     linker = all_compilers[l]
                 except KeyError:
                     raise MesonException(
-                        f'Could not get a dynamic linker for build target {self.name!r}. '
-                        f'Requires a linker for language "{l}", but that is not '
-                        'a project language.')
+                        'Could not get a dynamic linker for build target {!r}. '
+                        'Requires a linker for language "{}", but that is not '
+                        'a project language.'.format((self.name), (l)))
                 stdlib_args: T.List[str] = []
                 added_languages: T.Set[str] = set()
                 for dl in itertools.chain(self.compilers, dep_langs):
@@ -1632,7 +1632,7 @@ You probably should put it in link_with instead.''')
                 # Pretty hard to fix because the return value is passed everywhere
                 return linker, stdlib_args
 
-        raise AssertionError(f'Could not get a dynamic linker for build target {self.name!r}')
+        raise AssertionError('Could not get a dynamic linker for build target {!r}'.format((self.name)))
 
     def uses_rust(self) -> bool:
         """Is this target a rust target."""
@@ -1689,20 +1689,20 @@ You probably should put it in link_with instead.''')
             if isinstance(link_target, SharedModule) and not link_target.force_soname:
                 if self.environment.machines[self.for_machine].is_darwin():
                     raise MesonException(
-                        f'target {self.name} links against shared module {link_target.name}. This is not permitted on OSX')
+                        'target {} links against shared module {}. This is not permitted on OSX'.format((self.name), (link_target.name)))
                 elif self.environment.machines[self.for_machine].is_android() and isinstance(self, SharedModule):
                     # Android requires shared modules that use symbols from other shared modules to
                     # be linked before they can be dlopen()ed in the correct order. Not doing so
                     # leads to a missing symbol error: https://github.com/android/ndk/issues/201
                     link_target.force_soname = True
                 else:
-                    mlog.deprecation(f'target {self.name} links against shared module {link_target.name}, which is incorrect.'
+                    mlog.deprecation('target {} links against shared module {}, which is incorrect.'
                                      '\n             '
-                                     f'This will be an error in the future, so please use shared_library() for {link_target.name} instead.'
+                                     'This will be an error in the future, so please use shared_library() for {} instead.'
                                      '\n             '
-                                     f'If shared_module() was used for {link_target.name} because it has references to undefined symbols,'
+                                     'If shared_module() was used for {} because it has references to undefined symbols,'
                                      '\n             '
-                                     'use shared_libary() with `override_options: [\'b_lundef=false\']` instead.')
+                                     'use shared_libary() with `override_options: [\'b_lundef=false\']` instead.'.format((self.name), (link_target.name), (link_target.name), (link_target.name)))
                     link_target.force_soname = True
 
 class Generator(HoldableObject):
@@ -1918,8 +1918,8 @@ class Executable(BuildTarget):
             if not isinstance(kwargs.get('implib', False), bool):
                 implib_basename = kwargs['implib']
             if m.is_windows() or m.is_cygwin():
-                self.vs_import_filename = f'{implib_basename}.lib'
-                self.gcc_import_filename = f'lib{implib_basename}.a'
+                self.vs_import_filename = '{}.lib'.format((implib_basename))
+                self.gcc_import_filename = 'lib{}.a'.format((implib_basename))
                 if self.get_using_msvc():
                     self.import_filename = self.vs_import_filename
                 else:
@@ -1994,7 +1994,7 @@ class StaticLibrary(BuildTarget):
                 self.rust_crate_type = 'rlib'
             # Don't let configuration proceed with a non-static crate type
             elif self.rust_crate_type not in ['rlib', 'staticlib']:
-                raise InvalidArguments(f'Crate type "{self.rust_crate_type}" invalid for static libraries; must be "rlib" or "staticlib"')
+                raise InvalidArguments('Crate type "{}" invalid for static libraries; must be "rlib" or "staticlib"'.format((self.rust_crate_type)))
         # By default a static library is named libfoo.a even on Windows because
         # MSVC does not have a consistent convention for what static libraries
         # are called. The MSVC CRT uses libfoo.lib syntax but nothing else uses
@@ -2035,7 +2035,7 @@ class StaticLibrary(BuildTarget):
             if isinstance(rust_crate_type, str):
                 self.rust_crate_type = rust_crate_type
             else:
-                raise InvalidArguments(f'Invalid rust_crate_type "{rust_crate_type}": must be a string.')
+                raise InvalidArguments('Invalid rust_crate_type "{}": must be a string.'.format((rust_crate_type)))
 
     def is_linkable_target(self):
         return True
@@ -2070,7 +2070,7 @@ class SharedLibrary(BuildTarget):
                 self.rust_crate_type = 'dylib'
             # Don't let configuration proceed with a non-dynamic crate type
             elif self.rust_crate_type not in ['dylib', 'cdylib', 'proc-macro']:
-                raise InvalidArguments(f'Crate type "{self.rust_crate_type}" invalid for dynamic libraries; must be "dylib", "cdylib", or "proc-macro"')
+                raise InvalidArguments('Crate type "{}" invalid for dynamic libraries; must be "dylib", "cdylib", or "proc-macro"'.format((self.rust_crate_type)))
         if not hasattr(self, 'prefix'):
             self.prefix = None
         if not hasattr(self, 'suffix'):
@@ -2136,7 +2136,7 @@ class SharedLibrary(BuildTarget):
                 # Shared library is of the form foo.dll
                 prefix = ''
                 # Import library is called foo.dll.lib
-                self.import_filename = f'{self.name}.dll.lib'
+                self.import_filename = '{}.dll.lib'.format((self.name))
                 create_debug_file = True
             elif self.get_using_msvc():
                 # Shared library is of the form foo.dll
@@ -2212,7 +2212,7 @@ class SharedLibrary(BuildTarget):
                 darwin_versions = 2 * [darwin_versions]
             if not isinstance(darwin_versions, list):
                 raise InvalidArguments('Shared library darwin_versions: must be a string, integer,'
-                                       f'or a list, not {darwin_versions!r}')
+                                       'or a list, not {!r}'.format((darwin_versions)))
             if len(darwin_versions) > 2:
                 raise InvalidArguments('Shared library darwin_versions: list must contain 2 or fewer elements')
             if len(darwin_versions) == 1:
@@ -2222,7 +2222,7 @@ class SharedLibrary(BuildTarget):
                     v = str(v)
                 if not isinstance(v, str):
                     raise InvalidArguments('Shared library darwin_versions: list elements '
-                                           f'must be strings or integers, not {v!r}')
+                                           'must be strings or integers, not {!r}'.format((v)))
                 if not re.fullmatch(r'[0-9]+(\.[0-9]+){0,2}', v):
                     raise InvalidArguments('Shared library darwin_versions: must be X.Y.Z where '
                                            'X, Y, Z are numbers, and Y and Z are optional')
@@ -2256,7 +2256,7 @@ class SharedLibrary(BuildTarget):
                 if not isinstance(self.ltversion, str):
                     raise InvalidArguments('Shared library version needs to be a string, not ' + type(self.ltversion).__name__)
                 if not re.fullmatch(r'[0-9]+(\.[0-9]+){0,2}', self.ltversion):
-                    raise InvalidArguments(f'Invalid Shared library version "{self.ltversion}". Must be of the form X.Y.Z where all three are numbers. Y and Z are optional.')
+                    raise InvalidArguments('Invalid Shared library version "{}". Must be of the form X.Y.Z where all three are numbers. Y and Z are optional.'.format((self.ltversion)))
             # Try to extract/deduce the soversion
             if 'soversion' in kwargs:
                 self.soversion = kwargs['soversion']
@@ -2301,7 +2301,7 @@ class SharedLibrary(BuildTarget):
             if isinstance(rust_crate_type, str):
                 self.rust_crate_type = rust_crate_type
             else:
-                raise InvalidArguments(f'Invalid rust_crate_type "{rust_crate_type}": must be a string.')
+                raise InvalidArguments('Invalid rust_crate_type "{}": must be a string.'.format((rust_crate_type)))
             if rust_crate_type == 'proc-macro':
                 FeatureNew.single_use('Rust crate type "proc-macro"', '0.62.0', self.subproject)
 
@@ -2397,14 +2397,14 @@ class BothLibraries(SecondLevelHolder):
         self.subproject = self.shared.subproject
 
     def __repr__(self) -> str:
-        return f'<BothLibraries: static={repr(self.static)}; shared={repr(self.shared)}>'
+        return '<BothLibraries: static={}; shared={}>'.format((repr(self.static)), (repr(self.shared)))
 
     def get_default_object(self) -> BuildTarget:
         if self._preferred_library == 'shared':
             return self.shared
         elif self._preferred_library == 'static':
             return self.static
-        raise MesonBugException(f'self._preferred_library == "{self._preferred_library}" is neither "shared" nor "static".')
+        raise MesonBugException('self._preferred_library == "{}" is neither "shared" nor "static".'.format((self._preferred_library)))
 
 class CommandBase:
 
@@ -2441,7 +2441,7 @@ class CommandBase:
             elif isinstance(c, list):
                 final_cmd += self.flatten_command(c)
             else:
-                raise InvalidArguments(f'Argument {c!r} in "command" is invalid')
+                raise InvalidArguments('Argument {!r} in "command" is invalid'.format((c)))
         return final_cmd
 
 class CustomTarget(Target, CommandBase):
@@ -2707,12 +2707,12 @@ class Jar(BuildTarget):
         super().__init__(name, subdir, subproject, for_machine, sources, structured_sources, objects, environment, kwargs)
         for s in self.sources:
             if not s.endswith('.java'):
-                raise InvalidArguments(f'Jar source {s} is not a java file.')
+                raise InvalidArguments('Jar source {} is not a java file.'.format((s)))
         for t in self.link_targets:
             if not isinstance(t, Jar):
-                raise InvalidArguments(f'Link target {t} is not a jar target.')
+                raise InvalidArguments('Link target {} is not a jar target.'.format((t)))
         if self.structured_sources:
-            raise InvalidArguments(f'structured sources are not supported in Java targets.')
+            raise InvalidArguments('structured sources are not supported in Java targets.'.format())
         self.filename = self.name + '.jar'
         self.outputs = [self.filename]
         self.java_args = kwargs.get('java_args', [])
@@ -2761,7 +2761,7 @@ class CustomTargetIndex(HoldableObject):
 
     @property
     def name(self) -> str:
-        return f'{self.target.name}[{self.output}]'
+        return '{}[{}]'.format((self.target.name), (self.output))
 
     def __repr__(self):
         return '<CustomTargetIndex: {!r}[{}]>'.format(
@@ -2860,8 +2860,8 @@ class SymlinkData(HoldableObject):
 
     def __post_init__(self) -> None:
         if self.name != os.path.basename(self.name):
-            raise InvalidArguments(f'Link name is "{self.name}", but link names cannot contain path separators. '
-                                   'The dir part should be in install_dir.')
+            raise InvalidArguments('Link name is "{}", but link names cannot contain path separators. '
+                                   'The dir part should be in install_dir.'.format((self.name)))
 
 @dataclass(eq=False)
 class TestSetup:
@@ -2887,13 +2887,13 @@ def get_sources_string_names(sources, backend):
         elif isinstance(s, File):
             names.append(s.fname)
         else:
-            raise AssertionError(f'Unknown source type: {s!r}')
+            raise AssertionError('Unknown source type: {!r}'.format((s)))
     return names
 
 def load(build_dir: str) -> Build:
     filename = os.path.join(build_dir, 'meson-private', 'build.dat')
-    load_fail_msg = f'Build data file {filename!r} is corrupted. Try with a fresh build tree.'
-    nonexisting_fail_msg = f'No such build data file as "{filename!r}".'
+    load_fail_msg = 'Build data file {!r} is corrupted. Try with a fresh build tree.'.format((filename))
+    nonexisting_fail_msg = 'No such build data file as "{!r}".'.format((filename))
     try:
         with open(filename, 'rb') as f:
             obj = pickle.load(f)
@@ -2903,10 +2903,10 @@ def load(build_dir: str) -> Build:
         raise MesonException(load_fail_msg)
     except AttributeError:
         raise MesonException(
-            f"Build data file {filename!r} references functions or classes that don't "
+            "Build data file {!r} references functions or classes that don't "
             "exist. This probably means that it was generated with an old "
             "version of meson. Try running from the source directory "
-            f"meson {build_dir} --wipe")
+            "meson {} --wipe".format((filename), (build_dir)))
     if not isinstance(obj, Build):
         raise MesonException(load_fail_msg)
     return obj

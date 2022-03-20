@@ -75,12 +75,12 @@ def autodetect_options(options: 'argparse.Namespace', sample: bool = False) -> N
     if not options.name:
         options.name = Path().resolve().stem
         if not re.match('[a-zA-Z_][a-zA-Z0-9]*', options.name) and sample:
-            raise SystemExit(f'Name of current directory "{options.name}" is not usable as a sample project name.\n'
-                             'Specify a project name with --name.')
-        print(f'Using "{options.name}" (name of current directory) as project name.')
+            raise SystemExit('Name of current directory "{}" is not usable as a sample project name.\n'
+                             'Specify a project name with --name.'.format((options.name)))
+        print('Using "{}" (name of current directory) as project name.'.format((options.name)))
     if not options.executable:
         options.executable = options.name
-        print(f'Using "{options.executable}" (project name) as name of executable to build.')
+        print('Using "{}" (project name) as name of executable to build.'.format((options.executable)))
     if sample:
         # The rest of the autodetection is not applicable to generating sample projects.
         return
@@ -149,8 +149,8 @@ def add_arguments(parser: 'argparse.ArgumentParser') -> None:
     parser.add_argument("-b", "--build", action='store_true', help="build after generation")
     parser.add_argument("--builddir", default='build', help="directory for build")
     parser.add_argument("-f", "--force", action="store_true", help="force overwrite of existing files and directories.")
-    parser.add_argument('--type', default=DEFAULT_PROJECT, choices=('executable', 'library'), help=f"project type. default: {DEFAULT_PROJECT} based project")
-    parser.add_argument('--version', default=DEFAULT_VERSION, help=f"project version. default: {DEFAULT_VERSION}")
+    parser.add_argument('--type', default=DEFAULT_PROJECT, choices=('executable', 'library'), help="project type. default: {} based project".format((DEFAULT_PROJECT)))
+    parser.add_argument('--version', default=DEFAULT_VERSION, help="project version. default: {}".format((DEFAULT_VERSION)))
 
 def run(options: 'argparse.Namespace') -> int:
     '''

@@ -88,12 +88,12 @@ def resolve_cmake_trace_targets(target_name: str,
             if 'RELEASE' in cfgs:
                 cfg = 'RELEASE'
 
-        if f'IMPORTED_IMPLIB_{cfg}' in tgt.properties:
-            res.libraries += [x for x in tgt.properties[f'IMPORTED_IMPLIB_{cfg}'] if x]
+        if 'IMPORTED_IMPLIB_{}'.format((cfg)) in tgt.properties:
+            res.libraries += [x for x in tgt.properties['IMPORTED_IMPLIB_{}'.format((cfg))] if x]
         elif 'IMPORTED_IMPLIB' in tgt.properties:
             res.libraries += [x for x in tgt.properties['IMPORTED_IMPLIB'] if x]
-        elif f'IMPORTED_LOCATION_{cfg}' in tgt.properties:
-            res.libraries += [x for x in tgt.properties[f'IMPORTED_LOCATION_{cfg}'] if x]
+        elif 'IMPORTED_LOCATION_{}'.format((cfg)) in tgt.properties:
+            res.libraries += [x for x in tgt.properties['IMPORTED_LOCATION_{}'.format((cfg))] if x]
         elif 'IMPORTED_LOCATION' in tgt.properties:
             res.libraries += [x for x in tgt.properties['IMPORTED_LOCATION'] if x]
 
@@ -102,8 +102,8 @@ def resolve_cmake_trace_targets(target_name: str,
         if 'INTERFACE_LINK_LIBRARIES' in tgt.properties:
             targets += [x for x in tgt.properties['INTERFACE_LINK_LIBRARIES'] if x]
 
-        if f'IMPORTED_LINK_DEPENDENT_LIBRARIES_{cfg}' in tgt.properties:
-            targets += [x for x in tgt.properties[f'IMPORTED_LINK_DEPENDENT_LIBRARIES_{cfg}'] if x]
+        if 'IMPORTED_LINK_DEPENDENT_LIBRARIES_{}'.format((cfg)) in tgt.properties:
+            targets += [x for x in tgt.properties['IMPORTED_LINK_DEPENDENT_LIBRARIES_{}'.format((cfg))] if x]
         elif 'IMPORTED_LINK_DEPENDENT_LIBRARIES' in tgt.properties:
             targets += [x for x in tgt.properties['IMPORTED_LINK_DEPENDENT_LIBRARIES'] if x]
 

@@ -122,7 +122,7 @@ class QtBaseModule(ExtensionModule):
         """Detect Qt (4 or 5) moc, uic, rcc in the specified bindir or in PATH"""
         # It is important that this list does not change order as the order of
         # the returned ExternalPrograms will change as well
-        wanted = f'== {qt_dep.version}'
+        wanted = '== {}'.format((qt_dep.version))
 
         def gen_bins() -> T.Generator[T.Tuple[str, str], None, None]:
             for b in self.tools:
@@ -130,7 +130,7 @@ class QtBaseModule(ExtensionModule):
                     yield os.path.join(qt_dep.bindir, b), b
                 # prefer the <tool>-qt<version> of the tool to the plain one, as we
                 # don't know what the unsuffixed one points to without calling it.
-                yield f'{b}-qt{qt_dep.qtver}', b
+                yield '{}-qt{}'.format((b), (qt_dep.qtver)), b
                 yield b, b
 
         for b, name in gen_bins():
@@ -163,10 +163,10 @@ class QtBaseModule(ExtensionModule):
         if self._tools_detected:
             return
         self._tools_detected = True
-        mlog.log(f'Detecting Qt{self.qt_version} tools')
+        mlog.log('Detecting Qt{} tools'.format((self.qt_version)))
         kwargs = {'required': required, 'modules': 'Core', 'method': method}
         # Just pick one to make mypy happy
-        qt = T.cast('QtPkgConfigDependency', find_external_dependency(f'qt{self.qt_version}', state.environment, kwargs))
+        qt = T.cast('QtPkgConfigDependency', find_external_dependency('qt{}'.format((self.qt_version)), state.environment, kwargs))
         if qt.found():
             # Get all tools and then make sure that they are the right version
             self.compilers_detect(state, qt)
@@ -180,7 +180,7 @@ class QtBaseModule(ExtensionModule):
                 mlog.warning('rcc dependencies will not work properly until you move to Qt >= 5.14:',
                              mlog.bold('https://bugreports.qt.io/browse/QTBUG-45460'), fatal=False)
         else:
-            suffix = f'-qt{self.qt_version}'
+            suffix = '-qt{}'.format((self.qt_version))
             self.tools['moc'] = NonExistingExternalProgram(name='moc' + suffix)
             self.tools['uic'] = NonExistingExternalProgram(name='uic' + suffix)
             self.tools['rcc'] = NonExistingExternalProgram(name='rcc' + suffix)
@@ -210,7 +210,7 @@ class QtBaseModule(ExtensionModule):
 
             return rcc_dirname, result
         except Exception:
-            raise MesonException(f'Unable to parse resource file {abspath}')
+            raise MesonException('Unable to parse resource file {}'.format((abspath)))
 
     def _parse_qrc_deps(self, state: 'ModuleState',
                         rcc_file_: T.Union['FileOrString', build.CustomTarget, build.CustomTargetIndex, build.GeneratedList]) -> T.List[File]:
@@ -304,7 +304,7 @@ class QtBaseModule(ExtensionModule):
         if not self.tools['rcc'].found():
             err_msg = ("{0} sources specified and couldn't find {1}, "
                        "please check your qt{2} installation")
-            raise MesonException(err_msg.format('RCC', f'rcc-qt{self.qt_version}', self.qt_version))
+            raise MesonException(err_msg.format('RCC', 'rcc-qt{}'.format((self.qt_version)), self.qt_version))
 
         # List of generated CustomTargets
         targets: T.List[build.CustomTarget] = []
@@ -334,9 +334,9 @@ class QtBaseModule(ExtensionModule):
                 state.subproject,
                 self.tools['rcc'].get_command() + ['-name', name, '-o', '@OUTPUT@'] + extra_args + ['@INPUT@'] + DEPFILE_ARGS,
                 sources,
-                [f'{name}.cpp'],
+                ['{}.cpp'.format((name))],
                 depend_files=qrc_deps,
-                depfile=f'{name}.d',
+                depfile='{}.d'.format((name)),
             )
             targets.append(res_target)
         else:
@@ -346,16 +346,16 @@ class QtBaseModule(ExtensionModule):
                     basename = os.path.basename(rcc_file)
                 else:
                     basename = os.path.basename(rcc_file.fname)
-                name = f'qt{self.qt_version}-{basename.replace(".", "_")}'
+                name = 'qt{}-{}'.format((self.qt_version), (basename.replace(".", "_")))
                 res_target = build.CustomTarget(
                     name,
                     state.subdir,
                     state.subproject,
                     self.tools['rcc'].get_command() + ['-name', '@BASENAME@', '-o', '@OUTPUT@'] + extra_args + ['@INPUT@'] + DEPFILE_ARGS,
                     [rcc_file],
-                    [f'{name}.cpp'],
+                    ['{}.cpp'.format((name))],
                     depend_files=qrc_deps,
-                    depfile=f'{name}.d',
+                    depfile='{}.d'.format((name)),
                 )
                 targets.append(res_target)
 
@@ -388,14 +388,14 @@ class QtBaseModule(ExtensionModule):
         if not self.tools['uic'].found():
             err_msg = ("{0} sources specified and couldn't find {1}, "
                        "please check your qt{2} installation")
-            raise MesonException(err_msg.format('UIC', f'uic-qt{self.qt_version}', self.qt_version))
+            raise MesonException(err_msg.format('UIC', 'uic-qt{}'.format((self.qt_version)), self.qt_version))
 
         # TODO: This generator isn't added to the generator list in the Interpreter
         gen = build.Generator(
             self.tools['uic'],
             kwargs['extra_args'] + ['-o', '@OUTPUT@', '@INPUT@'],
             ['ui_@BASENAME@.h'],
-            name=f'Qt{self.qt_version} ui')
+            name='Qt{} ui'.format((self.qt_version)))
         return gen.process_files(kwargs['sources'], state)
 
     @FeatureNew('qt.compile_moc', '0.59.0')
@@ -435,7 +435,7 @@ class QtBaseModule(ExtensionModule):
         if not self.tools['moc'].found():
             err_msg = ("{0} sources specified and couldn't find {1}, "
                        "please check your qt{2} installation")
-            raise MesonException(err_msg.format('MOC', f'uic-qt{self.qt_version}', self.qt_version))
+            raise MesonException(err_msg.format('MOC', 'uic-qt{}'.format((self.qt_version)), self.qt_version))
 
         if not (kwargs['headers'] or kwargs['sources']):
             raise build.InvalidArguments('At least one of the "headers" or "sources" keyword arguments must be provided and not empty')
@@ -455,13 +455,13 @@ class QtBaseModule(ExtensionModule):
             moc_gen = build.Generator(
                 self.tools['moc'], arguments, ['moc_@BASENAME@.cpp'],
                 depfile='moc_@BASENAME@.cpp.d',
-                name=f'Qt{self.qt_version} moc header')
+                name='Qt{} moc header'.format((self.qt_version)))
             output.append(moc_gen.process_files(kwargs['headers'], state))
         if kwargs['sources']:
             moc_gen = build.Generator(
                 self.tools['moc'], arguments, ['@BASENAME@.moc'],
                 depfile='@BASENAME.moc.d@',
-                name=f'Qt{self.qt_version} moc source')
+                name='Qt{} moc source'.format((self.qt_version)))
             output.append(moc_gen.process_files(kwargs['sources'], state))
 
         return output
@@ -556,7 +556,7 @@ class QtBaseModule(ExtensionModule):
                 if c.endswith('.qm'):
                     ts_files.append(c.rstrip('.qm') + '.ts')
                 else:
-                    raise MesonException(f'qt.compile_translations: qresource can only contain qm files, found {c}')
+                    raise MesonException('qt.compile_translations: qresource can only contain qm files, found {}'.format((c)))
             results = self.preprocess(state, [], {'qresources': qresource_file, 'rcc_extra_arguments': kwargs['rcc_extra_arguments']})
         self._detect_tools(state, kwargs['method'])
         translations: T.List[build.CustomTarget] = []
@@ -576,7 +576,7 @@ class QtBaseModule(ExtensionModule):
                 outdir = state.subdir
             cmd: T.List[T.Union[ExternalProgram, str]] = [self.tools['lrelease'], '@INPUT@', '-qm', '@OUTPUT@']
             lrelease_target = build.CustomTarget(
-                f'qt{self.qt_version}-compile-{ts}',
+                'qt{}-compile-{}'.format((self.qt_version), (ts)),
                 outdir,
                 state.subproject,
                 cmd,

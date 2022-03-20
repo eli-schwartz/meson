@@ -370,7 +370,7 @@ class CudaCompiler(Compiler):
                 # to a file. For some magical reason the following works acceptably in
                 # both cases.
                 wrap = '"' if ',' in flag else ''
-                xflags.append(f'-X{phase.value}={wrap}{flag}{wrap}')
+                xflags.append('-X{}={}{}{}'.format((phase.value), (wrap), (flag), (wrap)))
                 continue
             elif len(flag) >= 2 and flag[0] == '-' and flag[1] in 'IDULlmOxmte':
                 # This is a single-letter short option. These options (with the
@@ -554,7 +554,7 @@ class CudaCompiler(Compiler):
         mlog.debug(stde)
         mlog.debug('-----')
         if pc.returncode != 0:
-            raise EnvironmentException(f'Compiler {self.name_string()} can not compile programs.')
+            raise EnvironmentException('Compiler {} can not compile programs.'.format((self.name_string())))
 
         # Run sanity check (if possible)
         if self.is_cross:
@@ -573,7 +573,7 @@ class CudaCompiler(Compiler):
         mlog.debug('-----')
         pe.wait()
         if pe.returncode != 0:
-            raise EnvironmentException(f'Executables created by {self.language} compiler {self.name_string()} are not runnable.')
+            raise EnvironmentException('Executables created by {} compiler {} are not runnable.'.format((self.language), (self.name_string())))
 
         # Interpret the result of the sanity test.
         # As mentioned above, it is not only a sanity test but also a GPU

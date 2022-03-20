@@ -202,7 +202,7 @@ class Lexer:
                         try:
                             value = ESCAPE_SEQUENCE_SINGLE_RE.sub(decode_match, value)
                         except MesonUnicodeDecodeError as err:
-                            raise MesonException(f"Failed to parse escape sequence: '{err.match}' in string:\n  {match_text}")
+                            raise MesonException("Failed to parse escape sequence: '{}' in string:\n  {}".format((err.match), (match_text)))
                     elif tid == 'multiline_string':
                         tid = 'string'
                         value = match_text[3:-3]
@@ -226,7 +226,7 @@ class Lexer:
                             tid = match_text
                         else:
                             if match_text in self.future_keywords:
-                                mlog.warning(f"Identifier '{match_text}' will become a reserved keyword in a future release. Please rename it.",
+                                mlog.warning("Identifier '{}' will become a reserved keyword in a future release. Please rename it.".format((match_text)),
                                              location=types.SimpleNamespace(filename=filename, lineno=lineno))
                             value = match_text
                     yield Token(tid, filename, curline_start, curline, col, bytespan, value)
@@ -328,7 +328,7 @@ class ArgumentNode(BaseNode):
 
     def set_kwarg(self, name: IdNode, value: BaseNode) -> None:
         if any((isinstance(x, IdNode) and name.value == x.value) for x in self.kwargs):
-            mlog.warning(f'Keyword argument "{name.value}" defined multiple times.', location=self)
+            mlog.warning('Keyword argument "{}" defined multiple times.'.format((name.value)), location=self)
             mlog.warning('This will be an error in future Meson releases.')
         self.kwargs[name] = value
 
@@ -522,12 +522,12 @@ class Parser:
     def expect(self, s: str) -> bool:
         if self.accept(s):
             return True
-        raise ParseException(f'Expecting {s} got {self.current.tid}.', self.getline(), self.current.lineno, self.current.colno)
+        raise ParseException('Expecting {} got {}.'.format((s), (self.current.tid)), self.getline(), self.current.lineno, self.current.colno)
 
     def block_expect(self, s: str, block_start: Token) -> bool:
         if self.accept(s):
             return True
-        raise BlockParseException(f'Expecting {s} got {self.current.tid}.', self.getline(), self.current.lineno, self.current.colno, self.lexer.getline(block_start.line_start), block_start.lineno, block_start.colno)
+        raise BlockParseException('Expecting {} got {}.'.format((s), (self.current.tid)), self.getline(), self.current.lineno, self.current.colno, self.lexer.getline(block_start.line_start), block_start.lineno, block_start.colno)
 
     def parse(self) -> CodeBlockNode:
         block = self.codeblock()

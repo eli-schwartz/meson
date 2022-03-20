@@ -311,7 +311,7 @@ class LLVMDependencyConfigTool(ConfigToolDependency):
                 lib_ext = get_shared_library_suffix(environment, self.for_machine)
                 libdir = self.get_config_value(['--libdir'], 'link_args')[0]
                 # Sort for reproducibility
-                matches = sorted(glob.iglob(os.path.join(libdir, f'libLLVM*{lib_ext}')))
+                matches = sorted(glob.iglob(os.path.join(libdir, 'libLLVM*{}'.format((lib_ext)))))
                 if not matches:
                     if self.required:
                         raise
@@ -320,7 +320,7 @@ class LLVMDependencyConfigTool(ConfigToolDependency):
 
                 self.link_args = self.get_config_value(['--ldflags'], 'link_args')
                 libname = os.path.basename(matches[0]).rstrip(lib_ext).lstrip('lib')
-                self.link_args.append(f'-l{libname}')
+                self.link_args.append('-l{}'.format((libname)))
                 return
         elif self.static and mode == 'shared':
             # If, however LLVM_BUILD_SHARED_LIBS is true # (*cough* gentoo *cough*)
@@ -359,12 +359,12 @@ class LLVMDependencyConfigTool(ConfigToolDependency):
             # called libLLVM-<ver>.(so|dylib|dll)
             libdir = self.get_config_value(['--libdir'], 'link_args')[0]
 
-            expected_name = f'libLLVM-{self.version}'
-            re_name = re.compile(fr'{expected_name}.(so|dll|dylib)$')
+            expected_name = 'libLLVM-{}'.format((self.version))
+            re_name = re.compile('{}.(so|dll|dylib)$'.format((expected_name)))
 
             for file_ in os.listdir(libdir):
                 if re_name.match(file_):
-                    self.link_args = [f'-L{libdir}',
+                    self.link_args = ['-L{}'.format((libdir)),
                                       '-l{}'.format(os.path.splitext(file_.lstrip('lib'))[0])]
                     break
             else:
@@ -385,7 +385,7 @@ class LLVMDependencyConfigTool(ConfigToolDependency):
                     self.is_found = False
                     if self.required:
                         raise DependencyException(
-                            f'Could not find required LLVM Component: {mod}')
+                            'Could not find required LLVM Component: {}'.format((mod)))
                     status = '(missing)'
                 else:
                     status = '(missing but optional)'
@@ -437,10 +437,10 @@ class LLVMDependencyCMake(CMakeDependency):
     def _map_module_list(self, modules: T.List[T.Tuple[str, bool]], components: T.List[T.Tuple[str, bool]]) -> T.List[T.Tuple[str, bool]]:
         res = []
         for mod, required in modules:
-            cm_targets = self.traceparser.get_cmake_var(f'MESON_LLVM_TARGETS_{mod}')
+            cm_targets = self.traceparser.get_cmake_var('MESON_LLVM_TARGETS_{}'.format((mod)))
             if not cm_targets:
                 if required:
-                    raise self._gen_exception(f'LLVM module {mod} was not found')
+                    raise self._gen_exception('LLVM module {} was not found'.format((mod)))
                 else:
                     mlog.warning('Optional LLVM module', mlog.bold(mod), 'was not found')
                     continue
@@ -449,7 +449,7 @@ class LLVMDependencyCMake(CMakeDependency):
         return res
 
     def _original_module_name(self, module: str) -> str:
-        orig_name = self.traceparser.get_cmake_var(f'MESON_TARGET_TO_LLVM_{module}')
+        orig_name = self.traceparser.get_cmake_var('MESON_TARGET_TO_LLVM_{}'.format((module)))
         if orig_name:
             return orig_name[0]
         return module
@@ -525,12 +525,12 @@ class JNISystemDependency(SystemDependency):
         for module in modules:
             if module not in {'jvm', 'awt'}:
                 log = mlog.error if self.required else mlog.debug
-                log(f'Unknown JNI module ({module})')
+                log('Unknown JNI module ({})'.format((module)))
                 self.is_found = False
                 return
 
         if 'version' in kwargs and not version_compare(self.version, kwargs['version']):
-            mlog.error(f'Incorrect JDK version found ({self.version}), wanted {kwargs["version"]}')
+            mlog.error('Incorrect JDK version found ({}), wanted {}'.format((self.version), (kwargs["version"])))
             self.is_found = False
             return
 
@@ -545,8 +545,8 @@ class JNISystemDependency(SystemDependency):
             return
 
         java_home_include = self.java_home / 'include'
-        self.compile_args.append(f'-I{java_home_include}')
-        self.compile_args.append(f'-I{java_home_include / platform_include_dir}')
+        self.compile_args.append('-I{}'.format((java_home_include)))
+        self.compile_args.append('-I{}'.format((java_home_include / platform_include_dir)))
 
         if modules:
             if m.is_windows():

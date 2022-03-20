@@ -102,7 +102,7 @@ class PGICompiler(Compiler):
         if self.language == 'cpp':
             return ['--pch',
                     '--pch_dir', str(hdr.parent),
-                    f'-I{hdr.parent}']
+                    '-I{}'.format((hdr.parent))]
         else:
             return []
 

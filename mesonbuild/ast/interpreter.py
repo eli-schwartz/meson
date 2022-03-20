@@ -176,7 +176,7 @@ class AstInterpreter(InterpreterBase):
     def func_subdir(self, node: BaseNode, args: T.List[TYPE_nvar], kwargs: T.Dict[str, TYPE_nvar]) -> None:
         args = self.flatten_args(args)
         if len(args) != 1 or not isinstance(args[0], str):
-            sys.stderr.write(f'Unable to evaluate subdir({args}) in AstInterpreter --> Skipping\n')
+            sys.stderr.write('Unable to evaluate subdir({}) in AstInterpreter --> Skipping\n'.format((args)))
             return
 
         prev_subdir = self.subdir
@@ -192,7 +192,7 @@ class AstInterpreter(InterpreterBase):
         self.processed_buildfiles.add(build_file)
 
         if not os.path.isfile(absname):
-            sys.stderr.write(f'Unable to find build file {buildfilename} --> Skipping\n')
+            sys.stderr.write('Unable to find build file {} --> Skipping\n'.format((buildfilename)))
             return
         with open(absname, encoding='utf-8') as f:
             code = f.read()

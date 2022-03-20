@@ -42,7 +42,7 @@ def netcdf_factory(env: 'Environment',
                    methods: T.List[DependencyMethods]) -> T.List['DependencyGenerator']:
     language = kwargs.get('language', 'c')
     if language not in ('c', 'cpp', 'fortran'):
-        raise DependencyException(f'Language {language} is not supported with NetCDF.')
+        raise DependencyException('Language {} is not supported with NetCDF.'.format((language)))
 
     candidates: T.List['DependencyGenerator'] = []
 
@@ -123,7 +123,7 @@ class OpenMPDependency(SystemDependency):
             try:
                 self.version = self.VERSIONS[openmp_date]
             except KeyError:
-                mlog.debug(f'Could not find an OpenMP version matching {openmp_date}')
+                mlog.debug('Could not find an OpenMP version matching {}'.format((openmp_date)))
                 if openmp_date == '_OPENMP':
                     mlog.debug('This can be caused by flags such as gcc\'s `-fdirectives-only`, which affect preprocessor behavior.')
                 return
@@ -211,13 +211,13 @@ class Python3DependencySystem(SystemDependency):
             elif pycc.startswith(('i686', 'i386')):
                 return '32'
             else:
-                mlog.log(f'MinGW Python built with unknown CC {pycc!r}, please file a bug')
+                mlog.log('MinGW Python built with unknown CC {!r}, please file a bug'.format((pycc)))
                 return None
         elif pyplat == 'win32':
             return '32'
         elif pyplat in ('win64', 'win-amd64'):
             return '64'
-        mlog.log(f'Unknown Windows Python platform {pyplat!r}')
+        mlog.log('Unknown Windows Python platform {!r}'.format((pyplat)))
         return None
 
     def get_windows_link_args(self) -> T.Optional[T.List[str]]:
@@ -225,13 +225,13 @@ class Python3DependencySystem(SystemDependency):
         if pyplat.startswith('win'):
             vernum = sysconfig.get_config_var('py_version_nodot')
             if self.static:
-                libpath = Path('libs') / f'libpython{vernum}.a'
+                libpath = Path('libs') / 'libpython{}.a'.format((vernum))
             else:
                 comp = self.get_compiler()
                 if comp.id == "gcc":
-                    libpath = Path(f'python{vernum}.dll')
+                    libpath = Path('python{}.dll'.format((vernum)))
                 else:
-                    libpath = Path('libs') / f'python{vernum}.lib'
+                    libpath = Path('libs') / 'python{}.lib'.format((vernum))
             lib = Path(sysconfig.get_config_var('base')) / libpath
         elif pyplat == 'mingw':
             if self.static:
@@ -260,7 +260,7 @@ class Python3DependencySystem(SystemDependency):
             arch = '64'
         else:
             # We can't cross-compile Python 3 dependencies on Windows yet
-            mlog.log(f'Unknown architecture {arch!r} for',
+            mlog.log('Unknown architecture {!r} for'.format((arch)),
                      mlog.bold(self.name))
             self.is_found = False
             return
@@ -389,8 +389,8 @@ class ShadercDependency(SystemDependency):
                 self.is_found = True
 
                 if self.static and lib != static_lib:
-                    mlog.warning(f'Static library {static_lib!r} not found for dependency '
-                                 f'{self.name!r}, may not be statically linked')
+                    mlog.warning('Static library {!r} not found for dependency '
+                                 '{!r}, may not be statically linked'.format((static_lib), (self.name)))
 
                 break
 
@@ -446,12 +446,12 @@ class CursesSystemDependency(SystemDependency):
                         # implementations. The one in illumos/OpenIndiana
                         # doesn't seem to have a version defined in the header.
                         if lib.startswith('ncurses'):
-                            v, _ = self.clib_compiler.get_define('NCURSES_VERSION', f'#include <{header}>', env, [], [self])
+                            v, _ = self.clib_compiler.get_define('NCURSES_VERSION', '#include <{}>'.format((header)), env, [], [self])
                             self.version = v.strip('"')
                         if lib.startswith('pdcurses'):
-                            v_major, _ = self.clib_compiler.get_define('PDC_VER_MAJOR', f'#include <{header}>', env, [], [self])
-                            v_minor, _ = self.clib_compiler.get_define('PDC_VER_MINOR', f'#include <{header}>', env, [], [self])
-                            self.version = f'{v_major}.{v_minor}'
+                            v_major, _ = self.clib_compiler.get_define('PDC_VER_MAJOR', '#include <{}>'.format((header)), env, [], [self])
+                            v_minor, _ = self.clib_compiler.get_define('PDC_VER_MINOR', '#include <{}>'.format((header)), env, [], [self])
+                            self.version = '{}.{}'.format((v_major), (v_minor))
 
                         # Check the version if possible, emit a warning if we can't
                         req = kwargs.get('version')

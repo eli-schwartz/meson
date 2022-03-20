@@ -85,12 +85,12 @@ def parse_generator_expressions(
             if 'RELEASE' in cfgs:
                 cfg = 'RELEASE'
 
-        if f'IMPORTED_IMPLIB_{cfg}' in tgt.properties:
-            return ';'.join([x for x in tgt.properties[f'IMPORTED_IMPLIB_{cfg}'] if x])
+        if 'IMPORTED_IMPLIB_{}'.format((cfg)) in tgt.properties:
+            return ';'.join([x for x in tgt.properties['IMPORTED_IMPLIB_{}'.format((cfg))] if x])
         elif 'IMPORTED_IMPLIB' in tgt.properties:
             return ';'.join([x for x in tgt.properties['IMPORTED_IMPLIB'] if x])
-        elif f'IMPORTED_LOCATION_{cfg}' in tgt.properties:
-            return ';'.join([x for x in tgt.properties[f'IMPORTED_LOCATION_{cfg}'] if x])
+        elif 'IMPORTED_LOCATION_{}'.format((cfg)) in tgt.properties:
+            return ';'.join([x for x in tgt.properties['IMPORTED_LOCATION_{}'.format((cfg))] if x])
         elif 'IMPORTED_LOCATION' in tgt.properties:
             return ';'.join([x for x in tgt.properties['IMPORTED_LOCATION'] if x])
         return ''

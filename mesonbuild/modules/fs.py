@@ -137,7 +137,7 @@ class FSModule(ExtensionModule):
             FeatureNew('fs.hash_file', '0.59.0').use(state.subproject)
         file = self._resolve_dir(state, args[0])
         if not file.is_file():
-            raise MesonException(f'{file} is not a file and therefore cannot be hashed')
+            raise MesonException('{} is not a file and therefore cannot be hashed'.format((file)))
         try:
             h = hashlib.new(args[1])
         except ValueError:
@@ -153,7 +153,7 @@ class FSModule(ExtensionModule):
             FeatureNew('fs.size_file', '0.59.0').use(state.subproject)
         file = self._resolve_dir(state, args[0])
         if not file.is_file():
-            raise MesonException(f'{file} is not a file and therefore cannot be sized')
+            raise MesonException('{} is not a file and therefore cannot be sized'.format((file)))
         try:
             return file.stat().st_size
         except ValueError:
@@ -247,7 +247,7 @@ class FSModule(ExtensionModule):
             with open(path, encoding=encoding) as f:
                 data = f.read()
         except UnicodeDecodeError:
-            raise MesonException(f'decoding failed for {path}')
+            raise MesonException('decoding failed for {}'.format((path)))
         # Reconfigure when this file changes as it can contain data used by any
         # part of the build configuration (e.g. `project(..., version:
         # fs.read_file('VERSION')` or `configure_file(...)`

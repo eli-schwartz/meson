@@ -48,7 +48,7 @@ class ExtraFrameworkDependency(ExternalDependency):
         if not paths:
             paths = self.system_framework_paths
         for p in paths:
-            mlog.debug(f'Looking for framework {name} in {p}')
+            mlog.debug('Looking for framework {} in {}'.format((name), (p)))
             # We need to know the exact framework path because it's used by the
             # Qt5 dependency class, and for setting the include path. We also
             # want to avoid searching in an invalid framework path which wastes

@@ -76,7 +76,7 @@ def run_exe(exe: ExecutableSerialisation, extra_env: T.Optional[T.Dict[str, str]
 
     if p.returncode != 0:
         if exe.pickled:
-            print(f'while executing {cmd_args!r}')
+            print('while executing {!r}'.format((cmd_args)))
         if exe.verbose:
             return p.returncode
         encoding = locale.getpreferredencoding()

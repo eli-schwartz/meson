@@ -80,7 +80,7 @@ def extract_search_dirs(kwargs: 'kwargs.ExtractSearchDirs') -> T.List[str]:
             # discard without failing for end-user ease of cross-platform directory arrays
             continue
         if not d.is_absolute():
-            raise InvalidCode(f'Search directory {d} is not an absolute path.')
+            raise InvalidCode('Search directory {} is not an absolute path.'.format((d)))
     return list(map(str, search_dirs))
 
 class FeatureOptionHolder(ObjectHolder[coredata.UserFeatureOption]):
@@ -139,9 +139,9 @@ class FeatureOptionHolder(ObjectHolder[coredata.UserFeatureOption]):
             return copy.deepcopy(self.held_object)
 
         if self.value == 'enabled':
-            err_msg = f'Feature {self.held_object.name} cannot be enabled'
+            err_msg = 'Feature {} cannot be enabled'.format((self.held_object.name))
             if kwargs['error_message']:
-                err_msg += f': {kwargs["error_message"]}'
+                err_msg += ': {}'.format((kwargs["error_message"]))
             raise InterpreterException(err_msg)
         return self.as_disabled()
 
@@ -254,7 +254,7 @@ class EnvironmentVariablesHolder(ObjectHolder[build.EnvironmentVariables], Mutab
     def warn_if_has_name(self, name: str) -> None:
         # Multiple append/prepend operations was not supported until 0.58.0.
         if self.held_object.has_name(name):
-            m = f'Overriding previous value of environment variable {name!r} with a new one'
+            m = 'Overriding previous value of environment variable {!r} with a new one'.format((name))
             FeatureNew(m, '0.58.0').use(self.subproject, self.current_node)
 
     @typed_pos_args('environment.set', str, varargs=str, min_varargs=1)
@@ -316,7 +316,7 @@ class ConfigurationDataHolder(ObjectHolder[build.ConfigurationData], MutableInte
     def set_quoted_method(self, args: T.Tuple[str, str], kwargs: 'kwargs.ConfigurationDataSet') -> None:
         self.__check_used()
         escaped_val = '\\"'.join(args[1].split('"'))
-        self.held_object.values[args[0]] = (f'"{escaped_val}"', kwargs['description'])
+        self.held_object.values[args[0]] = ('"{}"'.format((escaped_val)), kwargs['description'])
 
     @typed_pos_args('configuration_data.set10', str, (int, bool))
     @typed_kwargs('configuration_data.set10', _CONF_DATA_SET_KWS)
@@ -350,7 +350,7 @@ class ConfigurationDataHolder(ObjectHolder[build.ConfigurationData], MutableInte
             return self.held_object.get(name)[0]
         elif args[1] is not None:
             return args[1]
-        raise InterpreterException(f'Entry {name} not in configuration data.')
+        raise InterpreterException('Entry {} not in configuration data.'.format((name)))
 
     @FeatureNew('configuration_data.get_unquoted()', '0.44.0')
     @typed_pos_args('configuration_data.get_unquoted', str, optargs=[(str, int, bool)])
@@ -363,7 +363,7 @@ class ConfigurationDataHolder(ObjectHolder[build.ConfigurationData], MutableInte
         elif args[1] is not None:
             val = args[1]
         else:
-            raise InterpreterException(f'Entry {name} not in configuration data.')
+            raise InterpreterException('Entry {} not in configuration data.'.format((name)))
         if isinstance(val, str) and val[0] == '"' and val[-1] == '"':
             return val[1:-1]
         return val
@@ -712,7 +712,7 @@ class SubprojectHolder(MesonInterpreterObject):
         if len(args) < 1 or len(args) > 2:
             raise InterpreterException('Get_variable takes one or two arguments.')
         if isinstance(self.held_object, NullSubprojectInterpreter):  # == not self.found()
-            raise InterpreterException(f'Subproject "{self.subdir}" disabled can\'t get_variable on it.')
+            raise InterpreterException('Subproject "{}" disabled can\'t get_variable on it.'.format((self.subdir)))
         varname = args[0]
         if not isinstance(varname, str):
             raise InterpreterException('Get_variable first argument must be a string.')
@@ -724,14 +724,14 @@ class SubprojectHolder(MesonInterpreterObject):
         if len(args) == 2:
             return self.held_object._holderify(args[1])
 
-        raise InvalidArguments(f'Requested variable "{varname}" not found.')
+        raise InvalidArguments('Requested variable "{}" not found.'.format((varname)))
 
 class ModuleObjectHolder(ObjectHolder[ModuleObject]):
     def method_call(self, method_name: str, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> TYPE_var:
         modobj = self.held_object
         method = modobj.methods.get(method_name)
         if not method:
-            raise InvalidCode(f'Unknown method {method_name!r} in object.')
+            raise InvalidCode('Unknown method {!r} in object.'.format((method_name)))
         if not getattr(method, 'no-args-flattening', False):
             args = flatten(args)
         if not getattr(method, 'no-second-level-holder-flattening', False):
@@ -937,7 +937,7 @@ class CustomTargetHolder(ObjectHolder[build.CustomTarget]):
         try:
             return self.held_object[other]
         except IndexError:
-            raise InvalidArguments(f'Index {other} out of bounds of custom target {self.held_object.name} output of size {len(self.held_object)}.')
+            raise InvalidArguments('Index {} out of bounds of custom target {} output of size {}.'.format((other), (self.held_object.name), (len(self.held_object))))
 
 class RunTargetHolder(ObjectHolder[build.RunTarget]):
     pass

@@ -112,8 +112,8 @@ class StaticLinker:
         If `self.can_linker_accept_rsp()` returns True, then this needs to
         be implemented
         """
-        assert not self.can_linker_accept_rsp(), f'{self.id} linker accepts RSP, but doesn\' provide a supported format, this is a bug'
-        raise EnvironmentException(f'{self.id} does not implement rsp format, this shouldn\'t be called')
+        assert not self.can_linker_accept_rsp(), '{} linker accepts RSP, but doesn\' provide a supported format, this is a bug'.format((self.id))
+        raise EnvironmentException('{} does not implement rsp format, this shouldn\'t be called'.format((self.id)))
 
 
 class VisualStudioLikeLinker:
@@ -254,7 +254,7 @@ class CcrxLinker(StaticLinker):
         return False
 
     def get_output_args(self, target: str) -> T.List[str]:
-        return [f'-output={target}']
+        return ['-output={}'.format((target))]
 
     def get_linker_always_args(self) -> T.List[str]:
         return ['-nologo', '-form=library']
@@ -270,7 +270,7 @@ class Xc16Linker(StaticLinker):
         return False
 
     def get_output_args(self, target: str) -> T.List[str]:
-        return [f'{target}']
+        return ['{}'.format((target))]
 
     def get_linker_always_args(self) -> T.List[str]:
         return ['rcs']
@@ -285,7 +285,7 @@ class CompCertLinker(StaticLinker):
         return False
 
     def get_output_args(self, target: str) -> T.List[str]:
-        return [f'-o{target}']
+        return ['-o{}'.format((target))]
 
 
 class TILinker(StaticLinker):
@@ -298,7 +298,7 @@ class TILinker(StaticLinker):
         return False
 
     def get_output_args(self, target: str) -> T.List[str]:
-        return [f'{target}']
+        return ['{}'.format((target))]
 
     def get_linker_always_args(self) -> T.List[str]:
         return ['-r']
@@ -388,7 +388,7 @@ class DynamicLinker(metaclass=abc.ABCMeta):
         return self.id
 
     def get_version_string(self) -> str:
-        return f'({self.id} {self.version})'
+        return '({} {})'.format((self.id), (self.version))
 
     def get_exelist(self) -> T.List[str]:
         return self.exelist.copy()
@@ -418,7 +418,7 @@ class DynamicLinker(metaclass=abc.ABCMeta):
         return []
 
     def has_multi_arguments(self, args: T.List[str], env: 'Environment') -> T.Tuple[bool, bool]:
-        raise EnvironmentException(f'Language {self.id} does not support has_multi_link_arguments.')
+        raise EnvironmentException('Language {} does not support has_multi_link_arguments.'.format((self.id)))
 
     def get_debugfile_name(self, targetfile: str) -> str:
         '''Name of debug file written out (see below)'''
@@ -443,7 +443,7 @@ class DynamicLinker(metaclass=abc.ABCMeta):
         # TODO: this really needs to take a boolean and return the args to
         # disable pie, otherwise it only acts to enable pie if pie *isn't* the
         # default.
-        raise EnvironmentException(f'Linker {self.id} does not support position-independent executable')
+        raise EnvironmentException('Linker {} does not support position-independent executable'.format((self.id)))
 
     def get_lto_args(self) -> T.List[str]:
         return []
@@ -461,18 +461,18 @@ class DynamicLinker(metaclass=abc.ABCMeta):
 
     def get_link_whole_for(self, args: T.List[str]) -> T.List[str]:
         raise EnvironmentException(
-            f'Linker {self.id} does not support link_whole')
+            'Linker {} does not support link_whole'.format((self.id)))
 
     def get_allow_undefined_args(self) -> T.List[str]:
         raise EnvironmentException(
-            f'Linker {self.id} does not support allow undefined')
+            'Linker {} does not support allow undefined'.format((self.id)))
 
     @abc.abstractmethod
     def get_output_args(self, outname: str) -> T.List[str]:
         pass
 
     def get_coverage_args(self) -> T.List[str]:
-        raise EnvironmentException(f"Linker {self.id} doesn't implement coverage data generation.")
+        raise EnvironmentException("Linker {} doesn't implement coverage data generation.".format((self.id)))
 
     @abc.abstractmethod
     def get_search_args(self, dirname: str) -> T.List[str]:
@@ -629,7 +629,7 @@ class GnuLikeDynamicLinkerMixin:
             # For PE/COFF the soname argument has no effect
             return []
         sostr = '' if soversion is None else '.' + soversion
-        return self._apply_prefix(f'-soname,{prefix}{shlib_name}.{suffix}{sostr}')
+        return self._apply_prefix('-soname,{}{}.{}{}'.format((prefix), (shlib_name), (suffix), (sostr)))
 
     def build_rpath_args(self, env: 'Environment', build_dir: str, from_dir: str,
                          rpath_paths: T.Tuple[str, ...], build_rpath: str,
@@ -705,7 +705,7 @@ class GnuLikeDynamicLinkerMixin:
         elif 'console' in value:
             args = ['--subsystem,console']
         else:
-            raise MesonException(f'Only "windows" and "console" are supported for win_subsystem with MinGW, not "{value}".')
+            raise MesonException('Only "windows" and "console" are supported for win_subsystem with MinGW, not "{}".'.format((value)))
         if ',' in value:
             args[-1] = args[-1] + ':' + value.split(',')[1]
 
@@ -845,7 +845,7 @@ class WASMDynamicLinker(GnuLikeDynamicLinkerMixin, PosixDynamicLinkerMixin, Dyna
 
     def get_soname_args(self, env: 'Environment', prefix: str, shlib_name: str,
                         suffix: str, soversion: str, darwin_versions: T.Tuple[str, str]) -> T.List[str]:
-        raise MesonException(f'{self.id} does not support shared libraries.')
+        raise MesonException('{} does not support shared libraries.'.format((self.id)))
 
     def get_asneeded_args(self) -> T.List[str]:
         return []
@@ -877,7 +877,7 @@ class CcrxDynamicLinker(DynamicLinker):
         return []
 
     def get_output_args(self, outputname: str) -> T.List[str]:
-        return [f'-output={outputname}']
+        return ['-output={}'.format((outputname))]
 
     def get_search_args(self, dirname: str) -> 'T.NoReturn':
         raise OSError('rlink.exe does not have a search dir argument')
@@ -916,7 +916,7 @@ class Xc16DynamicLinker(DynamicLinker):
         return []
 
     def get_output_args(self, outputname: str) -> T.List[str]:
-        return [f'-o{outputname}']
+        return ['-o{}'.format((outputname))]
 
     def get_search_args(self, dirname: str) -> 'T.NoReturn':
         raise OSError('xc16-gcc does not have a search dir argument')
@@ -959,17 +959,17 @@ class CompCertDynamicLinker(DynamicLinker):
         return []
 
     def get_output_args(self, outputname: str) -> T.List[str]:
-        return [f'-o{outputname}']
+        return ['-o{}'.format((outputname))]
 
     def get_search_args(self, dirname: str) -> T.List[str]:
-        return [f'-L{dirname}']
+        return ['-L{}'.format((dirname))]
 
     def get_allow_undefined_args(self) -> T.List[str]:
         return []
 
     def get_soname_args(self, env: 'Environment', prefix: str, shlib_name: str,
                         suffix: str, soversion: str, darwin_versions: T.Tuple[str, str]) -> T.List[str]:
-        raise MesonException(f'{self.id} does not support shared libraries.')
+        raise MesonException('{} does not support shared libraries.'.format((self.id)))
 
     def build_rpath_args(self, env: 'Environment', build_dir: str, from_dir: str,
                          rpath_paths: T.Tuple[str, ...], build_rpath: str,
@@ -1002,7 +1002,7 @@ class TIDynamicLinker(DynamicLinker):
         return []
 
     def get_output_args(self, outputname: str) -> T.List[str]:
-        return ['-z', f'--output_file={outputname}']
+        return ['-z', '--output_file={}'.format((outputname))]
 
     def get_search_args(self, dirname: str) -> 'T.NoReturn':
         raise OSError('TI compilers do not have a search dir argument')
@@ -1241,7 +1241,7 @@ class MSVCDynamicLinker(VisualStudioLikeLinkerMixin, DynamicLinker):
         return self.get_win_subsystem_args("windows" if value else "console")
 
     def get_win_subsystem_args(self, value: str) -> T.List[str]:
-        return self._apply_prefix([f'/SUBSYSTEM:{value.upper()}'])
+        return self._apply_prefix(['/SUBSYSTEM:{}'.format((value.upper()))])
 
 
 class ClangClDynamicLinker(VisualStudioLikeLinkerMixin, DynamicLinker):
@@ -1262,7 +1262,7 @@ class ClangClDynamicLinker(VisualStudioLikeLinkerMixin, DynamicLinker):
         # If we're being driven indirectly by clang just skip /MACHINE
         # as clang's target triple will handle the machine selection
         if self.machine is None:
-            return self._apply_prefix([f"/OUT:{outputname}"])
+            return self._apply_prefix(["/OUT:{}".format((outputname))])
 
         return super().get_output_args(outputname)
 
@@ -1270,7 +1270,7 @@ class ClangClDynamicLinker(VisualStudioLikeLinkerMixin, DynamicLinker):
         return self.get_win_subsystem_args("windows" if value else "console")
 
     def get_win_subsystem_args(self, value: str) -> T.List[str]:
-        return self._apply_prefix([f'/SUBSYSTEM:{value.upper()}'])
+        return self._apply_prefix(['/SUBSYSTEM:{}'.format((value.upper()))])
 
 
 class XilinkDynamicLinker(VisualStudioLikeLinkerMixin, DynamicLinker):
@@ -1290,7 +1290,7 @@ class XilinkDynamicLinker(VisualStudioLikeLinkerMixin, DynamicLinker):
         return self.get_win_subsystem_args("windows" if value else "console")
 
     def get_win_subsystem_args(self, value: str) -> T.List[str]:
-        return self._apply_prefix([f'/SUBSYSTEM:{value.upper()}'])
+        return self._apply_prefix(['/SUBSYSTEM:{}'.format((value.upper()))])
 
 
 class SolarisDynamicLinker(PosixDynamicLinkerMixin, DynamicLinker):
@@ -1350,12 +1350,12 @@ class SolarisDynamicLinker(PosixDynamicLinkerMixin, DynamicLinker):
                 paths = padding
             else:
                 paths = paths + ':' + padding
-        return (self._apply_prefix(f'-rpath,{paths}'), rpath_dirs_to_remove)
+        return (self._apply_prefix('-rpath,{}'.format((paths))), rpath_dirs_to_remove)
 
     def get_soname_args(self, env: 'Environment', prefix: str, shlib_name: str,
                         suffix: str, soversion: str, darwin_versions: T.Tuple[str, str]) -> T.List[str]:
         sostr = '' if soversion is None else '.' + soversion
-        return self._apply_prefix(f'-soname,{prefix}{shlib_name}.{suffix}{sostr}')
+        return self._apply_prefix('-soname,{}{}.{}{}'.format((prefix), (shlib_name), (suffix), (sostr)))
 
 
 class AIXDynamicLinker(PosixDynamicLinkerMixin, DynamicLinker):

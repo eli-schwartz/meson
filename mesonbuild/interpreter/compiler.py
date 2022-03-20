@@ -290,7 +290,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
             elif result.returncode == 0:
                 h = mlog.green('YES')
             else:
-                h = mlog.red(f'NO ({result.returncode})')
+                h = mlog.red('NO ({})'.format((result.returncode)))
             mlog.log('Checking if', mlog.bold(testname, True), msg, 'runs:', h)
         return result
 
@@ -348,7 +348,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
             hadtxt = mlog.green('YES')
         else:
             hadtxt = mlog.red('NO')
-        members = mlog.bold(', '.join([f'"{m}"' for m in membernames]))
+        members = mlog.bold(', '.join(['"{}"'.format((m)) for m in membernames]))
         mlog.log('Checking whether type', mlog.bold(typename, True),
                  'has members', members, msg, hadtxt, cached_msg)
         return had
@@ -469,9 +469,9 @@ class CompilerHolder(ObjectHolder['Compiler']):
                 clist = self.interpreter.coredata.compilers[for_machine]
                 if suffix not in SUFFIX_TO_LANG:
                     # just pass it to the compiler driver
-                    mlog.warning(f'Unknown suffix for test file {code}')
+                    mlog.warning('Unknown suffix for test file {}'.format((code)))
                 elif SUFFIX_TO_LANG[suffix] not in clist:
-                    mlog.warning(f'Passed {SUFFIX_TO_LANG[suffix]} source to links method, not specified for {for_machine.get_lower_case_name()} machine.')
+                    mlog.warning('Passed {} source to links method, not specified for {} machine.'.format((SUFFIX_TO_LANG[suffix]), (for_machine.get_lower_case_name())))
                 else:
                     compiler = clist[SUFFIX_TO_LANG[suffix]]
 
@@ -507,7 +507,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
                                                  dependencies=deps)
         cached_msg = mlog.blue('(cached)') if cached else ''
         if required and not haz:
-            raise InterpreterException(f'{self.compiler.get_display_language()} header {hname!r} not usable')
+            raise InterpreterException('{} header {!r} not usable'.format((self.compiler.get_display_language()), (hname)))
         elif haz:
             h = mlog.green('YES')
         else:
@@ -526,7 +526,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
                                                extra_args=extra_args, dependencies=deps)
         cached_msg = mlog.blue('(cached)') if cached else ''
         if required and not haz:
-            raise InterpreterException(f'{self.compiler.get_display_language()} header {hname!r} not found')
+            raise InterpreterException('{} header {!r} not found'.format((self.compiler.get_display_language()), (hname)))
         elif haz:
             h = mlog.green('YES')
         else:
@@ -545,7 +545,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
         hname, symbol = args
         disabled, required, feature = extract_required_kwarg(kwargs, self.subproject, default=False)
         if disabled:
-            mlog.log(f'Header <{hname}> has symbol', mlog.bold(symbol, True), 'skipped: feature', mlog.bold(feature), 'disabled')
+            mlog.log('Header <{}> has symbol'.format((hname)), mlog.bold(symbol, True), 'skipped: feature', mlog.bold(feature), 'disabled')
             return False
         extra_args = functools.partial(self._determine_args, kwargs['no_builtin_args'], kwargs['include_directories'], kwargs['args'])
         deps, msg = self._determine_dependencies(kwargs['dependencies'])
@@ -553,13 +553,13 @@ class CompilerHolder(ObjectHolder['Compiler']):
                                                       extra_args=extra_args,
                                                       dependencies=deps)
         if required and not haz:
-            raise InterpreterException(f'{self.compiler.get_display_language()} symbol {symbol} not found in header {hname}')
+            raise InterpreterException('{} symbol {} not found in header {}'.format((self.compiler.get_display_language()), (symbol), (hname)))
         elif haz:
             h = mlog.green('YES')
         else:
             h = mlog.red('NO')
         cached_msg = mlog.blue('(cached)') if cached else ''
-        mlog.log(f'Header <{hname}> has symbol', mlog.bold(symbol, True), msg, h, cached_msg)
+        mlog.log('Header <{}> has symbol'.format((hname)), mlog.bold(symbol, True), msg, h, cached_msg)
         return haz
 
     def notfound_library(self, libname: str) -> 'dependencies.ExternalLibrary':
@@ -578,7 +578,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
         KwargInfo('static', (bool, NoneType), since='0.51.0'),
         KwargInfo('disabler', bool, default=False, since='0.49.0'),
         KwargInfo('dirs', ContainerTypeInfo(list, str), listify=True, default=[]),
-        *(k.evolve(name=f'header_{k.name}') for k in _HEADER_KWS)
+        *(k.evolve(name='header_{}'.format((k.name))) for k in _HEADER_KWS)
     )
     def find_library_method(self, args: T.Tuple[str], kwargs: 'FindLibraryKW') -> 'dependencies.ExternalLibrary':
         # TODO add dependencies support?
@@ -666,7 +666,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
 
         for arg in args[0]:
             if not self._has_argument_impl([arg]):
-                msg = f'Compiler for {self.compiler.get_display_language()} does not support "{arg}"'
+                msg = 'Compiler for {} does not support "{}"'.format((self.compiler.get_display_language()), (arg))
                 if checked == 'warn':
                     mlog.warning(msg)
                 elif checked == 'require':
@@ -723,7 +723,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
         result, cached = self.compiler.has_func_attribute(attr, self.environment)
         cached_msg = mlog.blue('(cached)') if cached else ''
         h = mlog.green('YES') if result else mlog.red('NO')
-        mlog.log(f'Compiler for {self.compiler.get_display_language()} supports function attribute {attr}:', h, cached_msg)
+        mlog.log('Compiler for {} supports function attribute {}:'.format((self.compiler.get_display_language()), (attr)), h, cached_msg)
         return result
 
     @FeatureNew('compiler.has_function_attribute', '0.48.0')

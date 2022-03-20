@@ -83,7 +83,7 @@ class Conf:
             self.coredata = intr.coredata
             self.default_values_only = True
         else:
-            raise ConfException(f'Directory {build_dir} is neither a Meson build directory nor a project source directory.')
+            raise ConfException('Directory {} is neither a Meson build directory nor a project source directory.'.format((build_dir)))
 
     def clear_cache(self):
         self.coredata.clear_deps_cache()
@@ -276,7 +276,7 @@ class Conf:
         if show_build_options:
             self.print_options('', build_compiler_options.get('', {}))
         for mod, mod_options in module_options.items():
-            self.print_options(f'{mod} module options', mod_options)
+            self.print_options('{} module options'.format((mod)), mod_options)
         self.print_options('Directories', dir_options)
         self.print_options('Testing options', test_options)
         self.print_options('Project options', project_options.get('', {}))
@@ -310,7 +310,7 @@ class Conf:
         print("\nThe following option(s) have a different value than the build type default\n")
         print('               current   default')
         for m in mismatching:
-            print(f'{m[0]:21}{m[1]:10}{m[2]:10}')
+            print('{:21}{:10}{:10}'.format((m[0]), (m[1]), (m[2])))
 
 def run(options):
     coredata.parse_cmd_line_options(options)

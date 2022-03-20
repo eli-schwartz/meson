@@ -49,12 +49,12 @@ class PkgConfigDependency(ExternalDependency):
         # Only search for pkg-config for each machine the first time and store
         # the result in the class definition
         if PkgConfigDependency.class_pkgbin[self.for_machine] is False:
-            mlog.debug(f'Pkg-config binary for {self.for_machine} is cached as not found.')
+            mlog.debug('Pkg-config binary for {} is cached as not found.'.format((self.for_machine)))
         elif PkgConfigDependency.class_pkgbin[self.for_machine] is not None:
-            mlog.debug(f'Pkg-config binary for {self.for_machine} is cached.')
+            mlog.debug('Pkg-config binary for {} is cached.'.format((self.for_machine)))
         else:
             assert PkgConfigDependency.class_pkgbin[self.for_machine] is None
-            mlog.debug(f'Pkg-config binary for {self.for_machine} is not cached.')
+            mlog.debug('Pkg-config binary for {} is not cached.'.format((self.for_machine)))
             for potential_pkgbin in find_external_program(
                     self.env, self.for_machine, 'pkgconfig', 'Pkg-config',
                     environment.default_pkgconfig, allow_default_for_cross=False):
@@ -63,7 +63,7 @@ class PkgConfigDependency(ExternalDependency):
                     continue
                 if not self.silent:
                     mlog.log('Found pkg-config:', mlog.bold(potential_pkgbin.get_path()),
-                             f'({version_if_ok})')
+                             '({})'.format((version_if_ok)))
                 PkgConfigDependency.class_pkgbin[self.for_machine] = potential_pkgbin
                 break
             else:
@@ -76,7 +76,7 @@ class PkgConfigDependency(ExternalDependency):
         self.pkgbin = PkgConfigDependency.class_pkgbin[self.for_machine]
         if self.pkgbin is False:
             self.pkgbin = None
-            msg = f'Pkg-config binary for machine {self.for_machine} not found. Giving up.'
+            msg = 'Pkg-config binary for machine {} not found. Giving up.'.format((self.for_machine))
             if self.required:
                 raise DependencyException(msg)
             else:
@@ -98,7 +98,7 @@ class PkgConfigDependency(ExternalDependency):
             # Fetch the libraries and library paths needed for using this
             self._set_libs()
         except DependencyException as e:
-            mlog.debug(f"pkg-config error with '{name}': {e}")
+            mlog.debug("pkg-config error with '{}': {}".format((name), (e)))
             if self.required:
                 raise
             else:
@@ -118,7 +118,7 @@ class PkgConfigDependency(ExternalDependency):
         p, out, err = Popen_safe(cmd, env=env)
         rc, out, err = p.returncode, out.strip(), err.strip()
         call = ' '.join(cmd)
-        mlog.debug(f"Called `{call}` -> {rc}\n{out}")
+        mlog.debug("Called `{}` -> {}\n{}".format((call), (rc), (out)))
         return rc, out, err
 
     @staticmethod
@@ -140,7 +140,7 @@ class PkgConfigDependency(ExternalDependency):
         # Dump all PKG_CONFIG environment variables
         for key, value in env.items():
             if key.startswith('PKG_'):
-                mlog.debug(f'env[{key}]: {value}')
+                mlog.debug('env[{}]: {}'.format((key), (value)))
 
     def _call_pkgbin(self, args: T.List[str], env: T.Optional[T.Dict[str, str]] = None) -> T.Tuple[int, str, str]:
         # Always copy the environment since we're going to modify it
@@ -205,7 +205,7 @@ class PkgConfigDependency(ExternalDependency):
             env['PKG_CONFIG_ALLOW_SYSTEM_CFLAGS'] = '1'
         ret, out, err = self._call_pkgbin(['--cflags', self.name], env=env)
         if ret != 0:
-            raise DependencyException(f'Could not generate cargs for {self.name}:\n{err}\n')
+            raise DependencyException('Could not generate cargs for {}:\n{}\n'.format((self.name), (err)))
         self.compile_args = self._convert_mingw_paths(self._split_args(out))
 
     def _search_libs(self, out: str, out_raw: str) -> T.Tuple[T.List[str], T.List[str]]:
@@ -344,9 +344,9 @@ class PkgConfigDependency(ExternalDependency):
                     shared_lib = os.path.join(os.path.dirname(lib), ".libs", shared_libname)
 
                 if not os.path.exists(shared_lib):
-                    raise DependencyException(f'Got a libtools specific "{lib}" dependencies'
+                    raise DependencyException('Got a libtools specific "{}" dependencies'
                                               'but we could not compute the actual shared'
-                                              'library path')
+                                              'library path'.format((lib)))
                 self.is_libtool = True
                 lib = shared_lib
                 if lib in link_args:
@@ -374,13 +374,13 @@ class PkgConfigDependency(ExternalDependency):
         env['PKG_CONFIG_ALLOW_SYSTEM_LIBS'] = '1'
         ret, out, err = self._call_pkgbin(libcmd, env=env)
         if ret != 0:
-            raise DependencyException(f'Could not generate libs for {self.name}:\n{err}\n')
+            raise DependencyException('Could not generate libs for {}:\n{}\n'.format((self.name), (err)))
         # Also get the 'raw' output without -Lfoo system paths for adding -L
         # args with -lfoo when a library can't be found, and also in
         # gnome.generate_gir + gnome.gtkdoc which need -L -l arguments.
         ret, out_raw, err_raw = self._call_pkgbin(libcmd)
         if ret != 0:
-            raise DependencyException(f'Could not generate libs for {self.name}:\n\n{out_raw}')
+            raise DependencyException('Could not generate libs for {}:\n\n{}'.format((self.name), (out_raw)))
         self.link_args, self.raw_link_args = self._search_libs(out, out_raw)
 
     def get_pkgconfig_variable(self, variable_name: str,
@@ -395,7 +395,7 @@ class PkgConfigDependency(ExternalDependency):
         variable = ''
         if ret != 0:
             if self.required:
-                raise DependencyException(f'dependency {self.name} not found:\n{err}\n')
+                raise DependencyException('dependency {} not found:\n{}\n'.format((self.name), (err)))
         else:
             variable = out.strip()
 
@@ -407,30 +407,30 @@ class PkgConfigDependency(ExternalDependency):
                     if default is not None:
                         variable = default
                     else:
-                        mlog.warning(f"pkgconfig variable '{variable_name}' not defined for dependency {self.name}.")
+                        mlog.warning("pkgconfig variable '{}' not defined for dependency {}.".format((variable_name), (self.name)))
 
-        mlog.debug(f'Got pkgconfig variable {variable_name} : {variable}')
+        mlog.debug('Got pkgconfig variable {} : {}'.format((variable_name), (variable)))
         return variable
 
     def check_pkgconfig(self, pkgbin: ExternalProgram) -> T.Optional[str]:
         if not pkgbin.found():
-            mlog.log(f'Did not find pkg-config by name {pkgbin.name!r}')
+            mlog.log('Did not find pkg-config by name {!r}'.format((pkgbin.name)))
             return None
         command_as_string = ' '.join(pkgbin.get_command())
         try:
             helptext = Popen_safe(pkgbin.get_command() + ['--help'])[1]
             if 'Pure-Perl' in helptext:
-                mlog.log(f'found pkg-config {command_as_string!r} but it is Strawberry Perl and thus broken. Ignoring...')
+                mlog.log('found pkg-config {!r} but it is Strawberry Perl and thus broken. Ignoring...'.format((command_as_string)))
                 return None
             p, out = Popen_safe(pkgbin.get_command() + ['--version'])[0:2]
             if p.returncode != 0:
-                mlog.warning(f'Found pkg-config {command_as_string!r} but it failed when run')
+                mlog.warning('Found pkg-config {!r} but it failed when run'.format((command_as_string)))
                 return None
         except FileNotFoundError:
-            mlog.warning(f'We thought we found pkg-config {command_as_string!r} but now it\'s not there. How odd!')
+            mlog.warning('We thought we found pkg-config {!r} but now it\'s not there. How odd!'.format((command_as_string)))
             return None
         except PermissionError:
-            msg = f'Found pkg-config {command_as_string!r} but didn\'t have permissions to run it.'
+            msg = 'Found pkg-config {!r} but didn\'t have permissions to run it.'.format((command_as_string))
             if not self.env.machines.build.is_windows():
                 msg += '\n\nOn Unix-like systems this is often caused by scripts that are not executable.'
             mlog.warning(msg)
@@ -486,4 +486,4 @@ class PkgConfigDependency(ExternalDependency):
                 pass
         if default_value is not None:
             return default_value
-        raise DependencyException(f'Could not get pkg-config variable and no default provided for {self!r}')
+        raise DependencyException('Could not get pkg-config variable and no default provided for {!r}'.format((self)))

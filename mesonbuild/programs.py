@@ -112,7 +112,7 @@ class ExternalProgram(mesonlib.HoldableObject):
                 output = res.stderr.strip()
             match = re.search(r'([0-9][0-9\.]+)', output)
             if not match:
-                raise mesonlib.MesonException(f'Could not find a version number in output of {raw_cmd!r}')
+                raise mesonlib.MesonException('Could not find a version number in output of {!r}'.format((raw_cmd)))
             self.cached_version = match.group(1)
         return self.cached_version
 
@@ -210,7 +210,7 @@ class ExternalProgram(mesonlib.HoldableObject):
                 return commands + [script]
         except Exception as e:
             mlog.debug(str(e))
-        mlog.debug(f'Unusable script {script!r}')
+        mlog.debug('Unusable script {!r}'.format((script)))
         return None
 
     def _is_executable(self, path: str) -> bool:
@@ -237,7 +237,7 @@ class ExternalProgram(mesonlib.HoldableObject):
         else:
             if mesonlib.is_windows():
                 for ext in self.windows_exts:
-                    trial_ext = f'{trial}.{ext}'
+                    trial_ext = '{}.{}'.format((trial), (ext))
                     if os.path.exists(trial_ext):
                         return [trial_ext]
         return None
@@ -272,7 +272,7 @@ class ExternalProgram(mesonlib.HoldableObject):
         # but many people do it because it works in the MinGW shell.
         if os.path.isabs(name):
             for ext in self.windows_exts:
-                command = f'{name}.{ext}'
+                command = '{}.{}'.format((name), (ext))
                 if os.path.exists(command):
                     return [command]
         # On Windows, interpreted scripts must have an extension otherwise they
@@ -367,18 +367,18 @@ def find_external_program(env: 'Environment', for_machine: MachineChoice, name: 
     # Lookup in cross or machine file.
     potential_cmd = env.lookup_binary_entry(for_machine, name)
     if potential_cmd is not None:
-        mlog.debug(f'{display_name} binary for {for_machine} specified from cross file, native file, '
-                   f'or env var as {potential_cmd}')
+        mlog.debug('{} binary for {} specified from cross file, native file, '
+                   'or env var as {}'.format((display_name), (for_machine), (potential_cmd)))
         yield ExternalProgram.from_entry(name, potential_cmd)
         # We never fallback if the user-specified option is no good, so
         # stop returning options.
         return
-    mlog.debug(f'{display_name} binary missing from cross or native file, or env var undefined.')
+    mlog.debug('{} binary missing from cross or native file, or env var undefined.'.format((display_name)))
     # Fallback on hard-coded defaults, if a default binary is allowed for use
     # with cross targets, or if this is not a cross target
     if allow_default_for_cross or not (for_machine is MachineChoice.HOST and env.is_cross_build(for_machine)):
         for potential_path in default_names:
-            mlog.debug(f'Trying a default {display_name} fallback at', potential_path)
+            mlog.debug('Trying a default {} fallback at'.format((display_name)), potential_path)
             yield ExternalProgram(potential_path, silent=True)
     else:
         mlog.debug('Default target is not allowed for cross use')

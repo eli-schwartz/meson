@@ -311,7 +311,7 @@ class CMakeFileAPI:
     def _reply_file_content(self, filename: Path) -> T.Dict[str, T.Any]:
         real_path = self.reply_dir / filename
         if not real_path.exists():
-            raise CMakeException(f'File "{real_path}" does not exist')
+            raise CMakeException('File "{}" does not exist'.format((real_path)))
 
         data = json.loads(real_path.read_text(encoding='utf-8'))
         assert isinstance(data, dict)

@@ -146,7 +146,7 @@ class DmdLikeCompilerMixin(CompilerMixinBase):
 
     def get_dependency_gen_args(self, outtarget: str, outfile: str) -> T.List[str]:
         if self._dmd_has_depfile:
-            return [f'-makedeps={outfile}']
+            return ['-makedeps={}'.format((outfile))]
         return []
 
     def get_pic_args(self) -> T.List[str]:
@@ -187,10 +187,10 @@ class DmdLikeCompilerMixin(CompilerMixinBase):
                     if int(d) > debug_level:
                         debug_level = int(d)
                 else:
-                    res.append(f'{debug_arg}={d}')
+                    res.append('{}={}'.format((debug_arg), (d)))
 
             if debug_level >= 0:
-                res.append(f'{debug_arg}={debug_level}')
+                res.append('{}={}'.format((debug_arg), (debug_level)))
 
         if 'versions' in kwargs:
             version_level = -1
@@ -211,10 +211,10 @@ class DmdLikeCompilerMixin(CompilerMixinBase):
                     if int(v) > version_level:
                         version_level = int(v)
                 else:
-                    res.append(f'{version_arg}={v}')
+                    res.append('{}={}'.format((version_arg), (v)))
 
             if version_level >= 0:
-                res.append(f'{version_arg}={version_level}')
+                res.append('{}={}'.format((version_arg), (version_level)))
 
         if 'import_dirs' in kwargs:
             import_dirs = kwargs.pop('import_dirs')
@@ -234,8 +234,8 @@ class DmdLikeCompilerMixin(CompilerMixinBase):
                     else:
                         expdir = basedir
                     srctreedir = os.path.join(build_to_src, expdir)
-                    res.append(f'{import_dir_arg}{srctreedir}')
-                    res.append(f'{import_dir_arg}{bldtreedir}')
+                    res.append('{}{}'.format((import_dir_arg), (srctreedir)))
+                    res.append('{}{}'.format((import_dir_arg), (bldtreedir)))
 
         if kwargs:
             raise EnvironmentException('Unknown D compiler feature(s) selected: %s' % ', '.join(kwargs.keys()))
@@ -597,10 +597,10 @@ class DCompiler(Compiler):
                     if int(d) > debug_level:
                         debug_level = int(d)
                 else:
-                    res.append(f'{debug_arg}={d}')
+                    res.append('{}={}'.format((debug_arg), (d)))
 
             if debug_level >= 0:
-                res.append(f'{debug_arg}={debug_level}')
+                res.append('{}={}'.format((debug_arg), (debug_level)))
 
         if 'versions' in kwargs:
             version_level = -1
@@ -621,10 +621,10 @@ class DCompiler(Compiler):
                     if int(v) > version_level:
                         version_level = int(v)
                 else:
-                    res.append(f'{version_arg}={v}')
+                    res.append('{}={}'.format((version_arg), (v)))
 
             if version_level >= 0:
-                res.append(f'{version_arg}={version_level}')
+                res.append('{}={}'.format((version_arg), (version_level)))
 
         if 'import_dirs' in kwargs:
             import_dirs = kwargs.pop('import_dirs')
@@ -644,8 +644,8 @@ class DCompiler(Compiler):
                     else:
                         expdir = basedir
                     srctreedir = os.path.join(build_to_src, expdir)
-                    res.append(f'{import_dir_arg}{srctreedir}')
-                    res.append(f'{import_dir_arg}{bldtreedir}')
+                    res.append('{}{}'.format((import_dir_arg), (srctreedir)))
+                    res.append('{}{}'.format((import_dir_arg), (bldtreedir)))
 
         if kwargs:
             raise EnvironmentException('Unknown D compiler feature(s) selected: %s' % ', '.join(kwargs.keys()))
@@ -807,7 +807,7 @@ class LLVMDCompiler(DmdLikeCompilerMixin, DCompiler):
 
     @classmethod
     def use_linker_args(cls, linker: str) -> T.List[str]:
-        return [f'-linker={linker}']
+        return ['-linker={}'.format((linker))]
 
     def get_linker_always_args(self) -> T.List[str]:
         args = super().get_linker_always_args()

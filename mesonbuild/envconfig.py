@@ -193,7 +193,7 @@ class Properties:
         assert isinstance(raw, str)
         cmake_toolchain_file = Path(raw)
         if not cmake_toolchain_file.is_absolute():
-            raise EnvironmentException(f'cmake_toolchain_file ({raw}) is not absolute')
+            raise EnvironmentException('cmake_toolchain_file ({}) is not absolute'.format((raw)))
         return cmake_toolchain_file
 
     def get_cmake_skip_compiler_test(self) -> CMakeSkipCompilerTest:
@@ -247,23 +247,23 @@ class MachineInfo(HoldableObject):
         self.is_64_bit: bool = self.cpu_family in CPU_FAMILIES_64_BIT
 
     def __repr__(self) -> str:
-        return f'<MachineInfo: {self.system} {self.cpu_family} ({self.cpu})>'
+        return '<MachineInfo: {} {} ({})>'.format((self.system), (self.cpu_family), (self.cpu))
 
     @classmethod
     def from_literal(cls, literal: T.Dict[str, str]) -> 'MachineInfo':
         minimum_literal = {'cpu', 'cpu_family', 'endian', 'system'}
         if set(literal) < minimum_literal:
             raise EnvironmentException(
-                f'Machine info is currently {literal}\n' +
+                'Machine info is currently {}\n'.format((literal)) +
                 'but is missing {}.'.format(minimum_literal - set(literal)))
 
         cpu_family = literal['cpu_family']
         if cpu_family not in known_cpu_families:
-            mlog.warning(f'Unknown CPU family {cpu_family}, please report this at https://github.com/mesonbuild/meson/issues/new')
+            mlog.warning('Unknown CPU family {}, please report this at https://github.com/mesonbuild/meson/issues/new'.format((cpu_family)))
 
         endian = literal['endian']
         if endian not in ('little', 'big'):
-            mlog.warning(f'Unknown endian {endian}')
+            mlog.warning('Unknown endian {}'.format((endian)))
 
         return cls(literal['system'], cpu_family, literal['cpu'], endian)
 
@@ -366,7 +366,7 @@ class BinaryTable:
             for name, command in binaries.items():
                 if not isinstance(command, (list, str)):
                     raise mesonlib.MesonException(
-                        f'Invalid type {command!r} for entry {name!r} in cross file')
+                        'Invalid type {!r} for entry {!r} in cross file'.format((command), (name)))
                 self.binaries[name] = mesonlib.listify(command)
 
     @staticmethod

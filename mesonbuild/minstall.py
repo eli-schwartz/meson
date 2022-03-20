@@ -199,7 +199,7 @@ def sanitize_permissions(path: str, umask: T.Union[str, int]) -> None:
     try:
         set_chmod(path, new_perms, follow_symlinks=False)
     except PermissionError as e:
-        print(f'{path!r}: Unable to set permissions {new_perms!r}: {e.strerror}, ignoring...')
+        print('{!r}: Unable to set permissions {!r}: {}, ignoring...'.format((path), (new_perms), (e.strerror)))
 
 
 def set_mode(path: str, mode: T.Optional['FileMode'], default_umask: T.Union[str, int]) -> None:
@@ -212,12 +212,12 @@ def set_mode(path: str, mode: T.Optional['FileMode'], default_umask: T.Union[str
         try:
             set_chown(path, mode.owner, mode.group, follow_symlinks=False)
         except PermissionError as e:
-            print(f'{path!r}: Unable to set owner {mode.owner!r} and group {mode.group!r}: {e.strerror}, ignoring...')
+            print('{!r}: Unable to set owner {!r} and group {!r}: {}, ignoring...'.format((path), (mode.owner), (mode.group), (e.strerror)))
         except LookupError:
-            print(f'{path!r}: Non-existent owner {mode.owner!r} or group {mode.group!r}: ignoring...')
+            print('{!r}: Non-existent owner {!r} or group {!r}: ignoring...'.format((path), (mode.owner), (mode.group)))
         except OSError as e:
             if e.errno == errno.EINVAL:
-                print(f'{path!r}: Non-existent numeric owner {mode.owner!r} or group {mode.group!r}: ignoring...')
+                print('{!r}: Non-existent numeric owner {!r} or group {!r}: ignoring...'.format((path), (mode.owner), (mode.group)))
             else:
                 raise
     # Must set permissions *after* setting owner/group otherwise the
@@ -227,7 +227,7 @@ def set_mode(path: str, mode: T.Optional['FileMode'], default_umask: T.Union[str
         try:
             set_chmod(path, mode.perms, follow_symlinks=False)
         except PermissionError as e:
-            print(f'{path!r}: Unable to set permissions {mode.perms_s!r}: {e.strerror}, ignoring...')
+            print('{!r}: Unable to set permissions {!r}: {}, ignoring...'.format((path), (mode.perms_s), (e.strerror)))
     else:
         sanitize_permissions(path, default_umask)
 
@@ -398,15 +398,15 @@ class Installer:
                     makedirs: T.Optional[T.Tuple[T.Any, str]] = None) -> bool:
         outdir = os.path.split(to_file)[0]
         if not os.path.isfile(from_file) and not os.path.islink(from_file):
-            raise MesonException(f'Tried to install something that isn\'t a file: {from_file!r}')
+            raise MesonException('Tried to install something that isn\'t a file: {!r}'.format((from_file)))
         # copyfile fails if the target file already exists, so remove it to
         # allow overwriting a previous install. If the target is not a file, we
         # want to give a readable error.
         if os.path.exists(to_file):
             if not os.path.isfile(to_file):
-                raise MesonException(f'Destination {to_file!r} already exists and is not a file')
+                raise MesonException('Destination {!r} already exists and is not a file'.format((to_file)))
             if self.should_preserve_existing_file(from_file, to_file):
-                append_to_log(self.lf, f'# Preserving old file {to_file}\n')
+                append_to_log(self.lf, '# Preserving old file {}\n'.format((to_file)))
                 self.preserved_file_count += 1
                 return False
             self.remove(to_file)
@@ -415,7 +415,7 @@ class Installer:
             dirmaker, outdir = makedirs
             # Create dirs if needed
             dirmaker.makedirs(outdir, exist_ok=True)
-        self.log(f'Installing {from_file} to {outdir}')
+        self.log('Installing {} to {}'.format((from_file), (outdir)))
         if os.path.islink(from_file):
             if not os.path.exists(from_file):
                 # Dangling symlink. Replicate as is.
@@ -436,13 +436,13 @@ class Installer:
         if not os.path.isabs(target):
             abs_target = os.path.join(full_dst_dir, target)
         if not os.path.exists(abs_target) and not allow_missing:
-            raise MesonException(f'Tried to install symlink to missing file {abs_target}')
+            raise MesonException('Tried to install symlink to missing file {}'.format((abs_target)))
         if os.path.exists(link):
             if not os.path.islink(link):
-                raise MesonException(f'Destination {link!r} already exists and is not a symlink')
+                raise MesonException('Destination {!r} already exists and is not a symlink'.format((link)))
             self.remove(link)
         if not self.printed_symlink_error:
-            self.log(f'Installing symlink pointing to {target} to {link}')
+            self.log('Installing symlink pointing to {} to {}'.format((target), (link)))
         try:
             self.symlink(target, link, target_is_directory=os.path.isdir(abs_target))
         except (NotImplementedError, OSError):
@@ -480,9 +480,9 @@ class Installer:
                      each element of the set is a path relative to src_dir.
         '''
         if not os.path.isabs(src_dir):
-            raise ValueError(f'src_dir must be absolute, got {src_dir}')
+            raise ValueError('src_dir must be absolute, got {}'.format((src_dir)))
         if not os.path.isabs(dst_dir):
-            raise ValueError(f'dst_dir must be absolute, got {dst_dir}')
+            raise ValueError('dst_dir must be absolute, got {}'.format((dst_dir)))
         if exclude is not None:
             exclude_files, exclude_dirs = exclude
         else:
@@ -500,7 +500,7 @@ class Installer:
                 if os.path.isdir(abs_dst):
                     continue
                 if os.path.exists(abs_dst):
-                    print(f'Tried to copy directory {abs_dst} but a file of that name already exists.')
+                    print('Tried to copy directory {} but a file of that name already exists.'.format((abs_dst)))
                     sys.exit(1)
                 dm.makedirs(abs_dst)
                 self.copystat(abs_src, abs_dst)
@@ -512,7 +512,7 @@ class Installer:
                     continue
                 abs_dst = os.path.join(dst_dir, filepart)
                 if os.path.isdir(abs_dst):
-                    print(f'Tried to copy file {abs_dst} but a directory of that name already exists.')
+                    print('Tried to copy file {} but a directory of that name already exists.'.format((abs_dst)))
                     sys.exit(1)
                 parent_dir = os.path.dirname(abs_dst)
                 if not os.path.isdir(parent_dir):
@@ -568,12 +568,12 @@ class Installer:
                 raise
 
     def do_strip(self, strip_bin: T.List[str], fname: str, outname: str) -> None:
-        self.log(f'Stripping target {fname!r}.')
+        self.log('Stripping target {!r}.'.format((fname)))
         returncode, stdo, stde = self.Popen_safe(strip_bin + [outname])
         if returncode != 0:
             print('Could not strip file.\n')
-            print(f'Stdout:\n{stdo}\n')
-            print(f'Stderr:\n{stde}\n')
+            print('Stdout:\n{}\n'.format((stdo)))
+            print('Stderr:\n{}\n'.format((stde)))
             sys.exit(1)
 
     def install_subdirs(self, d: InstallData, dm: DirMaker, destdir: str, fullprefix: str) -> None:
@@ -582,7 +582,7 @@ class Installer:
                 continue
             self.did_install_something = True
             full_dst_dir = get_destdir_path(destdir, fullprefix, i.install_path)
-            self.log(f'Installing subdir {i.path} to {full_dst_dir}')
+            self.log('Installing subdir {} to {}'.format((i.path), (full_dst_dir)))
             dm.makedirs(full_dst_dir, exist_ok=True)
             self.do_copydir(d, i.path, full_dst_dir, i.exclude, i.install_mode, dm)
 
@@ -624,9 +624,9 @@ class Installer:
                 continue
             self.did_install_something = True
             full_dst_dir = get_destdir_path(destdir, fullprefix, e.path)
-            self.log(f'Installing new directory {full_dst_dir}')
+            self.log('Installing new directory {}'.format((full_dst_dir)))
             if os.path.isfile(full_dst_dir):
-                print(f'Tried to create directory {full_dst_dir} but a file of that name already exists.')
+                print('Tried to create directory {} but a file of that name already exists.'.format((full_dst_dir)))
                 sys.exit(1)
             dm.makedirs(full_dst_dir, exist_ok=True)
             self.set_mode(full_dst_dir, e.install_mode, d.install_umask)
@@ -658,18 +658,18 @@ class Installer:
                 continue
             name = ' '.join(i.cmd_args)
             if i.skip_if_destdir and destdir:
-                self.log(f'Skipping custom install script because DESTDIR is set {name!r}')
+                self.log('Skipping custom install script because DESTDIR is set {!r}'.format((name)))
                 continue
             self.did_install_something = True  # Custom script must report itself if it does nothing.
-            self.log(f'Running custom install script {name!r}')
+            self.log('Running custom install script {!r}'.format((name)))
             try:
                 rc = self.run_exe(i, env)
             except OSError:
-                print(f'FAILED: install script \'{name}\' could not be run, stopped')
+                print('FAILED: install script \'{}\' could not be run, stopped'.format((name)))
                 # POSIX shells return 127 when a command could not be found
                 sys.exit(127)
             if rc != 0:
-                print(f'FAILED: install script \'{name}\' exit code {rc}, stopped')
+                print('FAILED: install script \'{}\' exit code {}, stopped'.format((name), (rc)))
                 sys.exit(rc)
 
     def install_targets(self, d: InstallData, dm: DirMaker, destdir: str, fullprefix: str) -> None:
@@ -679,10 +679,10 @@ class Installer:
             if not os.path.exists(t.fname):
                 # For example, import libraries of shared modules are optional
                 if t.optional:
-                    self.log(f'File {t.fname!r} not found, skipping')
+                    self.log('File {!r} not found, skipping'.format((t.fname)))
                     continue
                 else:
-                    raise MesonException(f'File {t.fname!r} could not be found')
+                    raise MesonException('File {!r} could not be found'.format((t.fname)))
             file_copied = False # not set when a directory is copied
             fname = check_for_stampfile(t.fname)
             outdir = get_destdir_path(destdir, fullprefix, t.outdir)
@@ -693,7 +693,7 @@ class Installer:
             install_name_mappings = t.install_name_mappings
             install_mode = t.install_mode
             if not os.path.exists(fname):
-                raise MesonException(f'File {fname!r} could not be found')
+                raise MesonException('File {!r} could not be found'.format((fname)))
             elif os.path.isfile(fname):
                 file_copied = self.do_copyfile(fname, outname, makedirs=(dm, outdir))
                 self.set_mode(outname, install_mode, d.install_umask)
@@ -715,7 +715,7 @@ class Installer:
                 dm.makedirs(outdir, exist_ok=True)
                 self.do_copydir(d, fname, outname, None, install_mode, dm)
             else:
-                raise RuntimeError(f'Unknown file type for {fname!r}')
+                raise RuntimeError('Unknown file type for {!r}'.format((fname)))
             if file_copied:
                 self.did_install_something = True
                 try:
@@ -739,7 +739,7 @@ def rebuild_all(wd: str) -> bool:
 
     ret = subprocess.run(ninja + ['-C', wd]).returncode
     if ret != 0:
-        print(f'Could not rebuild {wd}')
+        print('Could not rebuild {}'.format((wd)))
         return False
 
     return True

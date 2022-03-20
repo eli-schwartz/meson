@@ -168,7 +168,7 @@ class OptionInterpreter:
         opt_type = kwargs['type']
         parser = self.option_types.get(opt_type)
         if not parser:
-            raise OptionException(f'Unknown type {opt_type}.')
+            raise OptionException('Unknown type {}.'.format((opt_type)))
         description = kwargs['description'] or opt_name
 
         # Only keep in kwargs arguments that are used by option type's parser
@@ -179,7 +179,7 @@ class OptionInterpreter:
         opt.deprecated = kwargs['deprecated']
 
         if key in self.options:
-            mlog.deprecation(f'Option {opt_name} already exists.')
+            mlog.deprecation('Option {} already exists.'.format((opt_name)))
         self.options[key] = opt
 
     @permittedKwargs({'value', 'yield'})

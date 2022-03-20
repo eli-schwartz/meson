@@ -58,24 +58,24 @@ class WaylandModule(ExtensionModule):
             name = os.path.splitext(os.path.basename(xml_file.fname))[0]
 
             code = CustomTarget(
-                f'{name}-protocol',
+                '{}-protocol'.format((name)),
                 state.subdir,
                 state.subproject,
-                [self.scanner_bin, f'{scope}-code', '@INPUT@', '@OUTPUT@'],
+                [self.scanner_bin, '{}-code'.format((scope)), '@INPUT@', '@OUTPUT@'],
                 [xml_file],
-                [f'{name}-protocol.c'],
+                ['{}-protocol.c'.format((name))],
                 backend=state.backend,
             )
             targets.append(code)
 
             for side in sides:
                 header = CustomTarget(
-                    f'{name}-{side}-protocol',
+                    '{}-{}-protocol'.format((name), (side)),
                     state.subdir,
                     state.subproject,
-                    [self.scanner_bin, f'{side}-header', '@INPUT@', '@OUTPUT@'],
+                    [self.scanner_bin, '{}-header'.format((side)), '@INPUT@', '@OUTPUT@'],
                     [xml_file],
-                    [f'{name}-{side}-protocol.h'],
+                    ['{}-{}-protocol.h'.format((name), (side))],
                     backend=state.backend,
                 )
                 targets.append(header)
@@ -94,7 +94,7 @@ class WaylandModule(ExtensionModule):
         version = kwargs['version']
 
         if xml_state != 'stable' and version is None:
-            raise MesonException(f'{xml_state} protocols require a version number.')
+            raise MesonException('{} protocols require a version number.'.format((xml_state)))
 
         if xml_state == 'stable' and version is not None:
             raise MesonException('stable protocols do not require a version number.')
@@ -106,16 +106,16 @@ class WaylandModule(ExtensionModule):
             self.pkgdatadir = self.protocols_dep.get_variable(pkgconfig='pkgdatadir', internal='pkgdatadir')
 
         if xml_state == 'stable':
-            xml_name = f'{base_name}.xml'
+            xml_name = '{}.xml'.format((base_name))
         elif xml_state == 'staging':
-            xml_name = f'{base_name}-v{version}.xml'
+            xml_name = '{}-v{}.xml'.format((base_name), (version))
         else:
-            xml_name = f'{base_name}-unstable-v{version}.xml'
+            xml_name = '{}-unstable-v{}.xml'.format((base_name), (version))
 
         path = os.path.join(self.pkgdatadir, xml_state, base_name, xml_name)
 
         if not os.path.exists(path):
-            raise MesonException(f'The file {path} does not exist.')
+            raise MesonException('The file {} does not exist.'.format((path)))
 
         return File.from_absolute_file(path)
 

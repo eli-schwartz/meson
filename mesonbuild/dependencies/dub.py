@@ -142,7 +142,7 @@ class DubDependency(ExternalDependency):
         for target in description['targets']:
             if target['rootPackage'] in packages:
                 add_lib_args('libs', target)
-                add_lib_args(f'libs-{platform.machine()}', target)
+                add_lib_args('libs-{}'.format((platform.machine())), target)
                 for file in target['buildSettings']['linkerFiles']:
                     lib_path = self._find_right_lib_path(file, comp, description)
                     if lib_path:

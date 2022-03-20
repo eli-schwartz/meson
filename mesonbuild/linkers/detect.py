@@ -120,9 +120,9 @@ def guess_win_linker(env: 'Environment', compiler: T.List[str], comp_class: T.Ty
         import shutil
         fullpath = shutil.which(compiler[0])
         raise EnvironmentException(
-            f"Found GNU link.exe instead of MSVC link.exe in {fullpath}.\n"
+            "Found GNU link.exe instead of MSVC link.exe in {}.\n"
             "This link.exe is not a linker.\n"
-            "You may need to reorder entries to your %PATH% variable to resolve this.")
+            "You may need to reorder entries to your %PATH% variable to resolve this.".format((fullpath)))
     __failed_to_detect_linker(compiler, check_args, o, e)
 
 def guess_nix_linker(env: 'Environment', compiler: T.List[str], comp_class: T.Type['Compiler'],

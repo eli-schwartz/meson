@@ -105,7 +105,7 @@ def run(options):
             for for_machine in iter(MachineChoice):
                 items_list = list(sorted(v[for_machine].items()))
                 if items_list:
-                    print(f'Cached dependencies for {for_machine.get_lower_case_name()} machine')
+                    print('Cached dependencies for {} machine'.format((for_machine.get_lower_case_name())))
                     for dep_key, deps in items_list:
                         for dep in deps:
                             print_dep(dep_key, dep)

@@ -87,7 +87,7 @@ class ArrayHolder(ObjectHolder[T.List[TYPE_var]], IterableObject):
         index = args[0]
         if index < -len(self.held_object) or index >= len(self.held_object):
             if args[1] is None:
-                raise InvalidArguments(f'Array index {index} is out of bounds for array of size {len(self.held_object)}.')
+                raise InvalidArguments('Array index {} is out of bounds for array of size {}.'.format((index), (len(self.held_object))))
             return args[1]
         return self.held_object[index]
 
@@ -105,4 +105,4 @@ class ArrayHolder(ObjectHolder[T.List[TYPE_var]], IterableObject):
         try:
             return self.held_object[other]
         except IndexError:
-            raise InvalidArguments(f'Index {other} out of bounds of array of size {len(self.held_object)}.')
+            raise InvalidArguments('Index {} out of bounds of array of size {}.'.format((other), (len(self.held_object))))

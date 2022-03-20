@@ -167,7 +167,7 @@ cpu_map = dict(armhf="arm7hlf",
 
 def deb_compiler_lookup(infos: MachineInfo, compilerstems: List[Tuple[str, str]], host_arch: str, gccsuffix: str) -> None:
     for langname, stem in compilerstems:
-        compilername = f'{host_arch}-{stem}{gccsuffix}'
+        compilername = '{}-{}{}'.format((host_arch), (stem), (gccsuffix))
         try:
             p = locate_path(compilername)
             infos.compilers[langname] = p
@@ -252,10 +252,10 @@ def write_machine_file(infos: MachineInfo, ofilename: str, write_system_info: bo
 
         if write_system_info:
             ofile.write('[host_machine]\n')
-            ofile.write(f"cpu = '{infos.cpu}'\n")
-            ofile.write(f"cpu_family = '{infos.cpu_family}'\n")
-            ofile.write(f"endian = '{infos.endian}'\n")
-            ofile.write(f"system = '{infos.system}'\n")
+            ofile.write("cpu = '{}'\n".format((infos.cpu)))
+            ofile.write("cpu_family = '{}'\n".format((infos.cpu_family)))
+            ofile.write("endian = '{}'\n".format((infos.endian)))
+            ofile.write("system = '{}'\n".format((infos.system)))
     os.replace(tmpfilename, ofilename)
 
 def detect_language_args_from_envvars(langname: str, envvar_suffix: str ='') -> Tuple[List[str], List[str]]:
@@ -295,7 +295,7 @@ def detect_cross_system(infos: MachineInfo, options: Any) -> None:
     for optname in ('system', 'cpu', 'cpu_family', 'endian'):
         v = getattr(options, optname)
         if not v:
-            mlog.error(f'Cross property "{optname}" missing, set it with --{optname.replace("_", "-")}.')
+            mlog.error('Cross property "{}" missing, set it with --{}.'.format((optname), (optname.replace("_", "-"))))
             sys.exit(1)
         setattr(infos, optname, v)
 

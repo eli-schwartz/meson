@@ -143,15 +143,15 @@ class CMakeTraceParser:
         }  # type: T.Dict[str, T.Callable[[CMakeTraceLine], None]]
 
         if version_compare(self.cmake_version, '<3.17.0'):
-            mlog.deprecation(textwrap.dedent(f'''\
+            mlog.deprecation(textwrap.dedent('''\
                 CMake support for versions <3.17 is deprecated since Meson 0.62.0.
                 |
-                |   However, Meson was only able to find CMake {self.cmake_version}.
+                |   However, Meson was only able to find CMake {}.
                 |
                 |   Support for all CMake versions below 3.17.0 will be removed once
                 |   newer CMake versions are more widely adopted. If you encounter
                 |   any errors please try upgrading CMake to a newer version first.
-            '''), once=True)
+            '''.format((self.cmake_version))), once=True)
 
     def trace_args(self) -> T.List[str]:
         arg_map = {
@@ -161,7 +161,7 @@ class CMakeTraceParser:
 
         base_args = ['--no-warn-unused-cli']
         if not self.requires_stderr():
-            base_args += [f'--trace-redirect={self.trace_file}']
+            base_args += ['--trace-redirect={}'.format((self.trace_file))]
 
         return arg_map[self.trace_format] + base_args
 
@@ -172,7 +172,7 @@ class CMakeTraceParser:
         # First load the trace (if required)
         if not self.requires_stderr():
             if not self.trace_file_path.exists and not self.trace_file_path.is_file():
-                raise CMakeException(f'CMake: Trace file "{self.trace_file_path!s}" not found')
+                raise CMakeException('CMake: Trace file "{!s}" not found'.format((self.trace_file_path)))
             trace = self.trace_file_path.read_text(errors='ignore', encoding='utf-8')
         if not trace:
             raise CMakeException('CMake: The CMake trace was not provided or is empty')
@@ -184,7 +184,7 @@ class CMakeTraceParser:
         elif self.trace_format == 'json-v1':
             lexer1 = self._lex_trace_json(trace)
         else:
-            raise CMakeException(f'CMake: Internal error: Invalid trace format {self.trace_format}. Expected [human, json-v1]')
+            raise CMakeException('CMake: Internal error: Invalid trace format {}. Expected [human, json-v1]'.format((self.trace_format)))
 
         # Primary pass -- parse everything
         for l in lexer1:
@@ -272,9 +272,9 @@ class CMakeTraceParser:
         # Generate an exception if the parser is not in permissive mode
 
         if self.permissive:
-            mlog.debug(f'CMake trace warning: {function}() {error}\n{tline}')
+            mlog.debug('CMake trace warning: {}() {}\n{}'.format((function), (error), (tline)))
             return None
-        raise CMakeException(f'CMake: {function}() {error}\n{tline}')
+        raise CMakeException('CMake: {}() {}\n{}'.format((function), (error), (tline)))
 
     def _cmake_set(self, tline: CMakeTraceLine) -> None:
         """Handler for the CMake set() function in all variaties.
@@ -514,7 +514,7 @@ class CMakeTraceParser:
 
         def do_target(t: str) -> None:
             if t not in self.targets:
-                return self._gen_exception('set_property', f'TARGET {t} not found', tline)
+                return self._gen_exception('set_property', 'TARGET {} not found'.format((t)), tline)
 
             tgt = self.targets[t]
             if identifier not in tgt.properties:
@@ -601,7 +601,7 @@ class CMakeTraceParser:
         for name, value in arglist:
             for i in targets:
                 if i not in self.targets:
-                    return self._gen_exception('set_target_properties', f'TARGET {i} not found', tline)
+                    return self._gen_exception('set_target_properties', 'TARGET {} not found'.format((i)), tline)
 
                 self.targets[i].properties[name] = value
 
@@ -650,7 +650,7 @@ class CMakeTraceParser:
 
         target = args[0]
         if target not in self.targets:
-            return self._gen_exception(func, f'TARGET {target} not found', tline)
+            return self._gen_exception(func, 'TARGET {} not found'.format((target)), tline)
 
         interface = []
         private = []
@@ -700,7 +700,7 @@ class CMakeTraceParser:
         if not args:
             mlog.error('Invalid preload.cmake script! At least one argument to `meson_ps_disabled_function` is expected')
             return
-        mlog.warning(f'The CMake function "{args[0]}" was disabled to avoid compatibility issues with Meson.')
+        mlog.warning('The CMake function "{}" was disabled to avoid compatibility issues with Meson.'.format((args[0])))
 
     def _lex_trace_human(self, trace: str) -> T.Generator[CMakeTraceLine, None, None]:
         # The trace format is: '<file>(<line>):  <func>(<args -- can contain \n> )\n'
@@ -780,13 +780,13 @@ class CMakeTraceParser:
                 path_found = False
             elif reg_end.match(i):
                 # File detected
-                curr_str = f'{curr_str} {i}'
+                curr_str = '{} {}'.format((curr_str), (i))
                 fixed_list += [curr_str]
                 curr_str = None
                 path_found = False
-            elif Path(f'{curr_str} {i}').exists():
+            elif Path('{} {}'.format((curr_str), (i))).exists():
                 # Path detected
-                curr_str = f'{curr_str} {i}'
+                curr_str = '{} {}'.format((curr_str), (i))
                 path_found = True
             elif path_found:
                 # Add path to fixed_list after ensuring the whole path is in curr_str
@@ -794,7 +794,7 @@ class CMakeTraceParser:
                 curr_str = i
                 path_found = False
             else:
-                curr_str = f'{curr_str} {i}'
+                curr_str = '{} {}'.format((curr_str), (i))
                 path_found = False
 
         if curr_str:

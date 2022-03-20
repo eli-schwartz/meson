@@ -66,7 +66,7 @@ class CPPCompiler(CLikeCompiler, Compiler):
         try:
             return CXX_FUNC_ATTRIBUTES.get(name, C_FUNC_ATTRIBUTES[name])
         except KeyError:
-            raise MesonException(f'Unknown function attribute "{name}"')
+            raise MesonException('Unknown function attribute "{}"'.format((name)))
 
     language = 'cpp'
 
@@ -110,10 +110,10 @@ class CPPCompiler(CLikeCompiler, Compiler):
         # Check if it's a class or a template
         if extra_args is None:
             extra_args = []
-        t = f'''{prefix}
-        #include <{hname}>
-        using {symbol};
-        int main(void) {{ return 0; }}'''
+        t = '''{}
+        #include <{}>
+        using {};
+        int main(void) {{ return 0; }}'''.format((prefix), (hname), (symbol))
         return self.compiles(t, env, extra_args=extra_args,
                              dependencies=dependencies)
 
@@ -129,10 +129,10 @@ class CPPCompiler(CLikeCompiler, Compiler):
         CPP_TEST = 'int i = static_cast<int>(0);'
         with self.compile(CPP_TEST, extra_args=[cpp_std_value], mode='compile') as p:
             if p.returncode == 0:
-                mlog.debug(f'Compiler accepts {cpp_std_value}:', 'YES')
+                mlog.debug('Compiler accepts {}:'.format((cpp_std_value)), 'YES')
                 return True
             else:
-                mlog.debug(f'Compiler accepts {cpp_std_value}:', 'NO')
+                mlog.debug('Compiler accepts {}:'.format((cpp_std_value)), 'NO')
                 return False
 
     @functools.lru_cache()
@@ -166,7 +166,7 @@ class CPPCompiler(CLikeCompiler, Compiler):
             if self._test_cpp_std_arg(cpp_std_value):
                 return cpp_std_value
 
-        raise MesonException(f'C++ Compiler does not support -std={cpp_std}')
+        raise MesonException('C++ Compiler does not support -std={}'.format((cpp_std)))
 
     def get_options(self) -> 'KeyedOptionDictType':
         opts = super().get_options()
@@ -253,7 +253,7 @@ class ClangCPPCompiler(ClangCompiler, CPPCompiler):
         # fortran,
         search_dirs: T.List[str] = []
         for d in self.get_compiler_dirs(env, 'libraries'):
-            search_dirs.append(f'-L{d}')
+            search_dirs.append('-L{}'.format((d)))
         return search_dirs + ['-lstdc++']
 
 
@@ -270,7 +270,7 @@ class AppleClangCPPCompiler(ClangCPPCompiler):
         # fortran,
         search_dirs: T.List[str] = []
         for d in self.get_compiler_dirs(env, 'libraries'):
-            search_dirs.append(f'-L{d}')
+            search_dirs.append('-L{}'.format((d)))
         return search_dirs + ['-lc++']
 
 
@@ -428,7 +428,7 @@ class GnuCPPCompiler(GnuCompiler, CPPCompiler):
         # fortran,
         search_dirs: T.List[str] = []
         for d in self.get_compiler_dirs(env, 'libraries'):
-            search_dirs.append(f'-L{d}')
+            search_dirs.append('-L{}'.format((d)))
         return ['-lstdc++']
 
 
@@ -653,7 +653,7 @@ class VisualStudioLikeCPPCompilerMixin(CompilerMixinBase):
         permissive, ver = self.VC_VERSION_MAP[options[key].value]
 
         if ver is not None:
-            args.append(f'/std:c++{ver}')
+            args.append('/std:c++{}'.format((ver)))
 
         if not permissive:
             args.append('/permissive-')
@@ -825,7 +825,7 @@ class CcrxCPPCompiler(CcrxCompiler, CPPCompiler):
         return []
 
     def get_output_args(self, target: str) -> T.List[str]:
-        return [f'-output=obj={target}']
+        return ['-output=obj={}'.format((target))]
 
     def get_option_link_args(self, options: 'KeyedOptionDictType') -> T.List[str]:
         return []

@@ -35,7 +35,7 @@ def parse_pattern_file(fname: Path) -> T.List[str]:
     return patterns
 
 def run_tool(name: str, srcdir: Path, builddir: Path, fn: T.Callable[..., subprocess.CompletedProcess], *args: T.Any) -> int:
-    patterns = parse_pattern_file(srcdir / f'.{name}-include')
+    patterns = parse_pattern_file(srcdir / '.{}-include'.format((name)))
     globs: T.Union[T.List[T.List[Path]], T.List[T.Generator[Path, None, None]]]
     if patterns:
         globs = [srcdir.glob(p) for p in patterns]
@@ -45,12 +45,12 @@ def run_tool(name: str, srcdir: Path, builddir: Path, fn: T.Callable[..., subpro
             globs = [[Path(srcdir, f) for f in o.splitlines()]]
         else:
             globs = [srcdir.glob('**/*')]
-    patterns = parse_pattern_file(srcdir / f'.{name}-ignore')
+    patterns = parse_pattern_file(srcdir / '.{}-ignore'.format((name)))
     ignore = [str(builddir / '*')]
     ignore.extend([str(srcdir / p) for p in patterns])
     suffixes = set(lang_suffixes['c']).union(set(lang_suffixes['cpp']))
     suffixes.add('h')
-    suffixes = {f'.{s}' for s in suffixes}
+    suffixes = {'.{}'.format((s)) for s in suffixes}
     futures = []
     returncode = 0
     with ThreadPoolExecutor() as e:

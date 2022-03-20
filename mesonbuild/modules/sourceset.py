@@ -247,7 +247,7 @@ class SourceSetImpl(SourceSet, MutableModuleObject):
             def _get_from_config_data(key: str) -> bool:
                 assert isinstance(config_data, dict), 'for mypy'
                 if strict and key not in config_data:
-                    raise InterpreterException(f'Entry {key} not in configuration dictionary.')
+                    raise InterpreterException('Entry {} not in configuration dictionary.'.format((key)))
                 return bool(config_data.get(key, False))
         else:
             config_cache: T.Dict[str, bool] = {}
@@ -258,7 +258,7 @@ class SourceSetImpl(SourceSet, MutableModuleObject):
                     if key in config_data:
                         config_cache[key] = bool(config_data.get(key)[0])
                     elif strict:
-                        raise InvalidArguments(f'sourceset.apply: key "{key}" not in passed configuration, and strict set.')
+                        raise InvalidArguments('sourceset.apply: key "{}" not in passed configuration, and strict set.'.format((key)))
                     else:
                         config_cache[key] = False
                 return config_cache[key]

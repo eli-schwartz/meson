@@ -75,10 +75,10 @@ def _get_env_var(for_machine: MachineChoice, is_cross: bool, var_name: str) -> T
         if value is not None:
             break
     else:
-        formatted = ', '.join([f'{var!r}' for var in candidates])
-        mlog.debug(f'None of {formatted} are defined in the environment, not changing global flags.')
+        formatted = ', '.join(['{!r}'.format((var)) for var in candidates])
+        mlog.debug('None of {} are defined in the environment, not changing global flags.'.format((formatted)))
         return None
-    mlog.debug(f'Using {var!r} from environment with value: {value!r}')
+    mlog.debug('Using {!r} from environment with value: {!r}'.format((var), (value)))
     return value
 
 
@@ -353,9 +353,9 @@ def detect_cpu_family(compilers: CompilersDict) -> str:
             trial = 'ppc64'
 
     if trial not in known_cpu_families:
-        mlog.warning(f'Unknown CPU family {trial!r}, please report this at '
+        mlog.warning('Unknown CPU family {!r}, please report this at '
                      'https://github.com/mesonbuild/meson/issues/new with the '
-                     'output of `uname -a` and `cat /proc/cpuinfo`')
+                     'output of `uname -a` and `cat /proc/cpuinfo`'.format((trial)))
 
     return trial
 
@@ -599,7 +599,7 @@ class Environment:
             deprecated_properties.add(lang + '_link_args')
         for k, v in properties.properties.copy().items():
             if k in deprecated_properties:
-                mlog.deprecation(f'{k} in the [properties] section of the machine file is deprecated, use the [built-in options] section.')
+                mlog.deprecation('{} in the [properties] section of the machine file is deprecated, use the [built-in options] section.'.format((k)))
                 self.options[OptionKey.from_string(k).evolve(machine=machine)] = v
                 del properties.properties[k]
 
@@ -629,7 +629,7 @@ class Environment:
 
     def _set_default_options_from_env(self) -> None:
         opts: T.List[T.Tuple[str, str]] = (
-            [(v, f'{k}_args') for k, v in compilers.compilers.CFLAGS_MAPPING.items()] +
+            [(v, '{}_args'.format((k))) for k, v in compilers.compilers.CFLAGS_MAPPING.items()] +
             [
                 ('PKG_CONFIG_PATH', 'pkg_config_path'),
                 ('CMAKE_PREFIX_PATH', 'cmake_prefix_path'),
@@ -814,7 +814,7 @@ class Environment:
 
     def get_jar_dir(self) -> str:
         """Install dir for JAR files"""
-        return f"{self.get_datadir()}/java"
+        return "{}/java".format((self.get_datadir()))
 
     def get_static_lib_dir(self) -> str:
         "Install dir for the static library"

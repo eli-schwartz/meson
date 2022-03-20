@@ -42,7 +42,7 @@ def read_linguas(src_sub: str) -> T.List[str]:
                     langs += line.split()
         return langs
     except (FileNotFoundError, PermissionError):
-        print(f'Could not find file LINGUAS in {src_sub}')
+        print('Could not find file LINGUAS in {}'.format((src_sub)))
         return []
 
 def run_potgen(src_sub: str, xgettext: str, pkgname: str, datadirs: str, args: T.List[str]) -> int:

@@ -100,7 +100,7 @@ class HotdocTargetBuilder:
             # When an option expects a single value, the unambiguous way
             # to specify it is with =
             if isinstance(value, str):
-                self.cmd.extend([f'{option}={value}'])
+                self.cmd.extend(['{}={}'.format((option), (value))])
             else:
                 self.cmd.extend([option, value])
 
@@ -135,11 +135,11 @@ class HotdocTargetBuilder:
                     if force_list and not isinstance(value, list):
                         return [value], uvalue
                     return value, uvalue
-            raise MesonException(f"{argname} field value {value} is not valid,"
-                                 f" valid types are {types}")
+            raise MesonException("{} field value {} is not valid,"
+                                 " valid types are {}".format((argname), (value), (types)))
         except KeyError:
             if mandatory:
-                raise MesonException(f"{argname} mandatory field not found")
+                raise MesonException("{} mandatory field not found".format((argname)))
 
             if default is not None:
                 return default, default
@@ -278,14 +278,14 @@ class HotdocTargetBuilder:
             _dir = os.path.join(self.sourcedir, self.subdir, value)
 
         if not os.path.isdir(_dir):
-            raise InvalidArguments(f'"{_dir}" is not a directory.')
+            raise InvalidArguments('"{}" is not a directory.'.format((_dir)))
 
         return os.path.relpath(_dir, os.path.join(self.builddir, self.subdir))
 
     def check_forbidden_args(self):
         for arg in ['conf_file']:
             if arg in self.kwargs:
-                raise InvalidArguments(f'Argument "{arg}" is forbidden.')
+                raise InvalidArguments('Argument "{}" is forbidden.'.format((arg)))
 
     def add_include_path(self, path):
         self.include_paths[path] = path
@@ -406,7 +406,7 @@ class HotDocModule(ExtensionModule):
             from hotdoc.run_hotdoc import run  # noqa: F401
             self.hotdoc.run_hotdoc = run
         except Exception as e:
-            raise MesonException(f'hotdoc {MIN_HOTDOC_VERSION} required but not found. ({e})')
+            raise MesonException('hotdoc {} required but not found. ({})'.format((MIN_HOTDOC_VERSION), (e)))
         self.methods.update({
             'has_extensions': self.has_extensions,
             'generate_doc': self.generate_doc,
@@ -414,7 +414,7 @@ class HotDocModule(ExtensionModule):
 
     @noKwargs
     def has_extensions(self, state, args, kwargs):
-        return self.hotdoc.run_hotdoc([f'--has-extension={extension}' for extension in args]) == 0
+        return self.hotdoc.run_hotdoc(['--has-extension={}'.format((extension)) for extension in args]) == 0
 
     def generate_doc(self, state, args, kwargs):
         if len(args) != 1:

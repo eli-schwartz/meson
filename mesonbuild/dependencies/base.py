@@ -102,7 +102,7 @@ class Dependency(HoldableObject):
         self.feature_since: T.Optional[T.Tuple[str, str]] = None
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__} {self.name}: {self.is_found}>'
+        return '<{} {}: {}>'.format((self.__class__.__name__), (self.name), (self.is_found))
 
     def is_built(self) -> bool:
         return False
@@ -174,10 +174,10 @@ class Dependency(HoldableObject):
     def get_pkgconfig_variable(self, variable_name: str,
                                define_variable: 'ImmutableListProtocol[str]',
                                default: T.Optional[str]) -> str:
-        raise DependencyException(f'{self.name!r} is not a pkgconfig dependency')
+        raise DependencyException('{!r} is not a pkgconfig dependency'.format((self.name)))
 
     def get_configtool_variable(self, variable_name: str) -> str:
-        raise DependencyException(f'{self.name!r} is not a config-tool dependency')
+        raise DependencyException('{!r} is not a config-tool dependency'.format((self.name)))
 
     def get_partial_dependency(self, *, compile_args: bool = False,
                                link_args: bool = False, links: bool = False,
@@ -219,7 +219,7 @@ class Dependency(HoldableObject):
                      pkgconfig_define: T.Optional[T.List[str]] = None) -> T.Union[str, T.List[str]]:
         if default_value is not None:
             return default_value
-        raise DependencyException(f'No default provided for dependency {self!r}, which is not pkg-config, cmake, or config-tool based.')
+        raise DependencyException('No default provided for dependency {!r}, which is not pkg-config, cmake, or config-tool based.'.format((self)))
 
     def generate_system_dependency(self, include_type: str) -> 'Dependency':
         new_dep = copy.deepcopy(self)
@@ -311,7 +311,7 @@ class InternalDependency(Dependency):
                 for i in val:
                     assert isinstance(i, str)
                 return val
-        raise DependencyException(f'Could not get an internal variable and no default provided for {self!r}')
+        raise DependencyException('Could not get an internal variable and no default provided for {!r}'.format((self)))
 
     def generate_link_whole_dependency(self) -> Dependency:
         new_dep = copy.deepcopy(self)
@@ -390,7 +390,7 @@ class ExternalDependency(Dependency, HasNativeKwarg):
                 mlog.log(*found_msg)
 
                 if self.required:
-                    m = f'Unknown version of dependency {self.name!r}, but need {self.version_reqs!r}.'
+                    m = 'Unknown version of dependency {!r}, but need {!r}.'.format((self.name), (self.version_reqs))
                     raise DependencyException(m)
 
             else:
@@ -400,10 +400,10 @@ class ExternalDependency(Dependency, HasNativeKwarg):
                     found_msg = ['Dependency', mlog.bold(self.name), 'found:']
                     found_msg += [mlog.red('NO'),
                                   'found', mlog.normal_cyan(self.version), 'but need:',
-                                  mlog.bold(', '.join([f"'{e}'" for e in not_found]))]
+                                  mlog.bold(', '.join(["'{}'".format((e)) for e in not_found]))]
                     if found:
                         found_msg += ['; matched:',
-                                      ', '.join([f"'{e}'" for e in found])]
+                                      ', '.join(["'{}'".format((e)) for e in found])]
                     mlog.log(*found_msg)
 
                     if self.required:
@@ -497,7 +497,7 @@ def strip_system_libdirs(environment: 'Environment', for_machine: MachineChoice,
     in the system path, and a different version not in the system path if they
     want to link against the non-system path version.
     """
-    exclude = {f'-L{p}' for p in environment.get_compiler_system_dirs(for_machine)}
+    exclude = {'-L{}'.format((p)) for p in environment.get_compiler_system_dirs(for_machine)}
     return [l for l in link_args if l not in exclude]
 
 def process_method_kw(possible: T.Iterable[DependencyMethods], kwargs: T.Dict[str, T.Any]) -> T.List[DependencyMethods]:
@@ -506,7 +506,7 @@ def process_method_kw(possible: T.Iterable[DependencyMethods], kwargs: T.Dict[st
         return [method]
     # TODO: try/except?
     if method not in [e.value for e in DependencyMethods]:
-        raise DependencyException(f'method {method!r} is invalid')
+        raise DependencyException('method {!r} is invalid'.format((method)))
     method = DependencyMethods(method)
 
     # Raise FeatureNew where appropriate

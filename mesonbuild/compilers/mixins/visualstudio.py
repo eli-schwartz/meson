@@ -335,7 +335,7 @@ class VisualStudioLikeCompiler(Compiler, metaclass=abc.ABCMeta):
             return '14.2' # (Visual Studio 2019)
         elif version < 1940:
             return '14.3' # (Visual Studio 2022)
-        mlog.warning(f'Could not find toolset for version {self.version!r}')
+        mlog.warning('Could not find toolset for version {!r}'.format((self.version)))
         return None
 
     def get_toolset_version(self) -> T.Optional[str]:

@@ -97,7 +97,7 @@ class StringHolder(ObjectHolder[str]):
         def arg_replace(match: T.Match[str]) -> str:
             idx = int(match.group(1))
             if idx >= len(arg_strings):
-                raise InvalidArguments(f'Format placeholder @{idx}@ out of range.')
+                raise InvalidArguments('Format placeholder @{}@ out of range.'.format((idx)))
             return arg_strings[idx]
 
         return re.sub(r'@(\d+)@', arg_replace, self.held_object)
@@ -135,7 +135,7 @@ class StringHolder(ObjectHolder[str]):
         try:
             return int(self.held_object)
         except ValueError:
-            raise InvalidArguments(f'String {self.held_object!r} cannot be converted to int')
+            raise InvalidArguments('String {!r} cannot be converted to int'.format((self.held_object)))
 
     @noKwargs
     @noPosargs
@@ -167,7 +167,7 @@ class StringHolder(ObjectHolder[str]):
         try:
             return self.held_object[other]
         except IndexError:
-            raise InvalidArguments(f'Index {other} out of bounds of string of size {len(self.held_object)}.')
+            raise InvalidArguments('Index {} out of bounds of string of size {}.'.format((other), (len(self.held_object))))
 
 
 class MesonVersionString(str):

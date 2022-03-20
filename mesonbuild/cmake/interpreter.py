@@ -170,7 +170,7 @@ class OutputTargetMap:
                 continue
             new_name = name[:-len(i) - 1]
             new_name = OutputTargetMap.rm_so_version.sub('', new_name)
-            candidates += [f'{new_name}.{i}']
+            candidates += ['{}.{}'.format((new_name), (i))]
         for i in candidates:
             keys += [self._rel_artifact_key(Path(i)), Path(i).name, self._base_artifact_key(Path(i))]
         return self._return_first_valid_key(keys)
@@ -189,21 +189,21 @@ class OutputTargetMap:
         return None
 
     def _target_key(self, tgt_name: str) -> str:
-        return f'__tgt_{tgt_name}__'
+        return '__tgt_{}__'.format((tgt_name))
 
     def _rel_generated_file_key(self, fname: Path) -> T.Optional[str]:
         path = self._rel_path(fname)
-        return f'__relgen_{path.as_posix()}__' if path else None
+        return '__relgen_{}__'.format((path.as_posix())) if path else None
 
     def _base_generated_file_key(self, fname: Path) -> str:
-        return f'__gen_{fname.name}__'
+        return '__gen_{}__'.format((fname.name))
 
     def _rel_artifact_key(self, fname: Path) -> T.Optional[str]:
         path = self._rel_path(fname)
-        return f'__relart_{path.as_posix()}__' if path else None
+        return '__relart_{}__'.format((path.as_posix())) if path else None
 
     def _base_artifact_key(self, fname: Path) -> str:
-        return f'__art_{fname.name}__'
+        return '__art_{}__'.format((fname.name))
 
 class ConverterTarget:
     def __init__(self, target: CMakeTarget, env: 'Environment', for_machine: MachineChoice) -> None:
@@ -276,7 +276,7 @@ class ConverterTarget:
 
             # Add arguments, but avoid duplicates
             args = i.flags
-            args += [f'-D{x}' for x in i.defines]
+            args += ['-D{}'.format((x)) for x in i.defines]
             for lang in languages:
                 self.compile_opts[lang] += [x for x in args if x not in self.compile_opts[lang]]
 
@@ -291,7 +291,7 @@ class ConverterTarget:
                 self.sources += i.sources
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__}: {self.name}>'
+        return '<{}: {}>'.format((self.__class__.__name__), (self.name))
 
     std_regex = re.compile(r'([-]{1,2}std=|/std:v?|[-]{1,2}std:)(.*)')
 
@@ -316,7 +316,7 @@ class ConverterTarget:
                             once=True
                         )
                         continue
-                    self.override_options += [f'{i}_std={std}']
+                    self.override_options += ['{}_std={}'.format((i), (std))]
                 elif j in ['-fPIC', '-fpic', '-fPIE', '-fpie']:
                     self.pie = True
                 elif isinstance(ctgt, ConverterCustomTarget):
@@ -368,7 +368,7 @@ class ConverterTarget:
         supported = list(assembler_suffixes) + list(header_suffixes) + list(obj_suffixes)
         for i in self.languages:
             supported += list(lang_suffixes[i])
-        supported = [f'.{x}' for x in supported]
+        supported = ['.{}'.format((x)) for x in supported]
         self.sources       = [x for x in self.sources       if any([x.name.endswith(y) for y in supported])]
         self.generated_raw = [x for x in self.generated_raw if any([x.name.endswith(y) for y in supported])]
 
@@ -483,7 +483,7 @@ class ConverterTarget:
                 candidates = [j]  # type: T.List[str]
                 if not any([j.endswith('.' + x) for x in exts]):
                     mlog.warning('Object files do not contain source file extensions, thus falling back to guessing them.', once=True)
-                    candidates += [f'{j}.{x}' for x in exts]
+                    candidates += ['{}.{}'.format((j), (x)) for x in exts]
                 if any([x in source_files for x in candidates]):
                     if linker_workaround:
                         self._append_objlib_sources(i)
@@ -555,7 +555,7 @@ class ConverterTarget:
         return target_type_map.get(self.type.upper())
 
     def log(self) -> None:
-        mlog.log('Target', mlog.bold(self.name), f'({self.cmake_name})')
+        mlog.log('Target', mlog.bold(self.name), '({})'.format((self.cmake_name)))
         mlog.log('  -- artifacts:      ', mlog.bold(str(self.artifacts)))
         mlog.log('  -- full_name:      ', mlog.bold(self.full_name))
         mlog.log('  -- type:           ', mlog.bold(self.type))
@@ -587,7 +587,7 @@ class CustomTargetReference:
         if self.valid():
             return '<{}: {} [{}]>'.format(self.__class__.__name__, self.ctgt.name, self.ctgt.outputs[self.index])
         else:
-            return f'<{self.__class__.__name__}: INVALID REFERENCE>'
+            return '<{}: INVALID REFERENCE>'.format((self.__class__.__name__))
 
     def valid(self) -> bool:
         return self.ctgt is not None and self.index >= 0
@@ -604,7 +604,7 @@ class ConverterCustomTarget:
         assert target.current_src_dir is not None
         self.name = target.name
         if not self.name:
-            self.name = f'custom_tgt_{ConverterCustomTarget.tgt_counter}'
+            self.name = 'custom_tgt_{}'.format((ConverterCustomTarget.tgt_counter))
             ConverterCustomTarget.tgt_counter += 1
         self.cmake_name       = str(self.name)
         self.original_outputs = list(target.outputs)
@@ -625,7 +625,7 @@ class ConverterCustomTarget:
         self.name = _sanitize_cmake_name(self.name)
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__}: {self.name} {self.outputs}>'
+        return '<{}: {} {}>'.format((self.__class__.__name__), (self.name), (self.outputs))
 
     def postprocess(self, output_target_map: OutputTargetMap, root_src_dir: Path, all_outputs: T.List[str], trace: CMakeTraceParser) -> None:
         # Default the working directory to ${CMAKE_CURRENT_BINARY_DIR}
@@ -653,7 +653,7 @@ class ConverterCustomTarget:
         for i in self.outputs:
             if i in all_outputs:
                 old = str(i)
-                i = f'c{ConverterCustomTarget.out_counter}_{i}'
+                i = 'c{}_{}'.format((ConverterCustomTarget.out_counter), (i))
                 ConverterCustomTarget.out_counter += 1
                 self.conflict_map[old] = i
             all_outputs += [i]
@@ -682,7 +682,7 @@ class ConverterCustomTarget:
                     if trace_tgt.type == 'EXECUTABLE' and 'IMPORTED_LOCATION' in trace_tgt.properties:
                         cmd += trace_tgt.properties['IMPORTED_LOCATION']
                         continue
-                    mlog.debug(f'CMake: Found invalid CMake target "{j}" --> ignoring \n{trace_tgt}')
+                    mlog.debug('CMake: Found invalid CMake target "{}" --> ignoring \n{}'.format((j), (trace_tgt)))
 
                 # Fallthrough on error
                 cmd += [j]
@@ -751,7 +751,7 @@ class ConverterCustomTarget:
             return None
 
     def log(self) -> None:
-        mlog.log('Custom Target', mlog.bold(self.name), f'({self.cmake_name})')
+        mlog.log('Custom Target', mlog.bold(self.name), '({})'.format((self.cmake_name)))
         mlog.log('  -- command:      ', mlog.bold(str(self.command)))
         mlog.log('  -- outputs:      ', mlog.bold(str(self.outputs)))
         mlog.log('  -- conflict_map: ', mlog.bold(str(self.conflict_map)))
@@ -816,10 +816,10 @@ class CMakeInterpreter:
 
         cmake_args = []
         cmake_args += cmake_get_generator_args(self.env)
-        cmake_args += [f'-DCMAKE_INSTALL_PREFIX={self.install_prefix}']
+        cmake_args += ['-DCMAKE_INSTALL_PREFIX={}'.format((self.install_prefix))]
         cmake_args += extra_cmake_options
         trace_args = self.trace.trace_args()
-        cmcmp_args = [f'-DCMAKE_POLICY_WARNING_{x}=OFF' for x in disable_policy_warnings]
+        cmcmp_args = ['-DCMAKE_POLICY_WARNING_{}=OFF'.format((x)) for x in disable_policy_warnings]
 
         self.fileapi.setup_request()
 
@@ -1102,14 +1102,14 @@ class CMakeInterpreter:
             # Determine the meson function to use for the build target
             tgt_func = tgt.meson_func()
             if not tgt_func:
-                raise CMakeException(f'Unknown target type "{tgt.type}"')
+                raise CMakeException('Unknown target type "{}"'.format((tgt.type)))
 
             # Determine the variable names
-            inc_var = f'{tgt.name}_inc'
-            dir_var = f'{tgt.name}_dir'
-            sys_var = f'{tgt.name}_sys'
-            src_var = f'{tgt.name}_src'
-            dep_var = f'{tgt.name}_dep'
+            inc_var = '{}_inc'.format((tgt.name))
+            dir_var = '{}_dir'.format((tgt.name))
+            sys_var = '{}_sys'.format((tgt.name))
+            src_var = '{}_src'.format((tgt.name))
+            dep_var = '{}_dep'.format((tgt.name))
             tgt_var = tgt.name
 
             install_tgt = options.get_install(tgt.cmake_name, tgt.install)
@@ -1131,7 +1131,7 @@ class CMakeInterpreter:
 
             # Handle compiler args
             for key, val in tgt.compile_opts.items():
-                tgt_kwargs[f'{key}_args'] = options.get_compile_args(tgt.cmake_name, key, val)
+                tgt_kwargs['{}_args'.format((key))] = options.get_compile_args(tgt.cmake_name, key, val)
 
             # Handle -fPCI, etc
             if tgt_func == 'executable':
