@@ -26,7 +26,7 @@ from mesonbuild.templates.sampleimpl import SampleImpl
 
 import argparse
 
-def sameple_generator(options: argparse.Namespace) -> SampleImpl:
+def sameple_generator(options )  :
     return {
         'c': CProject,
         'cpp': CppProject,

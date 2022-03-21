@@ -61,7 +61,7 @@ class CcrxCompiler(Compiler):
 
     id = 'ccrx'
 
-    def __init__(self) -> None:
+    def __init__(self)  :
         if not self.is_cross:
             raise EnvironmentException('ccrx supports only cross-compilation.')
         # Assembly
@@ -72,40 +72,40 @@ class CcrxCompiler(Compiler):
                           '2': default_warn_args + [],
                           '3': default_warn_args + []}  # type: T.Dict[str, T.List[str]]
 
-    def get_pic_args(self) -> T.List[str]:
+    def get_pic_args(self)  :
         # PIC support is not enabled by default for CCRX,
         # if users want to use it, they need to add the required arguments explicitly
         return []
 
-    def get_buildtype_args(self, buildtype: str) -> T.List[str]:
+    def get_buildtype_args(self, buildtype )  :
         return ccrx_buildtype_args[buildtype]
 
-    def get_pch_suffix(self) -> str:
+    def get_pch_suffix(self)  :
         return 'pch'
 
-    def get_pch_use_args(self, pch_dir: str, header: str) -> T.List[str]:
+    def get_pch_use_args(self, pch_dir , header )  :
         return []
 
-    def thread_flags(self, env: 'Environment') -> T.List[str]:
+    def thread_flags(self, env )  :
         return []
 
-    def get_coverage_args(self) -> T.List[str]:
+    def get_coverage_args(self)  :
         return []
 
-    def get_no_stdinc_args(self) -> T.List[str]:
+    def get_no_stdinc_args(self)  :
         return []
 
-    def get_no_stdlib_link_args(self) -> T.List[str]:
+    def get_no_stdlib_link_args(self)  :
         return []
 
-    def get_optimization_args(self, optimization_level: str) -> T.List[str]:
+    def get_optimization_args(self, optimization_level )  :
         return ccrx_optimization_args[optimization_level]
 
-    def get_debug_args(self, is_debug: bool) -> T.List[str]:
+    def get_debug_args(self, is_debug )  :
         return ccrx_debug_args[is_debug]
 
     @classmethod
-    def unix_args_to_native(cls, args: T.List[str]) -> T.List[str]:
+    def unix_args_to_native(cls, args )  :
         result = []
         for i in args:
             if i.startswith('-D'):
@@ -123,7 +123,7 @@ class CcrxCompiler(Compiler):
             result.append(i)
         return result
 
-    def compute_parameters_with_absolute_paths(self, parameter_list: T.List[str], build_dir: str) -> T.List[str]:
+    def compute_parameters_with_absolute_paths(self, parameter_list , build_dir )  :
         for idx, i in enumerate(parameter_list):
             if i[:9] == '-include=':
                 parameter_list[idx] = i[:9] + os.path.normpath(os.path.join(build_dir, i[9:]))

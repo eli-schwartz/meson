@@ -26,7 +26,7 @@ __all__ = ['BuildDirLock']
 
 class BuildDirLock(BuildDirLockBase):
 
-    def __enter__(self) -> None:
+    def __enter__(self)  :
         self.lockfile = open(self.lockfilename, 'w', encoding='utf-8')
         try:
             msvcrt.locking(self.lockfile.fileno(), msvcrt.LK_NBLCK, 1)
@@ -34,6 +34,6 @@ class BuildDirLock(BuildDirLockBase):
             self.lockfile.close()
             raise MesonException('Some other Meson process is already using this build directory. Exiting.')
 
-    def __exit__(self, *args: T.Any) -> None:
+    def __exit__(self, *args )  :
         msvcrt.locking(self.lockfile.fileno(), msvcrt.LK_UNLCK, 1)
         self.lockfile.close()

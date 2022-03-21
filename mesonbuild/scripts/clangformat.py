@@ -20,7 +20,7 @@ from .run_tool import run_tool
 from ..environment import detect_clangformat
 import typing as T
 
-def run_clang_format(fname: Path, exelist: T.List[str], check: bool) -> subprocess.CompletedProcess:
+def run_clang_format(fname , exelist , check )  :
     if check:
         original = fname.read_bytes()
     before = fname.stat().st_mtime
@@ -34,7 +34,7 @@ def run_clang_format(fname: Path, exelist: T.List[str], check: bool) -> subproce
             ret.returncode = 1
     return ret
 
-def run(args: T.List[str]) -> int:
+def run(args )  :
     parser = argparse.ArgumentParser()
     parser.add_argument('--check', action='store_true')
     parser.add_argument('sourcedir')

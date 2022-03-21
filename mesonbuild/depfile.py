@@ -15,10 +15,10 @@ import typing as T
 from collections import namedtuple
 
 
-def parse(lines: T.Iterable[str]) -> T.List[T.Tuple[T.List[str], T.List[str]]]:
-    rules: T.List[T.Tuple[T.List[str], T.List[str]]] = []
-    targets: T.List[str] = []
-    deps: T.List[str] = []
+def parse(lines )   :
+    rules   = []
+    targets  = []
+    deps  = []
     in_deps = False
     out = ''
     for line in lines:
@@ -61,9 +61,9 @@ def parse(lines: T.Iterable[str]) -> T.List[T.Tuple[T.List[str], T.List[str]]]:
 Target = namedtuple('Target', 'deps')
 
 class DepFile:
-    def __init__(self, lines: T.Iterable[str]):
+    def __init__(self, lines ):
         rules = parse(lines)
-        depfile: T.Dict[str, Target] = {}
+        depfile   = {}
         for (targets, deps) in rules:
             for target in targets:
                 t = depfile.setdefault(target, Target(deps=set()))
@@ -71,8 +71,8 @@ class DepFile:
                     t.deps.add(dep)
         self.depfile = depfile
 
-    def get_all_dependencies(self, name: str, visited: T.Optional[T.Set[str]] = None) -> T.List[str]:
-        deps: T.Set[str] = set()
+    def get_all_dependencies(self, name , visited  = None)  :
+        deps  = set()
         if not visited:
             visited = set()
         if name in visited:

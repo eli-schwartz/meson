@@ -22,7 +22,7 @@ from ..build import Build
 
 
 class Vs2019Backend(Vs2010Backend):
-    def __init__(self, build: T.Optional[Build], interpreter: T.Optional[Interpreter]):
+    def __init__(self, build , interpreter ):
         super().__init__(build, interpreter)
         self.name = 'vs2019'
         self.sln_file_version = '12.00'

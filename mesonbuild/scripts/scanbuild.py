@@ -23,7 +23,7 @@ import typing as T
 from ast import literal_eval
 import os
 
-def scanbuild(exelist: T.List[str], srcdir: Path, blddir: Path, privdir: Path, logdir: Path, args: T.List[str]) -> int:
+def scanbuild(exelist , srcdir , blddir , privdir , logdir , args )  :
     # In case of problems leave the temp directory around
     # so it can be debugged.
     scandir = tempfile.mkdtemp(dir=str(privdir))
@@ -37,7 +37,7 @@ def scanbuild(exelist: T.List[str], srcdir: Path, blddir: Path, privdir: Path, l
         windows_proof_rmtree(scandir)
     return rc
 
-def run(args: T.List[str]) -> int:
+def run(args )  :
     srcdir = Path(args[0])
     bldpath = Path(args[1])
     blddir = args[1]

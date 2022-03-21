@@ -73,7 +73,7 @@ class DlangModule(ExtensionModule):
 
         warn_publishing = ['description', 'license']
         for arg in warn_publishing:
-            if arg not in kwargs and \
+            if arg not in kwargs and\
                arg not in config:
                 mlog.warning('Without', mlog.bold(arg), 'the DUB package can\'t be published')
 

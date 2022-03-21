@@ -34,7 +34,7 @@ if T.TYPE_CHECKING:
 
 
 class GLDependencySystem(SystemDependency):
-    def __init__(self, name: str, environment: 'Environment', kwargs: T.Dict[str, T.Any]) -> None:
+    def __init__(self, name , environment , kwargs  )  :
         super().__init__(name, environment, kwargs)
 
         if self.env.machines[self.for_machine].is_darwin():
@@ -50,7 +50,7 @@ class GLDependencySystem(SystemDependency):
             # FIXME: Detect version using self.clib_compiler
             return
 
-    def log_tried(self) -> str:
+    def log_tried(self)  :
         return 'system'
 
 class GnuStepDependency(ConfigToolDependency):
@@ -58,7 +58,7 @@ class GnuStepDependency(ConfigToolDependency):
     tools = ['gnustep-config']
     tool_name = 'gnustep-config'
 
-    def __init__(self, environment: 'Environment', kwargs: T.Dict[str, T.Any]) -> None:
+    def __init__(self, environment , kwargs  )  :
         super().__init__('gnustep', environment, kwargs, language='objc')
         if not self.is_found:
             return
@@ -69,7 +69,7 @@ class GnuStepDependency(ConfigToolDependency):
             ['--gui-libs' if 'gui' in self.modules else '--base-libs'],
             'link_args'))
 
-    def find_config(self, versions: T.Optional[T.List[str]] = None, returncode: int = 0) -> T.Tuple[T.Optional[T.List[str]], T.Optional[str]]:
+    def find_config(self, versions  = None, returncode  = 0)   :
         tool = [self.tools[0]]
         try:
             p, out = Popen_safe(tool + ['--help'])[:2]
@@ -85,7 +85,7 @@ class GnuStepDependency(ConfigToolDependency):
         return (tool, found_version)
 
     @staticmethod
-    def weird_filter(elems: T.List[str]) -> T.List[str]:
+    def weird_filter(elems )  :
         """When building packages, the output of the enclosing Make is
         sometimes mixed among the subprocess output. I have no idea why. As a
         hack filter out everything that is not a flag.
@@ -93,21 +93,21 @@ class GnuStepDependency(ConfigToolDependency):
         return [e for e in elems if e.startswith('-')]
 
     @staticmethod
-    def filter_args(args: T.List[str]) -> T.List[str]:
+    def filter_args(args )  :
         """gnustep-config returns a bunch of garbage args such as -O2 and so
         on. Drop everything that is not needed.
         """
         result = []
         for f in args:
-            if f.startswith('-D') \
-                    or f.startswith('-f') \
-                    or f.startswith('-I') \
-                    or f == '-pthread' \
+            if f.startswith('-D')\
+                    or f.startswith('-f')\
+                    or f.startswith('-I')\
+                    or f == '-pthread'\
                     or (f.startswith('-W') and not f == '-Wall'):
                 result.append(f)
         return result
 
-    def detect_version(self) -> str:
+    def detect_version(self)  :
         gmake = self.get_config_value(['--variable=GNUMAKE'], 'variable')[0]
         makefile_dir = self.get_config_value(['--variable=GNUSTEP_MAKEFILES'], 'variable')[0]
         # This Makefile has the GNUStep version set
@@ -135,7 +135,7 @@ class SDL2DependencyConfigTool(ConfigToolDependency):
     tools = ['sdl2-config']
     tool_name = 'sdl2-config'
 
-    def __init__(self, name: str, environment: 'Environment', kwargs: T.Dict[str, T.Any]):
+    def __init__(self, name , environment , kwargs  ):
         super().__init__(name, environment, kwargs)
         if not self.is_found:
             return
@@ -148,7 +148,7 @@ class WxDependency(ConfigToolDependency):
     tools = ['wx-config-3.0', 'wx-config-3.1', 'wx-config', 'wx-config-gtk3']
     tool_name = 'wx-config'
 
-    def __init__(self, environment: 'Environment', kwargs: T.Dict[str, T.Any]):
+    def __init__(self, environment , kwargs  ):
         super().__init__('WxWidgets', environment, kwargs, language='cpp')
         if not self.is_found:
             return
@@ -171,7 +171,7 @@ class WxDependency(ConfigToolDependency):
         self.link_args = self.get_config_value(['--libs'] + extra_args + self.requested_modules, 'link_args')
 
     @staticmethod
-    def get_requested(kwargs: T.Dict[str, T.Any]) -> T.List[str]:
+    def get_requested(kwargs  )  :
         if 'modules' not in kwargs:
             return []
         candidates = extract_as_list(kwargs, 'modules')
@@ -183,7 +183,7 @@ class WxDependency(ConfigToolDependency):
 
 class VulkanDependencySystem(SystemDependency):
 
-    def __init__(self, name: str, environment: 'Environment', kwargs: T.Dict[str, T.Any], language: T.Optional[str] = None) -> None:
+    def __init__(self, name , environment , kwargs  , language  = None)  :
         super().__init__(name, environment, kwargs, language=language)
 
         try:
@@ -237,7 +237,7 @@ class VulkanDependencySystem(SystemDependency):
                     self.link_args.append(lib)
                 return
 
-    def log_tried(self) -> str:
+    def log_tried(self)  :
         return 'system'
 
 gl_factory = DependencyFactory(

@@ -46,18 +46,18 @@ class RustCompiler(Compiler):
     language = 'rust'
     id = 'rustc'
 
-    _WARNING_LEVELS: T.Dict[str, T.List[str]] = {
+    _WARNING_LEVELS   = {
         '0': ['-A', 'warnings'],
         '1': [],
         '2': [],
         '3': ['-W', 'warnings'],
     }
 
-    def __init__(self, exelist: T.List[str], version: str, for_machine: MachineChoice,
-                 is_cross: bool, info: 'MachineInfo',
-                 exe_wrapper: T.Optional['ExternalProgram'] = None,
-                 full_version: T.Optional[str] = None,
-                 linker: T.Optional['DynamicLinker'] = None):
+    def __init__(self, exelist , version , for_machine ,
+                 is_cross , info ,
+                 exe_wrapper  = None,
+                 full_version  = None,
+                 linker  = None):
         super().__init__(exelist, version, for_machine, info,
                          is_cross=is_cross, full_version=full_version,
                          linker=linker)
@@ -66,10 +66,10 @@ class RustCompiler(Compiler):
         if 'link' in self.linker.id:
             self.base_options.add(OptionKey('b_vscrt'))
 
-    def needs_static_linker(self) -> bool:
+    def needs_static_linker(self)  :
         return False
 
-    def sanity_check(self, work_dir: str, environment: 'Environment') -> None:
+    def sanity_check(self, work_dir , environment )  :
         source_name = os.path.join(work_dir, 'sanity.rs')
         output_name = os.path.join(work_dir, 'rusttest')
         with open(source_name, 'w', encoding='utf-8') as ofile:
@@ -103,25 +103,25 @@ class RustCompiler(Compiler):
         if pe.returncode != 0:
             raise EnvironmentException('Executables created by Rust compiler %s are not runnable.' % self.name_string())
 
-    def get_dependency_gen_args(self, outtarget: str, outfile: str) -> T.List[str]:
+    def get_dependency_gen_args(self, outtarget , outfile )  :
         return ['--dep-info', outfile]
 
-    def get_buildtype_args(self, buildtype: str) -> T.List[str]:
+    def get_buildtype_args(self, buildtype )  :
         return rust_buildtype_args[buildtype]
 
-    def get_sysroot(self) -> str:
+    def get_sysroot(self)  :
         cmd = self.exelist + ['--print', 'sysroot']
         p, stdo, stde = Popen_safe(cmd)
         return stdo.split('\n')[0]
 
-    def get_debug_args(self, is_debug: bool) -> T.List[str]:
+    def get_debug_args(self, is_debug )  :
         return clike_debug_args[is_debug]
 
-    def get_optimization_args(self, optimization_level: str) -> T.List[str]:
+    def get_optimization_args(self, optimization_level )  :
         return rust_optimization_args[optimization_level]
 
-    def compute_parameters_with_absolute_paths(self, parameter_list: T.List[str],
-                                               build_dir: str) -> T.List[str]:
+    def compute_parameters_with_absolute_paths(self, parameter_list ,
+                                               build_dir )  :
         for idx, i in enumerate(parameter_list):
             if i[:2] == '-L':
                 for j in ['dependency', 'crate', 'native', 'framework', 'all']:
@@ -132,18 +132,18 @@ class RustCompiler(Compiler):
 
         return parameter_list
 
-    def get_output_args(self, outputname: str) -> T.List[str]:
+    def get_output_args(self, outputname )  :
         return ['-o', outputname]
 
     @classmethod
-    def use_linker_args(cls, linker: str) -> T.List[str]:
+    def use_linker_args(cls, linker )  :
         return ['-C', 'linker={}'.format((linker))]
 
     # Rust does not have a use_linker_args because it dispatches to a gcc-like
     # C compiler for dynamic linking, as such we invoke the C compiler's
     # use_linker_args method instead.
 
-    def get_options(self) -> 'KeyedOptionDictType':
+    def get_options(self)  :
         key = OptionKey('std', machine=self.for_machine, lang=self.language)
         return {
             key: coredata.UserComboOption(
@@ -153,7 +153,7 @@ class RustCompiler(Compiler):
             ),
         }
 
-    def get_option_compile_args(self, options: 'KeyedOptionDictType') -> T.List[str]:
+    def get_option_compile_args(self, options )  :
         args = []
         key = OptionKey('std', machine=self.for_machine, lang=self.language)
         std = options[key]
@@ -161,38 +161,38 @@ class RustCompiler(Compiler):
             args.append('--edition=' + std.value)
         return args
 
-    def get_crt_compile_args(self, crt_val: str, buildtype: str) -> T.List[str]:
+    def get_crt_compile_args(self, crt_val , buildtype )  :
         # Rust handles this for us, we don't need to do anything
         return []
 
-    def get_colorout_args(self, colortype: str) -> T.List[str]:
+    def get_colorout_args(self, colortype )  :
         if colortype in {'always', 'never', 'auto'}:
             return ['--color={}'.format((colortype))]
         raise MesonException('Invalid color type for rust {}'.format((colortype)))
 
-    def get_linker_always_args(self) -> T.List[str]:
-        args: T.List[str] = []
+    def get_linker_always_args(self)  :
+        args  = []
         for a in super().get_linker_always_args():
             args.extend(['-C', 'link-arg={}'.format((a))])
         return args
 
-    def get_werror_args(self) -> T.List[str]:
+    def get_werror_args(self)  :
         # Use -D warnings, which makes every warning not explicitly allowed an
         # error
         return ['-D', 'warnings']
 
-    def get_warn_args(self, level: str) -> T.List[str]:
+    def get_warn_args(self, level )  :
         # TODO: I'm not really sure what to put here, Rustc doesn't have warning
         return self._WARNING_LEVELS[level]
 
-    def get_no_warn_args(self) -> T.List[str]:
+    def get_no_warn_args(self)  :
         return self._WARNING_LEVELS["0"]
 
-    def get_pic_args(self) -> T.List[str]:
+    def get_pic_args(self)  :
         # This defaults to
         return ['-C', 'relocation-model=pic']
 
-    def get_pie_args(self) -> T.List[str]:
+    def get_pie_args(self)  :
         # Rustc currently has no way to toggle this, it's controlled by whether
         # pic is on by rustc
         return []

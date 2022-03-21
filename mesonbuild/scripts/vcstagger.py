@@ -15,7 +15,7 @@
 import sys, os, subprocess, re
 import typing as T
 
-def config_vcs_tag(infile: str, outfile: str, fallback: str, source_dir: str, replace_string: str, regex_selector: str, cmd: T.List[str]) -> None:
+def config_vcs_tag(infile , outfile , fallback , source_dir , replace_string , regex_selector , cmd )  :
     try:
         output = subprocess.check_output(cmd, cwd=source_dir)
         new_string = re.search(regex_selector, output.decode()).group(1).strip()
@@ -34,7 +34,7 @@ def config_vcs_tag(infile: str, outfile: str, fallback: str, source_dir: str, re
             f.write(new_data)
 
 
-def run(args: T.List[str]) -> int:
+def run(args )  :
     infile, outfile, fallback, source_dir, replace_string, regex_selector = args[0:6]
     command = args[6:]
     config_vcs_tag(infile, outfile, fallback, source_dir, replace_string, regex_selector, command)

@@ -25,14 +25,14 @@ from ..interpreterbase import FeatureNew
 from ..interpreterbase.decorators import ContainerTypeInfo, KwargInfo, noPosargs, typed_kwargs, typed_pos_args
 from ..scripts.gettext import read_linguas
 
-_ARGS: KwargInfo[T.List[str]] = KwargInfo(
+_ARGS  = KwargInfo(
     'args',
     ContainerTypeInfo(list, str),
     default=[],
     listify=True,
 )
 
-_DATA_DIRS: KwargInfo[T.List[str]] = KwargInfo(
+_DATA_DIRS  = KwargInfo(
     'data_dirs',
     ContainerTypeInfo(list, str),
     default=[],
@@ -75,14 +75,14 @@ PRESET_ARGS = {
 
 
 class I18nModule(ExtensionModule):
-    def __init__(self, interpreter: 'Interpreter'):
+    def __init__(self, interpreter ):
         super().__init__(interpreter)
         self.methods.update({
             'merge_file': self.merge_file,
             'gettext': self.gettext,
             'itstool_join': self.itstool_join,
         })
-        self.tools: T.Dict[str, T.Optional[ExternalProgram]] = {
+        self.tools   = {
             'itstool': None,
             'msgfmt': None,
             'msginit': None,
@@ -91,11 +91,11 @@ class I18nModule(ExtensionModule):
         }
 
     @staticmethod
-    def nogettext_warning(location: BaseNode) -> None:
+    def nogettext_warning(location )  :
         mlog.warning('Gettext not found, all translation targets will be ignored.', once=True, location=location)
 
     @staticmethod
-    def _get_data_dirs(state: 'ModuleState', dirs: T.Iterable[str]) -> T.List[str]:
+    def _get_data_dirs(state , dirs )  :
         """Returns source directories of relative paths"""
         src_dir = path.join(state.environment.get_source_dir(), state.subdir)
         return [path.join(src_dir, d) for d in dirs]
@@ -115,7 +115,7 @@ class I18nModule(ExtensionModule):
         KwargInfo('po_dir', str, required=True),
         KwargInfo('type', str, default='xml', validator=in_set_validator({'xml', 'desktop'})),
     )
-    def merge_file(self, state: 'ModuleState', args: T.List['TYPE_var'], kwargs: 'MergeFile') -> ModuleReturnValue:
+    def merge_file(self, state , args , kwargs )  :
         if self.tools['msgfmt'] is None:
             self.tools['msgfmt'] = state.find_program('msgfmt', for_machine=mesonlib.MachineChoice.BUILD)
         podir = path.join(state.build_to_src, state.subdir, kwargs['po_dir'])
@@ -123,8 +123,8 @@ class I18nModule(ExtensionModule):
         ddirs = self._get_data_dirs(state, kwargs['data_dirs'])
         datadirs = '--datadirs=' + ':'.join(ddirs) if ddirs else None
 
-        command: T.List[T.Union[str, build.BuildTarget, build.CustomTarget,
-                                build.CustomTargetIndex, 'ExternalProgram', mesonlib.File]] = []
+        command                                      = []
+
         command.extend(state.environment.get_build_command())
         command.extend([
             '--internal', 'msgfmthelper',
@@ -171,7 +171,7 @@ class I18nModule(ExtensionModule):
             since='0.37.0',
         ),
     )
-    def gettext(self, state: 'ModuleState', args: T.Tuple[str], kwargs: 'Gettext') -> ModuleReturnValue:
+    def gettext(self, state , args , kwargs )  :
         for tool in ['msgfmt', 'msginit', 'msgmerge', 'xgettext']:
             if self.tools[tool] is None:
                 self.tools[tool] = state.find_program(tool, required=False, for_machine=mesonlib.MachineChoice.BUILD)
@@ -189,8 +189,8 @@ class I18nModule(ExtensionModule):
         datadirs = '--datadirs={}'.format((_datadirs)) if _datadirs else None
 
         extra_args = kwargs['args']
-        targets: T.List['Target'] = []
-        gmotargets: T.List['build.CustomTarget'] = []
+        targets  = []
+        gmotargets  = []
 
         preset = kwargs['preset']
         if preset:
@@ -265,7 +265,7 @@ class I18nModule(ExtensionModule):
         KwargInfo('its_files', ContainerTypeInfo(list, str)),
         KwargInfo('mo_targets', ContainerTypeInfo(list, build.CustomTarget), required=True),
     )
-    def itstool_join(self, state: 'ModuleState', args: T.List['TYPE_var'], kwargs: 'ItsJoinFile') -> ModuleReturnValue:
+    def itstool_join(self, state , args , kwargs )  :
         if self.tools['itstool'] is None:
             self.tools['itstool'] = state.find_program('itstool', for_machine=mesonlib.MachineChoice.BUILD)
         mo_targets = kwargs['mo_targets']
@@ -275,8 +275,8 @@ class I18nModule(ExtensionModule):
         for target in mo_targets:
             mo_fnames.append(path.join(target.get_subdir(), target.get_outputs()[0]))
 
-        command: T.List[T.Union[str, build.BuildTarget, build.CustomTarget,
-                                build.CustomTargetIndex, 'ExternalProgram', mesonlib.File]] = []
+        command                                      = []
+
         command.extend(state.environment.get_build_command())
         command.extend([
             '--internal', 'itstool', 'join',
@@ -312,5 +312,5 @@ class I18nModule(ExtensionModule):
         return ModuleReturnValue(ct, [ct])
 
 
-def initialize(interp: 'Interpreter') -> I18nModule:
+def initialize(interp )  :
     return I18nModule(interp)

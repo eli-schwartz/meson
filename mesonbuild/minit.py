@@ -53,7 +53,7 @@ meson compile -C builddir
 '''
 
 
-def create_sample(options: 'argparse.Namespace') -> None:
+def create_sample(options )  :
     '''
     Based on what arguments are passed we check for a match in language
     then check for project type and create new Meson samples project.
@@ -67,7 +67,7 @@ def create_sample(options: 'argparse.Namespace') -> None:
         raise RuntimeError('Unreachable code')
     print(INFO_MESSAGE)
 
-def autodetect_options(options: 'argparse.Namespace', sample: bool = False) -> None:
+def autodetect_options(options , sample  = False)  :
     '''
     Here we autodetect options for args not passed in so don't have to
     think about it.
@@ -134,7 +134,7 @@ def autodetect_options(options: 'argparse.Namespace', sample: bool = False) -> N
             raise SystemExit("Can't autodetect language, please specify it with -l.")
         print("Detected language: " + options.language)
 
-def add_arguments(parser: 'argparse.ArgumentParser') -> None:
+def add_arguments(parser )  :
     '''
     Here we add args for that the user can passed when making a new
     Meson project.
@@ -152,7 +152,7 @@ def add_arguments(parser: 'argparse.ArgumentParser') -> None:
     parser.add_argument('--type', default=DEFAULT_PROJECT, choices=('executable', 'library'), help="project type. default: {} based project".format((DEFAULT_PROJECT)))
     parser.add_argument('--version', default=DEFAULT_VERSION, help="project version. default: {}".format((DEFAULT_VERSION)))
 
-def run(options: 'argparse.Namespace') -> int:
+def run(options )  :
     '''
     Here we generate the new Meson sample project.
     '''

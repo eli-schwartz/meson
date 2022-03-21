@@ -27,11 +27,11 @@ __all__ = ['BuildDirLock']
 # checking happy
 class BuildDirLock:
 
-    def __init__(self, builddir: str) -> None:
+    def __init__(self, builddir )  :
         self.lockfilename = os.path.join(builddir, 'meson-private/meson.lock')
 
-    def __enter__(self) -> None:
+    def __enter__(self)  :
         mlog.debug('Calling the no-op version of BuildDirLock')
 
-    def __exit__(self, *args: T.Any) -> None:
+    def __exit__(self, *args )  :
         pass

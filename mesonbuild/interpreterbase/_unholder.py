@@ -16,7 +16,7 @@ from .baseobjects import InterpreterObject, MesonInterpreterObject, ObjectHolder
 from .exceptions import InvalidArguments
 from ..mesonlib import HoldableObject, MesonBugException
 
-def _unholder(obj: InterpreterObject) -> TYPE_var:
+def _unholder(obj )  :
     if isinstance(obj, ObjectHolder):
         assert isinstance(obj.held_object, HoldableTypes)
         return obj.held_object

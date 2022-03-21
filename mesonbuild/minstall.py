@@ -46,9 +46,9 @@ symlink_warning = '''Warning: trying to copy a symlink that points to a file. Th
 but this will be changed in a future version of Meson to copy the symlink as is. Please update your
 build definitions so that it will not break when the change happens.'''
 
-selinux_updates: T.List[str] = []
+selinux_updates  = []
 
-def add_arguments(parser: argparse.ArgumentParser) -> None:
+def add_arguments(parser )  :
     parser.add_argument('-C', dest='wd', action=RealPathAction,
                         help='directory to cd into before running')
     parser.add_argument('--profile-self', action='store_true', dest='profile',
@@ -71,13 +71,13 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
                         help='Strip targets even if strip option was not set during configure. (Since 0.62.0)')
 
 class DirMaker:
-    def __init__(self, lf: T.TextIO, makedirs: T.Callable[..., None]):
+    def __init__(self, lf , makedirs  ):
         self.lf = lf
-        self.dirs: T.List[str] = []
-        self.all_dirs: T.Set[str] = set()
+        self.dirs  = []
+        self.all_dirs  = set()
         self.makedirs_impl = makedirs
 
-    def makedirs(self, path: str, exist_ok: bool = False) -> None:
+    def makedirs(self, path , exist_ok  = False)  :
         dirname = os.path.normpath(path)
         self.all_dirs.add(dirname)
         dirs = []
@@ -99,16 +99,16 @@ class DirMaker:
         dirs.reverse()
         self.dirs += dirs
 
-    def __enter__(self) -> 'DirMaker':
+    def __enter__(self)  :
         return self
 
-    def __exit__(self, exception_type: T.Type[Exception], value: T.Any, traceback: T.Any) -> None:
+    def __exit__(self, exception_type , value , traceback )  :
         self.dirs.reverse()
         for d in self.dirs:
             append_to_log(self.lf, d)
 
 
-def load_install_data(fname: str) -> InstallData:
+def load_install_data(fname )  :
     with open(fname, 'rb') as ifile:
         obj = pickle.load(ifile)
         if not isinstance(obj, InstallData) or not hasattr(obj, 'version'):
@@ -117,21 +117,21 @@ def load_install_data(fname: str) -> InstallData:
             raise MesonVersionMismatchException(obj.version, coredata_version)
         return obj
 
-def is_executable(path: str, follow_symlinks: bool = False) -> bool:
+def is_executable(path , follow_symlinks  = False)  :
     '''Checks whether any of the "x" bits are set in the source file mode.'''
     return bool(os.stat(path, follow_symlinks=follow_symlinks).st_mode & 0o111)
 
 
-def append_to_log(lf: T.TextIO, line: str) -> None:
+def append_to_log(lf , line )  :
     lf.write(line)
     if not line.endswith('\n'):
         lf.write('\n')
     lf.flush()
 
 
-def set_chown(path: str, user: T.Union[str, int, None] = None,
-              group: T.Union[str, int, None] = None,
-              dir_fd: T.Optional[int] = None, follow_symlinks: bool = True) -> None:
+def set_chown(path , user    = None,
+              group    = None,
+              dir_fd  = None, follow_symlinks  = True)  :
     # shutil.chown will call os.chown without passing all the parameters
     # and particularly follow_symlinks, thus we replace it temporary
     # with a lambda with all the parameters so that follow_symlinks will
@@ -140,9 +140,9 @@ def set_chown(path: str, user: T.Union[str, int, None] = None,
     # this python bug is fixed: https://bugs.python.org/issue18108
     real_os_chown = os.chown
 
-    def chown(path: T.Union[int, str, 'os.PathLike[str]', bytes, 'os.PathLike[bytes]'],
-              uid: int, gid: int, *, dir_fd: T.Optional[int] = dir_fd,
-              follow_symlinks: bool = follow_symlinks) -> None:
+    def chown(path     ,
+              uid , gid , *, dir_fd  = dir_fd,
+              follow_symlinks  = follow_symlinks)  :
         """Override the default behavior of os.chown
 
         Use a real function rather than a lambda to help mypy out. Also real
@@ -157,8 +157,8 @@ def set_chown(path: str, user: T.Union[str, int, None] = None,
         os.chown = real_os_chown
 
 
-def set_chmod(path: str, mode: int, dir_fd: T.Optional[int] = None,
-              follow_symlinks: bool = True) -> None:
+def set_chmod(path , mode , dir_fd  = None,
+              follow_symlinks  = True)  :
     try:
         os.chmod(path, mode, dir_fd=dir_fd, follow_symlinks=follow_symlinks)
     except (NotImplementedError, OSError, SystemError):
@@ -166,7 +166,7 @@ def set_chmod(path: str, mode: int, dir_fd: T.Optional[int] = None,
             os.chmod(path, mode, dir_fd=dir_fd)
 
 
-def sanitize_permissions(path: str, umask: T.Union[str, int]) -> None:
+def sanitize_permissions(path , umask  )  :
     # TODO: with python 3.8 or typing_extensions we could replace this with
     # `umask: T.Union[T.Literal['preserve'], int]`, which would be more correct
     if umask == 'preserve':
@@ -180,7 +180,7 @@ def sanitize_permissions(path: str, umask: T.Union[str, int]) -> None:
         print('{!r}: Unable to set permissions {!r}: {}, ignoring...'.format((path), (new_perms), (e.strerror)))
 
 
-def set_mode(path: str, mode: T.Optional['FileMode'], default_umask: T.Union[str, int]) -> None:
+def set_mode(path , mode , default_umask  )  :
     if mode is None or all(m is None for m in [mode.perms_s, mode.owner, mode.group]):
         # Just sanitize permissions with the default umask
         sanitize_permissions(path, default_umask)
@@ -210,7 +210,7 @@ def set_mode(path: str, mode: T.Optional['FileMode'], default_umask: T.Union[str
         sanitize_permissions(path, default_umask)
 
 
-def restore_selinux_contexts() -> None:
+def restore_selinux_contexts()  :
     '''
     Restores the SELinux context for files in @selinux_updates
 
@@ -237,7 +237,7 @@ def restore_selinux_contexts() -> None:
               'Standard output:', out,
               'Standard error:', err, sep='\n')
 
-def get_destdir_path(destdir: str, fullprefix: str, path: str) -> str:
+def get_destdir_path(destdir , fullprefix , path )  :
     if os.path.isabs(path):
         output = destdir_join(destdir, path)
     else:
@@ -245,7 +245,7 @@ def get_destdir_path(destdir: str, fullprefix: str, path: str) -> str:
     return output
 
 
-def check_for_stampfile(fname: str) -> str:
+def check_for_stampfile(fname )  :
     '''Some languages e.g. Rust have output files
     whose names are not known at configure time.
     Check if this is the case and return the real
@@ -273,7 +273,7 @@ def check_for_stampfile(fname: str) -> str:
 
 class Installer:
 
-    def __init__(self, options: 'ArgumentType', lf: T.TextIO):
+    def __init__(self, options , lf ):
         self.did_install_something = False
         self.printed_symlink_error = False
         self.options = options
@@ -286,83 +286,83 @@ class Installer:
         self.skip_subprojects = [i.strip() for i in options.skip_subprojects.split(',')]
         self.tags = [i.strip() for i in options.tags.split(',')] if options.tags else None
 
-    def remove(self, *args: T.Any, **kwargs: T.Any) -> None:
+    def remove(self, *args , **kwargs )  :
         if not self.dry_run:
             os.remove(*args, **kwargs)
 
-    def symlink(self, *args: T.Any, **kwargs: T.Any) -> None:
+    def symlink(self, *args , **kwargs )  :
         if not self.dry_run:
             os.symlink(*args, **kwargs)
 
-    def makedirs(self, *args: T.Any, **kwargs: T.Any) -> None:
+    def makedirs(self, *args , **kwargs )  :
         if not self.dry_run:
             os.makedirs(*args, **kwargs)
 
-    def copy(self, *args: T.Any, **kwargs: T.Any) -> None:
+    def copy(self, *args , **kwargs )  :
         if not self.dry_run:
             shutil.copy(*args, **kwargs)
 
-    def copy2(self, *args: T.Any, **kwargs: T.Any) -> None:
+    def copy2(self, *args , **kwargs )  :
         if not self.dry_run:
             shutil.copy2(*args, **kwargs)
 
-    def copyfile(self, *args: T.Any, **kwargs: T.Any) -> None:
+    def copyfile(self, *args , **kwargs )  :
         if not self.dry_run:
             shutil.copyfile(*args, **kwargs)
 
-    def copystat(self, *args: T.Any, **kwargs: T.Any) -> None:
+    def copystat(self, *args , **kwargs )  :
         if not self.dry_run:
             shutil.copystat(*args, **kwargs)
 
-    def fix_rpath(self, *args: T.Any, **kwargs: T.Any) -> None:
+    def fix_rpath(self, *args , **kwargs )  :
         if not self.dry_run:
             depfixer.fix_rpath(*args, **kwargs)
 
-    def set_chown(self, *args: T.Any, **kwargs: T.Any) -> None:
+    def set_chown(self, *args , **kwargs )  :
         if not self.dry_run:
             set_chown(*args, **kwargs)
 
-    def set_chmod(self, *args: T.Any, **kwargs: T.Any) -> None:
+    def set_chmod(self, *args , **kwargs )  :
         if not self.dry_run:
             set_chmod(*args, **kwargs)
 
-    def sanitize_permissions(self, *args: T.Any, **kwargs: T.Any) -> None:
+    def sanitize_permissions(self, *args , **kwargs )  :
         if not self.dry_run:
             sanitize_permissions(*args, **kwargs)
 
-    def set_mode(self, *args: T.Any, **kwargs: T.Any) -> None:
+    def set_mode(self, *args , **kwargs )  :
         if not self.dry_run:
             set_mode(*args, **kwargs)
 
-    def restore_selinux_contexts(self, destdir: str) -> None:
+    def restore_selinux_contexts(self, destdir )  :
         if not self.dry_run and not destdir:
             restore_selinux_contexts()
 
-    def Popen_safe(self, *args: T.Any, **kwargs: T.Any) -> T.Tuple[int, str, str]:
+    def Popen_safe(self, *args , **kwargs )    :
         if not self.dry_run:
             p, o, e = Popen_safe(*args, **kwargs)
             return p.returncode, o, e
         return 0, '', ''
 
-    def run_exe(self, *args: T.Any, **kwargs: T.Any) -> int:
+    def run_exe(self, *args , **kwargs )  :
         if not self.dry_run:
             return run_exe(*args, **kwargs)
         return 0
 
-    def should_install(self, d: T.Union[TargetInstallData, InstallEmptyDir,
-                                        InstallDataBase, InstallSymlinkData,
-                                        ExecutableSerialisation]) -> bool:
+    def should_install(self, d  
+                                         
+                                        )  :
         if d.subproject and (d.subproject in self.skip_subprojects or '*' in self.skip_subprojects):
             return False
         if self.tags and d.tag not in self.tags:
             return False
         return True
 
-    def log(self, msg: str) -> None:
+    def log(self, msg )  :
         if not self.options.quiet:
             print(msg)
 
-    def should_preserve_existing_file(self, from_file: str, to_file: str) -> bool:
+    def should_preserve_existing_file(self, from_file , to_file )  :
         if not self.options.only_changed:
             return False
         # Always replace danging symlinks
@@ -372,8 +372,8 @@ class Installer:
         to_time = os.stat(to_file).st_mtime
         return from_time <= to_time
 
-    def do_copyfile(self, from_file: str, to_file: str,
-                    makedirs: T.Optional[T.Tuple[T.Any, str]] = None) -> bool:
+    def do_copyfile(self, from_file , to_file ,
+                    makedirs   = None)  :
         outdir = os.path.split(to_file)[0]
         if not os.path.isfile(from_file) and not os.path.islink(from_file):
             raise MesonException('Tried to install something that isn\'t a file: {!r}'.format((from_file)))
@@ -409,7 +409,7 @@ class Installer:
         append_to_log(self.lf, to_file)
         return True
 
-    def do_symlink(self, target: str, link: str, full_dst_dir: str, allow_missing: bool) -> bool:
+    def do_symlink(self, target , link , full_dst_dir , allow_missing )  :
         abs_target = target
         if not os.path.isabs(target):
             abs_target = os.path.join(full_dst_dir, target)
@@ -432,9 +432,9 @@ class Installer:
         append_to_log(self.lf, link)
         return True
 
-    def do_copydir(self, data: InstallData, src_dir: str, dst_dir: str,
-                   exclude: T.Optional[T.Tuple[T.Set[str], T.Set[str]]],
-                   install_mode: 'FileMode', dm: DirMaker) -> None:
+    def do_copydir(self, data , src_dir , dst_dir ,
+                   exclude  ,
+                   install_mode , dm )  :
         '''
         Copies the contents of directory @src_dir into @dst_dir.
 
@@ -500,7 +500,7 @@ class Installer:
                 self.do_copyfile(abs_src, abs_dst)
                 self.set_mode(abs_dst, install_mode, data.install_umask)
 
-    def do_install(self, datafilename: str) -> None:
+    def do_install(self, datafilename )  :
         d = load_install_data(datafilename)
 
         destdir = self.options.destdir
@@ -545,7 +545,7 @@ class Installer:
             else:
                 raise
 
-    def do_strip(self, strip_bin: T.List[str], fname: str, outname: str) -> None:
+    def do_strip(self, strip_bin , fname , outname )  :
         self.log('Stripping target {!r}.'.format((fname)))
         returncode, stdo, stde = self.Popen_safe(strip_bin + [outname])
         if returncode != 0:
@@ -554,7 +554,7 @@ class Installer:
             print('Stderr:\n{}\n'.format((stde)))
             sys.exit(1)
 
-    def install_subdirs(self, d: InstallData, dm: DirMaker, destdir: str, fullprefix: str) -> None:
+    def install_subdirs(self, d , dm , destdir , fullprefix )  :
         for i in d.install_subdirs:
             if not self.should_install(i):
                 continue
@@ -564,7 +564,7 @@ class Installer:
             dm.makedirs(full_dst_dir, exist_ok=True)
             self.do_copydir(d, i.path, full_dst_dir, i.exclude, i.install_mode, dm)
 
-    def install_data(self, d: InstallData, dm: DirMaker, destdir: str, fullprefix: str) -> None:
+    def install_data(self, d , dm , destdir , fullprefix )  :
         for i in d.data:
             if not self.should_install(i):
                 continue
@@ -575,7 +575,7 @@ class Installer:
                 self.did_install_something = True
             self.set_mode(outfilename, i.install_mode, d.install_umask)
 
-    def install_symlinks(self, d: InstallData, dm: DirMaker, destdir: str, fullprefix: str) -> None:
+    def install_symlinks(self, d , dm , destdir , fullprefix )  :
         for s in d.symlinks:
             if not self.should_install(s):
                 continue
@@ -585,7 +585,7 @@ class Installer:
             if self.do_symlink(s.target, full_link_name, full_dst_dir, s.allow_missing):
                 self.did_install_something = True
 
-    def install_man(self, d: InstallData, dm: DirMaker, destdir: str, fullprefix: str) -> None:
+    def install_man(self, d , dm , destdir , fullprefix )  :
         for m in d.man:
             if not self.should_install(m):
                 continue
@@ -596,7 +596,7 @@ class Installer:
                 self.did_install_something = True
             self.set_mode(outfilename, m.install_mode, d.install_umask)
 
-    def install_emptydir(self, d: InstallData, dm: DirMaker, destdir: str, fullprefix: str) -> None:
+    def install_emptydir(self, d , dm , destdir , fullprefix )  :
         for e in d.emptydir:
             if not self.should_install(e):
                 continue
@@ -609,7 +609,7 @@ class Installer:
             dm.makedirs(full_dst_dir, exist_ok=True)
             self.set_mode(full_dst_dir, e.install_mode, d.install_umask)
 
-    def install_headers(self, d: InstallData, dm: DirMaker, destdir: str, fullprefix: str) -> None:
+    def install_headers(self, d , dm , destdir , fullprefix )  :
         for t in d.headers:
             if not self.should_install(t):
                 continue
@@ -621,7 +621,7 @@ class Installer:
                 self.did_install_something = True
             self.set_mode(outfilename, t.install_mode, d.install_umask)
 
-    def run_install_script(self, d: InstallData, destdir: str, fullprefix: str) -> None:
+    def run_install_script(self, d , destdir , fullprefix )  :
         env = {'MESON_SOURCE_ROOT': d.source_dir,
                'MESON_BUILD_ROOT': d.build_dir,
                'MESON_INSTALL_PREFIX': d.prefix,
@@ -650,7 +650,7 @@ class Installer:
                 print('FAILED: install script \'{}\' exit code {}, stopped'.format((name), (rc)))
                 sys.exit(rc)
 
-    def install_targets(self, d: InstallData, dm: DirMaker, destdir: str, fullprefix: str) -> None:
+    def install_targets(self, d , dm , destdir , fullprefix )  :
         for t in d.targets:
             if not self.should_install(t):
                 continue
@@ -705,7 +705,7 @@ class Installer:
                     else:
                         raise
 
-def rebuild_all(wd: str) -> bool:
+def rebuild_all(wd )  :
     if not (Path(wd) / 'build.ninja').is_file():
         print('Only ninja backend is supported to rebuild the project before installation.')
         return True
@@ -723,7 +723,7 @@ def rebuild_all(wd: str) -> bool:
     return True
 
 
-def run(opts: 'ArgumentType') -> int:
+def run(opts )  :
     datafilename = 'meson-private/install.dat'
     private_dir = os.path.dirname(datafilename)
     log_dir = os.path.join(private_dir, '../meson-logs')

@@ -29,10 +29,10 @@ if T.TYPE_CHECKING:
 
 
 @factory_methods({DependencyMethods.PKGCONFIG, DependencyMethods.CMAKE})
-def scalapack_factory(env: 'Environment', for_machine: 'MachineChoice',
-                      kwargs: T.Dict[str, T.Any],
-                      methods: T.List[DependencyMethods]) -> T.List['DependencyGenerator']:
-    candidates: T.List['DependencyGenerator'] = []
+def scalapack_factory(env , for_machine ,
+                      kwargs  ,
+                      methods )  :
+    candidates  = []
 
     if DependencyMethods.PKGCONFIG in methods:
         mkl = 'mkl-static-lp64-iomp' if kwargs.get('static', False) else 'mkl-dynamic-lp64-iomp'
@@ -58,8 +58,8 @@ class MKLPkgConfigDependency(PkgConfigDependency):
     bunch of fixups to make it work correctly.
     """
 
-    def __init__(self, name: str, env: 'Environment', kwargs: T.Dict[str, T.Any],
-                 language: T.Optional[str] = None):
+    def __init__(self, name , env , kwargs  ,
+                 language  = None):
         _m = os.environ.get('MKLROOT')
         self.__mklroot = Path(_m).resolve() if _m else None
 
@@ -99,7 +99,7 @@ class MKLPkgConfigDependency(PkgConfigDependency):
                 assert isinstance(v, str)
                 self.version = v
 
-    def _set_libs(self) -> None:
+    def _set_libs(self)  :
         super()._set_libs()
 
         if self.env.machines[self.for_machine].is_windows():
@@ -136,7 +136,7 @@ class MKLPkgConfigDependency(PkgConfigDependency):
             self.link_args.insert(i, '-lmkl_scalapack_lp64')
             self.link_args.insert(i + 1, '-lmkl_blacs_intelmpi_lp64')
 
-    def _set_cargs(self) -> None:
+    def _set_cargs(self)  :
         env = None
         if self.language == 'fortran':
             # gfortran doesn't appear to look in system paths for INCLUDE files,

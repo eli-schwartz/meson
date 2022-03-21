@@ -33,20 +33,20 @@ class ResourceCompilerType(enum.Enum):
     wrc = 3
 
 class WindowsModule(ExtensionModule):
-    def __init__(self, interpreter: 'Interpreter'):
+    def __init__(self, interpreter ):
         super().__init__(interpreter)
-        self._rescomp: T.Optional[T.Tuple[ExternalProgram, ResourceCompilerType]] = None
+        self._rescomp   = None
         self.methods.update({
             'compile_resources': self.compile_resources,
         })
 
-    def detect_compiler(self, compilers: T.Dict[str, 'Compiler']) -> 'Compiler':
+    def detect_compiler(self, compilers  )  :
         for l in ('c', 'cpp'):
             if l in compilers:
                 return compilers[l]
         raise MesonException('Resource compilation requires a C or C++ compiler.')
 
-    def _find_resource_compiler(self, state: 'ModuleState') -> T.Tuple[ExternalProgram, ResourceCompilerType]:
+    def _find_resource_compiler(self, state )   :
         # FIXME: Does not handle `native: true` executables, see
         # See https://github.com/mesonbuild/meson/issues/1531
         # Take a parameter instead of the hardcoded definition below
@@ -92,9 +92,9 @@ class WindowsModule(ExtensionModule):
         INCLUDE_DIRECTORIES.evolve(name='include_directories'),
         KwargInfo('args', ContainerTypeInfo(list, str), default=[], listify=True),
     )
-    def compile_resources(self, state: 'ModuleState',
-                          args: T.Tuple[T.List[T.Union[str, mesonlib.File, build.CustomTarget, build.CustomTargetIndex]]],
-                          kwargs: 'CompileResources') -> ModuleReturnValue:
+    def compile_resources(self, state ,
+                          args    ,
+                          kwargs )  :
         extra_args = kwargs['args'].copy()
         wrc_depend_files = kwargs['depend_files']
         wrc_depends = kwargs['depends']
@@ -118,7 +118,7 @@ class WindowsModule(ExtensionModule):
             suffix = 'o'
             res_args = extra_args + ['@INPUT@', '@OUTPUT@']
 
-            m = 'Argument {!r} has a space which may not work with windres due to ' \
+            m = 'Argument {!r} has a space which may not work with windres due to '\
                 'a MinGW bug: https://sourceware.org/bugzilla/show_bug.cgi?id=4933'
             for arg in extra_args:
                 if ' ' in arg:
@@ -127,9 +127,9 @@ class WindowsModule(ExtensionModule):
             suffix = 'o'
             res_args = extra_args + ['@INPUT@', '-o', '@OUTPUT@']
 
-        res_targets: T.List[build.CustomTarget] = []
+        res_targets  = []
 
-        def get_names() -> T.Iterable[T.Tuple[str, str, T.Union[str, mesonlib.File, build.CustomTargetIndex]]]:
+        def get_names()      :
             for src in args[0]:
                 if isinstance(src, str):
                     yield os.path.join(state.subdir, src), src, src
@@ -156,10 +156,10 @@ class WindowsModule(ExtensionModule):
             name = name.replace('/', '_').replace('\\', '_').replace(':', '_')
             name_formatted = name_formatted.replace('/', '_').replace('\\', '_').replace(':', '_')
             output = '{}_@BASENAME@.{}'.format((name), (suffix))
-            command: T.List[T.Union[str, ExternalProgram]] = []
+            command   = []
             command.append(rescomp)
             command.extend(res_args)
-            depfile: T.Optional[str] = None
+            depfile  = None
             # instruct binutils windres to generate a preprocessor depfile
             if rescomp_type == ResourceCompilerType.windres:
                 depfile = '{}.d'.format((output))
@@ -181,5 +181,5 @@ class WindowsModule(ExtensionModule):
 
         return ModuleReturnValue(res_targets, [res_targets])
 
-def initialize(interp: 'Interpreter') -> WindowsModule:
+def initialize(interp )  :
     return WindowsModule(interp)

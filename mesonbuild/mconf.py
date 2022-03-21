@@ -32,13 +32,13 @@ if T.TYPE_CHECKING:
     import argparse
     from .coredata import UserOption
 
-def add_arguments(parser: 'argparse.ArgumentParser') -> None:
+def add_arguments(parser )  :
     coredata.register_builtin_arguments(parser)
     parser.add_argument('builddir', nargs='?', default='.')
     parser.add_argument('--clearcache', action='store_true', default=False,
                         help='Clear cached state (e.g. found dependencies)')
 
-def make_lower_case(val: T.Any) -> T.Union[str, T.List[T.Any]]:  # T.Any because of recursion...
+def make_lower_case(val )   :  # T.Any because of recursion...
     if isinstance(val, bool):
         return str(val).lower()
     elif isinstance(val, list):
@@ -64,8 +64,8 @@ class Conf:
         self.descr_col = []
         # XXX: is there a case where this can actually remain false?
         self.has_choices = False
-        self.all_subprojects: T.Set[str] = set()
-        self.yielding_options: T.Set[OptionKey] = set()
+        self.all_subprojects  = set()
+        self.yielding_options  = set()
 
         if os.path.isdir(os.path.join(self.build_dir, 'meson-private')):
             self.build = build.load(self.build_dir)
@@ -101,7 +101,7 @@ class Conf:
         # are erased when Meson is executed the next time, i.e. when
         # Ninja is run.
 
-    def print_aligned(self) -> None:
+    def print_aligned(self)  :
         """Do the actual printing.
 
         This prints the generated output in an aligned, pretty form. it aims
@@ -150,8 +150,8 @@ class Conf:
                 for l in itertools.zip_longest(name, val, desc, fillvalue=''):
                     print('{:{widths[0]}} {:{widths[1]}} {}'.format(*l, widths=three_column))
 
-    def split_options_per_subproject(self, options: 'coredata.KeyedOptionDictType') -> T.Dict[str, T.Dict[str, 'UserOption']]:
-        result: T.Dict[str, T.Dict[str, 'UserOption']] = {}
+    def split_options_per_subproject(self, options )    :
+        result    = {}
         for k, o in options.items():
             subproject = k.subproject
             if k.subproject:
@@ -162,7 +162,7 @@ class Conf:
             result.setdefault(subproject, {})[str(k)] = o
         return result
 
-    def _add_line(self, name: OptionKey, value, choices, descr) -> None:
+    def _add_line(self, name , value, choices, descr)  :
         self.name_col.append(' ' * self.print_margin + str(name))
         self.value_col.append(value)
         self.choices_col.append(choices)
@@ -212,7 +212,7 @@ class Conf:
         self._add_line(section + ':', '', '', '')
         self.print_margin = 2
 
-    def print_options(self, title: str, options: 'coredata.KeyedOptionDictType') -> None:
+    def print_options(self, title , options )  :
         if not options:
             return
         if title:
@@ -241,10 +241,10 @@ class Conf:
         test_option_names = {OptionKey('errorlogs'),
                              OptionKey('stdsplit')}
 
-        dir_options: 'coredata.KeyedOptionDictType' = {}
-        test_options: 'coredata.KeyedOptionDictType' = {}
-        core_options: 'coredata.KeyedOptionDictType' = {}
-        module_options: T.Dict[str, 'coredata.KeyedOptionDictType'] = collections.defaultdict(dict)
+        dir_options  = {}
+        test_options  = {}
+        core_options  = {}
+        module_options   = collections.defaultdict(dict)
         for k, v in self.coredata.options.items():
             if k in dir_option_names:
                 dir_options[k] = v

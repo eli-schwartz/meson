@@ -38,7 +38,7 @@ class HDF5PkgConfigDependency(PkgConfigDependency):
 
     """Handle brokenness in the HDF5 pkg-config files."""
 
-    def __init__(self, name: str, environment: 'Environment', kwargs: T.Dict[str, T.Any], language: T.Optional[str] = None) -> None:
+    def __init__(self, name , environment , kwargs  , language  = None)  :
         language = language or 'c'
         if language not in {'c', 'cpp', 'fortran'}:
             raise DependencyException('Language {} is not supported with HDF5.'.format((language)))
@@ -89,7 +89,7 @@ class HDF5ConfigToolDependency(ConfigToolDependency):
 
     version_arg = '-showconfig'
 
-    def __init__(self, name: str, environment: 'Environment', kwargs: T.Dict[str, T.Any], language: T.Optional[str] = None) -> None:
+    def __init__(self, name , environment , kwargs  , language  = None)  :
         language = language or 'c'
         if language not in {'c', 'cpp', 'fortran'}:
             raise DependencyException('Language {} is not supported with HDF5.'.format((language)))
@@ -145,16 +145,16 @@ class HDF5ConfigToolDependency(ConfigToolDependency):
             # I'm being too clever for mypy and pylint
             self.is_found = self._add_sub_dependency(hdf5_factory(environment, for_machine, nkwargs))  # pylint: disable=no-value-for-parameter
 
-    def _sanitize_version(self, ver: str) -> str:
+    def _sanitize_version(self, ver )  :
         v = re.search(r'\s*HDF5 Version: (\d+\.\d+\.\d+)', ver)
         return v.group(1)
 
 
 @factory_methods({DependencyMethods.PKGCONFIG, DependencyMethods.CONFIG_TOOL})
-def hdf5_factory(env: 'Environment', for_machine: 'MachineChoice',
-                 kwargs: T.Dict[str, T.Any], methods: T.List[DependencyMethods]) -> T.List['DependencyGenerator']:
+def hdf5_factory(env , for_machine ,
+                 kwargs  , methods )  :
     language = kwargs.get('language')
-    candidates: T.List['DependencyGenerator'] = []
+    candidates  = []
 
     if DependencyMethods.PKGCONFIG in methods:
         # Use an ordered set so that these remain the first tried pkg-config files

@@ -113,7 +113,7 @@ class VisualStudioLikeCompiler(Compiler, metaclass=abc.ABCMeta):
 
     INVOKES_LINKER = False
 
-    def __init__(self, target: str):
+    def __init__(self, target ):
         self.base_options = {mesonlib.OptionKey(o) for o in ['b_pch', 'b_ndebug', 'b_vscrt']} # FIXME add lto, pgo and the like
         self.target = target
         self.is_64 = ('x64' in target) or ('x86_64' in target)
@@ -134,90 +134,90 @@ class VisualStudioLikeCompiler(Compiler, metaclass=abc.ABCMeta):
         self.linker.machine = self.machine
 
     # Override CCompiler.get_always_args
-    def get_always_args(self) -> T.List[str]:
+    def get_always_args(self)  :
         return self.always_args
 
-    def get_pch_suffix(self) -> str:
+    def get_pch_suffix(self)  :
         return 'pch'
 
-    def get_pch_name(self, header: str) -> str:
+    def get_pch_name(self, header )  :
         chopped = os.path.basename(header).split('.')[:-1]
         chopped.append(self.get_pch_suffix())
         pchname = '.'.join(chopped)
         return pchname
 
-    def get_pch_base_name(self, header: str) -> str:
+    def get_pch_base_name(self, header )  :
         # This needs to be implemented by inheriting classes
         raise NotImplementedError
 
-    def get_pch_use_args(self, pch_dir: str, header: str) -> T.List[str]:
+    def get_pch_use_args(self, pch_dir , header )  :
         base = self.get_pch_base_name(header)
         pchname = self.get_pch_name(header)
         return ['/FI' + base, '/Yu' + base, '/Fp' + os.path.join(pch_dir, pchname)]
 
-    def get_preprocess_only_args(self) -> T.List[str]:
+    def get_preprocess_only_args(self)  :
         return ['/EP']
 
-    def get_compile_only_args(self) -> T.List[str]:
+    def get_compile_only_args(self)  :
         return ['/c']
 
-    def get_no_optimization_args(self) -> T.List[str]:
+    def get_no_optimization_args(self)  :
         return ['/Od', '/Oi-']
 
-    def sanitizer_compile_args(self, value: str) -> T.List[str]:
+    def sanitizer_compile_args(self, value )  :
         if value == 'none':
             return []
         if value != 'address':
             raise mesonlib.MesonException('VS only supports address sanitizer at the moment.')
         return ['/fsanitize=address']
 
-    def get_output_args(self, target: str) -> T.List[str]:
+    def get_output_args(self, target )  :
         if target.endswith('.exe'):
             return ['/Fe' + target]
         return ['/Fo' + target]
 
-    def get_buildtype_args(self, buildtype: str) -> T.List[str]:
+    def get_buildtype_args(self, buildtype )  :
         return []
 
-    def get_debug_args(self, is_debug: bool) -> T.List[str]:
+    def get_debug_args(self, is_debug )  :
         return msvc_debug_args[is_debug]
 
-    def get_optimization_args(self, optimization_level: str) -> T.List[str]:
+    def get_optimization_args(self, optimization_level )  :
         args = msvc_optimization_args[optimization_level]
         if mesonlib.version_compare(self.version, '<18.0'):
             args = [arg for arg in args if arg != '/Gw']
         return args
 
-    def linker_to_compiler_args(self, args: T.List[str]) -> T.List[str]:
+    def linker_to_compiler_args(self, args )  :
         return ['/link'] + args
 
-    def get_pic_args(self) -> T.List[str]:
+    def get_pic_args(self)  :
         return [] # PIC is handled by the loader on Windows
 
-    def gen_vs_module_defs_args(self, defsfile: str) -> T.List[str]:
+    def gen_vs_module_defs_args(self, defsfile )  :
         if not isinstance(defsfile, str):
             raise RuntimeError('Module definitions file should be str')
         # With MSVC, DLLs only export symbols that are explicitly exported,
         # so if a module defs file is specified, we use that to export symbols
         return ['/DEF:' + defsfile]
 
-    def gen_pch_args(self, header: str, source: str, pchname: str) -> T.Tuple[str, T.List[str]]:
+    def gen_pch_args(self, header , source , pchname )   :
         objname = os.path.splitext(pchname)[0] + '.obj'
         return objname, ['/Yc' + header, '/Fp' + pchname, '/Fo' + objname]
 
-    def openmp_flags(self) -> T.List[str]:
+    def openmp_flags(self)  :
         return ['/openmp']
 
-    def openmp_link_flags(self) -> T.List[str]:
+    def openmp_link_flags(self)  :
         return []
 
     # FIXME, no idea what these should be.
-    def thread_flags(self, env: 'Environment') -> T.List[str]:
+    def thread_flags(self, env )  :
         return []
 
     @classmethod
-    def unix_args_to_native(cls, args: T.List[str]) -> T.List[str]:
-        result: T.List[str] = []
+    def unix_args_to_native(cls, args )  :
+        result  = []
         for i in args:
             # -mms-bitfields is specific to MinGW-GCC
             # -pthread is only valid for GCC
@@ -262,7 +262,7 @@ class VisualStudioLikeCompiler(Compiler, metaclass=abc.ABCMeta):
         return result
 
     @classmethod
-    def native_args_to_unix(cls, args: T.List[str]) -> T.List[str]:
+    def native_args_to_unix(cls, args )  :
         result = []
         for arg in args:
             if arg.startswith(('/LIBPATH:', '-LIBPATH:')):
@@ -273,16 +273,16 @@ class VisualStudioLikeCompiler(Compiler, metaclass=abc.ABCMeta):
                 result.append(arg)
         return result
 
-    def get_werror_args(self) -> T.List[str]:
+    def get_werror_args(self)  :
         return ['/WX']
 
-    def get_include_args(self, path: str, is_system: bool) -> T.List[str]:
+    def get_include_args(self, path , is_system )  :
         if path == '':
             path = '.'
         # msvc does not have a concept of system header dirs.
         return ['-I' + path]
 
-    def compute_parameters_with_absolute_paths(self, parameter_list: T.List[str], build_dir: str) -> T.List[str]:
+    def compute_parameters_with_absolute_paths(self, parameter_list , build_dir )  :
         for idx, i in enumerate(parameter_list):
             if i[:2] == '-I' or i[:2] == '/I':
                 parameter_list[idx] = i[:2] + os.path.normpath(os.path.join(build_dir, i[2:]))
@@ -294,25 +294,25 @@ class VisualStudioLikeCompiler(Compiler, metaclass=abc.ABCMeta):
     # Visual Studio is special. It ignores some arguments it does not
     # understand and you can't tell it to error out on those.
     # http://stackoverflow.com/questions/15259720/how-can-i-make-the-microsoft-c-compiler-treat-unknown-flags-as-errors-rather-t
-    def has_arguments(self, args: T.List[str], env: 'Environment', code: str, mode: str) -> T.Tuple[bool, bool]:
+    def has_arguments(self, args , env , code , mode )   :
         warning_text = '4044' if mode == 'link' else '9002'
         with self._build_wrapper(code, env, extra_args=args, mode=mode) as p:
             if p.returncode != 0:
                 return False, p.cached
             return not(warning_text in p.stderr or warning_text in p.stdout), p.cached
 
-    def get_compile_debugfile_args(self, rel_obj: str, pch: bool = False) -> T.List[str]:
+    def get_compile_debugfile_args(self, rel_obj , pch  = False)  :
         pdbarr = rel_obj.split('.')[:-1]
         pdbarr += ['pdb']
         args = ['/Fd' + '.'.join(pdbarr)]
         return args
 
-    def get_instruction_set_args(self, instruction_set: str) -> T.Optional[T.List[str]]:
+    def get_instruction_set_args(self, instruction_set )  :
         if self.is_64:
             return vs64_instruction_set_args.get(instruction_set, None)
         return vs32_instruction_set_args.get(instruction_set, None)
 
-    def _calculate_toolset_version(self, version: int) -> T.Optional[str]:
+    def _calculate_toolset_version(self, version )  :
         if version < 1310:
             return '7.0'
         elif version < 1400:
@@ -338,7 +338,7 @@ class VisualStudioLikeCompiler(Compiler, metaclass=abc.ABCMeta):
         mlog.warning('Could not find toolset for version {!r}'.format((self.version)))
         return None
 
-    def get_toolset_version(self) -> T.Optional[str]:
+    def get_toolset_version(self)  :
         # See boost/config/compiler/visualc.cpp for up to date mapping
         try:
             version = int(''.join(self.version.split('.')[0:2]))
@@ -346,12 +346,12 @@ class VisualStudioLikeCompiler(Compiler, metaclass=abc.ABCMeta):
             return None
         return self._calculate_toolset_version(version)
 
-    def get_default_include_dirs(self) -> T.List[str]:
+    def get_default_include_dirs(self)  :
         if 'INCLUDE' not in os.environ:
             return []
         return os.environ['INCLUDE'].split(os.pathsep)
 
-    def get_crt_compile_args(self, crt_val: str, buildtype: str) -> T.List[str]:
+    def get_crt_compile_args(self, crt_val , buildtype )  :
         if crt_val in self.crt_args:
             return self.crt_args[crt_val]
         assert crt_val in ['from_buildtype', 'static_from_buildtype']
@@ -375,12 +375,12 @@ class VisualStudioLikeCompiler(Compiler, metaclass=abc.ABCMeta):
             assert buildtype == 'custom'
             raise mesonlib.EnvironmentException('Requested C runtime based on buildtype, but buildtype is "custom".')
 
-    def has_func_attribute(self, name: str, env: 'Environment') -> T.Tuple[bool, bool]:
+    def has_func_attribute(self, name , env )   :
         # MSVC doesn't have __attribute__ like Clang and GCC do, so just return
         # false without compiling anything
         return name in ['dllimport', 'dllexport'], False
 
-    def get_argument_syntax(self) -> str:
+    def get_argument_syntax(self)  :
         return 'msvc'
 
 
@@ -390,7 +390,7 @@ class MSVCCompiler(VisualStudioLikeCompiler):
 
     id = 'msvc'
 
-    def get_compile_debugfile_args(self, rel_obj: str, pch: bool = False) -> T.List[str]:
+    def get_compile_debugfile_args(self, rel_obj , pch  = False)  :
         args = super().get_compile_debugfile_args(rel_obj, pch)
         # When generating a PDB file with PCH, all compile commands write
         # to the same PDB file. Hence, we need to serialize the PDB
@@ -402,7 +402,7 @@ class MSVCCompiler(VisualStudioLikeCompiler):
             args = ['/FS'] + args
         return args
 
-    def get_instruction_set_args(self, instruction_set: str) -> T.Optional[T.List[str]]:
+    def get_instruction_set_args(self, instruction_set )  :
         if self.version.split('.')[0] == '16' and instruction_set == 'avx':
             # VS documentation says that this exists and should work, but
             # it does not. The headers do not contain AVX intrinsics
@@ -410,7 +410,7 @@ class MSVCCompiler(VisualStudioLikeCompiler):
             return None
         return super().get_instruction_set_args(instruction_set)
 
-    def get_pch_base_name(self, header: str) -> str:
+    def get_pch_base_name(self, header )  :
         return os.path.basename(header)
 
 
@@ -420,30 +420,30 @@ class ClangClCompiler(VisualStudioLikeCompiler):
 
     id = 'clang-cl'
 
-    def __init__(self, target: str):
+    def __init__(self, target ):
         super().__init__(target)
 
         # Assembly
         self.can_compile_suffixes.add('s')
 
-    def has_arguments(self, args: T.List[str], env: 'Environment', code: str, mode: str) -> T.Tuple[bool, bool]:
+    def has_arguments(self, args , env , code , mode )   :
         if mode != 'link':
             args = args + ['-Werror=unknown-argument']
         return super().has_arguments(args, env, code, mode)
 
-    def get_toolset_version(self) -> T.Optional[str]:
+    def get_toolset_version(self)  :
         # XXX: what is the right thing to do here?
         return '14.1'
 
-    def get_pch_base_name(self, header: str) -> str:
+    def get_pch_base_name(self, header )  :
         return header
 
-    def get_include_args(self, path: str, is_system: bool) -> T.List[str]:
+    def get_include_args(self, path , is_system )  :
         if path == '':
             path = '.'
         return ['/clang:-isystem' + path] if is_system else ['-I' + path]
 
-    def get_dependency_compile_args(self, dep: 'Dependency') -> T.List[str]:
+    def get_dependency_compile_args(self, dep )  :
         if dep.get_include_type() == 'system':
             converted = []
             for i in dep.get_compile_args():

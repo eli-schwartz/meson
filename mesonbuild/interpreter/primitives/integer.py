@@ -20,7 +20,7 @@ if T.TYPE_CHECKING:
     from ...interpreterbase import TYPE_var, TYPE_kwargs
 
 class IntegerHolder(ObjectHolder[int]):
-    def __init__(self, obj: int, interpreter: 'Interpreter') -> None:
+    def __init__(self, obj , interpreter )  :
         super().__init__(obj, interpreter)
         self.methods.update({
             'is_even': self.is_even_method,
@@ -50,32 +50,32 @@ class IntegerHolder(ObjectHolder[int]):
             MesonOperator.MOD: self.op_mod,
         })
 
-    def display_name(self) -> str:
+    def display_name(self)  :
         return 'int'
 
     @noKwargs
     @noPosargs
-    def is_even_method(self, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> bool:
+    def is_even_method(self, args , kwargs )  :
         return self.held_object % 2 == 0
 
     @noKwargs
     @noPosargs
-    def is_odd_method(self, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> bool:
+    def is_odd_method(self, args , kwargs )  :
         return self.held_object % 2 != 0
 
     @noKwargs
     @noPosargs
-    def to_string_method(self, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> str:
+    def to_string_method(self, args , kwargs )  :
         return str(self.held_object)
 
     @typed_operator(MesonOperator.DIV, int)
-    def op_div(self, other: int) -> int:
+    def op_div(self, other )  :
         if other == 0:
             raise InvalidArguments('Tried to divide by 0')
         return self.held_object // other
 
     @typed_operator(MesonOperator.MOD, int)
-    def op_mod(self, other: int) -> int:
+    def op_mod(self, other )  :
         if other == 0:
             raise InvalidArguments('Tried to divide by 0')
         return self.held_object % other

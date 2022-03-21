@@ -32,36 +32,36 @@ class JavaCompiler(BasicLinkerIsCompilerMixin, Compiler):
     language = 'java'
     id = 'unknown'
 
-    def __init__(self, exelist: T.List[str], version: str, for_machine: MachineChoice,
-                 info: 'MachineInfo', full_version: T.Optional[str] = None):
+    def __init__(self, exelist , version , for_machine ,
+                 info , full_version  = None):
         super().__init__(exelist, version, for_machine, info, full_version=full_version)
         self.javarunner = 'java'
 
-    def get_werror_args(self) -> T.List[str]:
+    def get_werror_args(self)  :
         return ['-Werror']
 
-    def get_no_warn_args(self) -> T.List[str]:
+    def get_no_warn_args(self)  :
         return ['-nowarn']
 
-    def get_output_args(self, outputname: str) -> T.List[str]:
+    def get_output_args(self, outputname )  :
         if outputname == '':
             outputname = './'
         return ['-d', outputname, '-s', outputname]
 
-    def get_pic_args(self) -> T.List[str]:
+    def get_pic_args(self)  :
         return []
 
-    def get_pch_use_args(self, pch_dir: str, header: str) -> T.List[str]:
+    def get_pch_use_args(self, pch_dir , header )  :
         return []
 
-    def get_pch_name(self, name: str) -> str:
+    def get_pch_name(self, name )  :
         return ''
 
-    def get_buildtype_args(self, buildtype: str) -> T.List[str]:
+    def get_buildtype_args(self, buildtype )  :
         return java_buildtype_args[buildtype]
 
-    def compute_parameters_with_absolute_paths(self, parameter_list: T.List[str],
-                                               build_dir: str) -> T.List[str]:
+    def compute_parameters_with_absolute_paths(self, parameter_list ,
+                                               build_dir )  :
         for idx, i in enumerate(parameter_list):
             if i in ['-cp', '-classpath', '-sourcepath'] and idx + 1 < len(parameter_list):
                 path_list = parameter_list[idx + 1].split(os.pathsep)
@@ -70,7 +70,7 @@ class JavaCompiler(BasicLinkerIsCompilerMixin, Compiler):
 
         return parameter_list
 
-    def sanity_check(self, work_dir: str, environment: 'Environment') -> None:
+    def sanity_check(self, work_dir , environment )  :
         src = 'SanityCheck.java'
         obj = 'SanityCheck'
         source_name = os.path.join(work_dir, src)
@@ -94,20 +94,20 @@ class JavaCompiler(BasicLinkerIsCompilerMixin, Compiler):
             if pe.returncode != 0:
                 raise EnvironmentException('Executables created by Java compiler %s are not runnable.' % self.name_string())
         else:
-            m = "Java Virtual Machine wasn't found, but it's needed by Meson. " \
-                "Please install a JRE.\nIf you have specific needs where this " \
-                "requirement doesn't make sense, please open a bug at " \
-                "https://github.com/mesonbuild/meson/issues/new and tell us " \
+            m = "Java Virtual Machine wasn't found, but it's needed by Meson. "\
+                "Please install a JRE.\nIf you have specific needs where this "\
+                "requirement doesn't make sense, please open a bug at "\
+                "https://github.com/mesonbuild/meson/issues/new and tell us "\
                 "all about it."
             raise EnvironmentException(m)
 
-    def needs_static_linker(self) -> bool:
+    def needs_static_linker(self)  :
         return False
 
-    def get_optimization_args(self, optimization_level: str) -> T.List[str]:
+    def get_optimization_args(self, optimization_level )  :
         return []
 
-    def get_debug_args(self, is_debug: bool) -> T.List[str]:
+    def get_debug_args(self, is_debug )  :
         if is_debug:
             return ['-g']
         return ['-g:none']

@@ -18,7 +18,7 @@ import shutil
 import pickle
 import typing as T
 
-def rmtrees(build_dir: str, trees: T.List[str]) -> None:
+def rmtrees(build_dir , trees )  :
     for t in trees:
         # Never delete trees outside of the builddir
         if os.path.isabs(t):
@@ -29,7 +29,7 @@ def rmtrees(build_dir: str, trees: T.List[str]) -> None:
         if os.path.isdir(bt):
             shutil.rmtree(bt, ignore_errors=True)
 
-def run(args: T.List[str]) -> int:
+def run(args )  :
     if len(args) != 1:
         print('Cleaner script for Meson. Do not run on your own please.')
         print('cleantrees.py <data-file>')

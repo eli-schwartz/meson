@@ -26,12 +26,12 @@ if T.TYPE_CHECKING:
 
 
 @factory_methods({DependencyMethods.PKGCONFIG, DependencyMethods.CMAKE, DependencyMethods.SYSTEM})
-def coarray_factory(env: 'Environment',
-                    for_machine: 'MachineChoice',
-                    kwargs: T.Dict[str, T.Any],
-                    methods: T.List[DependencyMethods]) -> T.List['DependencyGenerator']:
+def coarray_factory(env ,
+                    for_machine ,
+                    kwargs  ,
+                    methods )  :
     fcid = detect_compiler('coarray', env, for_machine, 'fortran').get_id()
-    candidates: T.List['DependencyGenerator'] = []
+    candidates  = []
 
     if fcid == 'gcc':
         # OpenCoarrays is the most commonly used method for Fortran Coarray with GCC
@@ -61,7 +61,7 @@ class CoarrayDependency(SystemDependency):
     Coarrays may be thought of as a high-level language abstraction of
     low-level MPI calls.
     """
-    def __init__(self, environment: 'Environment', kwargs: T.Dict[str, T.Any]) -> None:
+    def __init__(self, environment , kwargs  )  :
         super().__init__('coarray', environment, kwargs, language='fortran')
         kwargs['required'] = False
         kwargs['silent'] = True

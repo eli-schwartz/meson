@@ -107,7 +107,7 @@ class DlangProject(SampleImpl):
         self.name = options.name
         self.version = options.version
 
-    def create_executable(self) -> None:
+    def create_executable(self)  :
         lowercase_token = re.sub(r'[^a-z0-9]', '_', self.name.lower())
         source_name = lowercase_token + '.d'
         open(source_name, 'w', encoding='utf-8').write(hello_d_template.format(project_name=self.name))
@@ -117,7 +117,7 @@ class DlangProject(SampleImpl):
                                           source_name=source_name,
                                           version=self.version))
 
-    def create_library(self) -> None:
+    def create_library(self)  :
         lowercase_token = re.sub(r'[^a-z0-9]', '_', self.name.lower())
         uppercase_token = lowercase_token.upper()
         function_name = lowercase_token[0:3] + '_func'

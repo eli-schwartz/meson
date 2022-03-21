@@ -25,14 +25,14 @@ from . import NewExtensionModule, ModuleReturnValue, ModuleState
 
 class JavaModule(NewExtensionModule):
     @FeatureNew('Java Module', '0.60.0')
-    def __init__(self, interpreter: Interpreter):
+    def __init__(self, interpreter ):
         super().__init__()
         self.methods.update({
             'generate_native_header': self.generate_native_header,
             'generate_native_headers': self.generate_native_headers,
         })
 
-    def __get_java_compiler(self, state: ModuleState) -> Compiler:
+    def __get_java_compiler(self, state )  :
         if 'java' not in state.environment.coredata.compilers[MachineChoice.BUILD]:
             detect_compiler_for(state.environment, 'java', MachineChoice.BUILD)
         return state.environment.coredata.compilers[MachineChoice.BUILD]['java']
@@ -40,8 +40,8 @@ class JavaModule(NewExtensionModule):
     @FeatureDeprecated('java.generate_native_header', '0.62.0', 'Use java.generate_native_headers instead')
     @typed_pos_args('java.generate_native_header', (str, mesonlib.File))
     @typed_kwargs('java.generate_native_header', KwargInfo('package', str, default=None))
-    def generate_native_header(self, state: ModuleState, args: T.Tuple[T.Union[str, mesonlib.File]],
-                               kwargs: T.Dict[str, T.Optional[str]]) -> ModuleReturnValue:
+    def generate_native_header(self, state , args  ,
+                               kwargs  )  :
         package = kwargs.get('package')
 
         if isinstance(args[0], mesonlib.File):
@@ -86,12 +86,12 @@ class JavaModule(NewExtensionModule):
         KwargInfo('classes', ContainerTypeInfo(list, str), default=[], listify=True,
             required=True),
         KwargInfo('package', str, default=None))
-    def generate_native_headers(self, state: ModuleState, args: T.Tuple[T.List[mesonlib.FileOrString]],
-                               kwargs: T.Dict[str, T.Optional[str]]) -> ModuleReturnValue:
+    def generate_native_headers(self, state , args ,
+                               kwargs  )  :
         classes = T.cast('T.List[str]', kwargs.get('classes'))
         package = kwargs.get('package')
 
-        headers: T.List[str] = []
+        headers  = []
         for clazz in classes:
             underscore_clazz = clazz.replace(".", "_")
             if package:
@@ -122,5 +122,5 @@ class JavaModule(NewExtensionModule):
 
         return ModuleReturnValue(target, [target])
 
-def initialize(*args: T.Any, **kwargs: T.Any) -> JavaModule:
+def initialize(*args , **kwargs )  :
     return JavaModule(*args, **kwargs)

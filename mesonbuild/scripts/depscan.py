@@ -36,7 +36,7 @@ FORTRAN_SUBMOD_RE = re.compile(FORTRAN_SUBMOD_PAT, re.IGNORECASE)
 FORTRAN_USE_RE = re.compile(FORTRAN_USE_PAT, re.IGNORECASE)
 
 class DependencyScanner:
-    def __init__(self, pickle_file: str, outfile: str, sources: T.List[str]):
+    def __init__(self, pickle_file , outfile , sources ):
         with open(pickle_file, 'rb') as pf:
             self.target_data = pickle.load(pf) # type: TargetDependencyScannerInfo
         self.outfile = outfile
@@ -46,7 +46,7 @@ class DependencyScanner:
         self.needs = {} # type: T.Dict[str, T.List[str]]
         self.sources_with_exports = [] # type: T.List[str]
 
-    def scan_file(self, fname: str) -> None:
+    def scan_file(self, fname )  :
         suffix = os.path.splitext(fname)[1][1:].lower()
         if suffix in lang_suffixes['fortran']:
             self.scan_fortran_file(fname)
@@ -55,7 +55,7 @@ class DependencyScanner:
         else:
             sys.exit('Can not scan files with suffix .{}.'.format((suffix)))
 
-    def scan_fortran_file(self, fname: str) -> None:
+    def scan_fortran_file(self, fname )  :
         fpath = pathlib.Path(fname)
         modules_in_this_file = set()
         for line in fpath.read_text(encoding='utf-8').split('\n'):
@@ -106,7 +106,7 @@ class DependencyScanner:
                 else:
                     self.needs[fname] = [parent_module_name_full]
 
-    def scan_cpp_file(self, fname: str) -> None:
+    def scan_cpp_file(self, fname )  :
         fpath = pathlib.Path(fname)
         for line in fpath.read_text(encoding='utf-8').split('\n'):
             import_match = CPP_IMPORT_RE.match(line)
@@ -125,12 +125,12 @@ class DependencyScanner:
                 self.provided_by[exported_module] = fname
                 self.exports[fname] = exported_module
 
-    def objname_for(self, src: str) -> str:
+    def objname_for(self, src )  :
         objname = self.target_data.source2object[src]
         assert isinstance(objname, str)
         return objname
 
-    def module_name_for(self, src: str) -> str:
+    def module_name_for(self, src )  :
         suffix = os.path.splitext(src)[1][1:].lower()
         if suffix in lang_suffixes['fortran']:
             exported = self.exports[src]
@@ -147,7 +147,7 @@ class DependencyScanner:
         else:
             raise RuntimeError('Unreachable code.')
 
-    def scan(self) -> int:
+    def scan(self)  :
         for s in self.sources:
             self.scan_file(s)
         with open(self.outfile, 'w', encoding='utf-8') as ofile:
@@ -193,7 +193,7 @@ class DependencyScanner:
                 ofile.write(build_line + '\n')
         return 0
 
-def run(args: T.List[str]) -> int:
+def run(args )  :
     assert len(args) == 3, 'got wrong number of arguments!'
     pickle_file, outfile, jsonfile = args
     with open(jsonfile, encoding='utf-8') as f:

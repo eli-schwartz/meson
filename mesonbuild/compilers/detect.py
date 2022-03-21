@@ -154,7 +154,7 @@ if T.TYPE_CHECKING:
 # Default compilers and linkers
 # =============================
 
-defaults: T.Dict[str, T.List[str]] = {}
+defaults   = {}
 
 # List of potential compilers.
 if is_windows():
@@ -200,8 +200,8 @@ defaults['gcc_static_linker'] = ['gcc-ar']
 defaults['clang_static_linker'] = ['llvm-ar']
 
 
-def compiler_from_language(env: 'Environment', lang: str, for_machine: MachineChoice) -> T.Optional[Compiler]:
-    lang_map: T.Dict[str, T.Callable[['Environment', MachineChoice], Compiler]] = {
+def compiler_from_language(env , lang , for_machine )  :
+    lang_map     = {
         'c': detect_c_compiler,
         'cpp': detect_cpp_compiler,
         'objc': detect_objc_compiler,
@@ -218,7 +218,7 @@ def compiler_from_language(env: 'Environment', lang: str, for_machine: MachineCh
     }
     return lang_map[lang](env, for_machine) if lang in lang_map else None
 
-def detect_compiler_for(env: 'Environment', lang: str, for_machine: MachineChoice) -> T.Optional[Compiler]:
+def detect_compiler_for(env , lang , for_machine )  :
     comp = compiler_from_language(env, lang, for_machine)
     if comp is not None:
         assert comp.for_machine == for_machine
@@ -229,7 +229,7 @@ def detect_compiler_for(env: 'Environment', lang: str, for_machine: MachineChoic
 # Helpers
 # =======
 
-def _get_compilers(env: 'Environment', lang: str, for_machine: MachineChoice) -> T.Tuple[T.List[T.List[str]], T.List[str], T.Optional['ExternalProgram']]:
+def _get_compilers(env , lang , for_machine )    :
     '''
     The list of compilers is detected in the exact same way for
     C, C++, ObjC, ObjC++, Fortran, CS so consolidate it here.
@@ -246,16 +246,16 @@ def _get_compilers(env: 'Environment', lang: str, for_machine: MachineChoice) ->
         ccache = BinaryTable.detect_compiler_cache()
 
     if env.machines.matches_build_machine(for_machine):
-        exe_wrap: T.Optional[ExternalProgram] = None
+        exe_wrap  = None
     else:
         exe_wrap = env.get_exe_wrapper()
 
     return compilers, ccache, exe_wrap
 
 def _handle_exceptions(
-        exceptions: T.Mapping[str, T.Union[Exception, str]],
-        binaries: T.List[T.List[str]],
-        bintype: str = 'compiler') -> T.NoReturn:
+        exceptions   ,
+        binaries ,
+        bintype  = 'compiler')  :
     errmsg = 'Unknown {}(s): {}'.format((bintype), (binaries))
     if exceptions:
         errmsg += '\nThe following exception(s) were encountered:'
@@ -267,7 +267,7 @@ def _handle_exceptions(
 # Linker specific
 # ===============
 
-def detect_static_linker(env: 'Environment', compiler: Compiler) -> StaticLinker:
+def detect_static_linker(env , compiler )  :
     linker = env.lookup_binary_entry(compiler.for_machine, 'ar')
     if linker is not None:
         linkers = [linker]
@@ -354,20 +354,20 @@ def detect_static_linker(env: 'Environment', compiler: Compiler) -> StaticLinker
 # =========
 
 
-def _detect_c_or_cpp_compiler(env: 'Environment', lang: str, for_machine: MachineChoice, *, override_compiler: T.Optional[T.List[str]] = None) -> Compiler:
+def _detect_c_or_cpp_compiler(env , lang , for_machine , *, override_compiler  = None)  :
     """Shared implementation for finding the C or C++ compiler to use.
 
     the override_compiler option is provided to allow compilers which use
     the compiler (GCC or Clang usually) as their shared linker, to find
     the linker they need.
     """
-    popen_exceptions: T.Dict[str, T.Union[Exception, str]] = {}
+    popen_exceptions    = {}
     compilers, ccache, exe_wrap = _get_compilers(env, lang, for_machine)
     if override_compiler is not None:
         compilers = [override_compiler]
     is_cross = env.is_cross_build(for_machine)
     info = env.machines[for_machine]
-    cls: T.Union[T.Type[CCompiler], T.Type[CPPCompiler]]
+    #cls: T.Union[T.Type[CCompiler], T.Type[CPPCompiler]]
 
     for compiler in compilers:
         if isinstance(compiler, str):
@@ -385,7 +385,7 @@ def _detect_c_or_cpp_compiler(env: 'Environment', lang: str, for_machine: Machin
             # practice, Meson will block waiting for Watcom's cl.exe to
             # exit, which requires user input and thus will never exit.
             if 'WATCOM' in os.environ:
-                def sanitize(p: str) -> str:
+                def sanitize(p )  :
                     return os.path.normcase(os.path.abspath(p))
 
                 watcom_cls = [sanitize(os.path.join(os.environ['WATCOM'], 'BINNT', 'cl')),
@@ -426,7 +426,7 @@ def _detect_c_or_cpp_compiler(env: 'Environment', lang: str, for_machine: Machin
         full_version = out.split('\n', 1)[0]
         version = search_version(out)
 
-        guess_gcc_or_lcc: T.Optional[str] = None
+        guess_gcc_or_lcc  = None
         if 'Free Software Foundation' in out or 'xt-' in out:
             guess_gcc_or_lcc = 'gcc'
         if 'e2k' in out and 'lcc' in out:
@@ -612,7 +612,7 @@ def _detect_c_or_cpp_compiler(env: 'Environment', lang: str, for_machine: Machin
                 ccache + compiler, version, for_machine, is_cross, info,
                 exe_wrap, full_version=full_version, linker=l)
         if 'TMS320C2000 C/C++' in out or 'MSP430 C/C++' in out or 'TI ARM C/C++ Compiler' in out:
-            lnk: T.Union[T.Type[C2000DynamicLinker], T.Type[TIDynamicLinker]]
+            #lnk: T.Union[T.Type[C2000DynamicLinker], T.Type[TIDynamicLinker]]
             if 'TMS320C2000 C/C++' in out:
                 cls = C2000CCompiler if lang == 'c' else C2000CPPCompiler
                 lnk = C2000DynamicLinker
@@ -659,13 +659,13 @@ def _detect_c_or_cpp_compiler(env: 'Environment', lang: str, for_machine: Machin
     _handle_exceptions(popen_exceptions, compilers)
     raise EnvironmentException('Unknown compiler {}'.format((compilers)))
 
-def detect_c_compiler(env: 'Environment', for_machine: MachineChoice) -> Compiler:
+def detect_c_compiler(env , for_machine )  :
     return _detect_c_or_cpp_compiler(env, 'c', for_machine)
 
-def detect_cpp_compiler(env: 'Environment', for_machine: MachineChoice) -> Compiler:
+def detect_cpp_compiler(env , for_machine )  :
     return _detect_c_or_cpp_compiler(env, 'cpp', for_machine)
 
-def detect_cuda_compiler(env: 'Environment', for_machine: MachineChoice) -> Compiler:
+def detect_cuda_compiler(env , for_machine )  :
     popen_exceptions = {}
     is_cross = env.is_cross_build(for_machine)
     compilers, ccache, exe_wrap = _get_compilers(env, 'cuda', for_machine)
@@ -700,12 +700,12 @@ def detect_cuda_compiler(env: 'Environment', for_machine: MachineChoice) -> Comp
         return cls(ccache + compiler, version, for_machine, is_cross, exe_wrap, host_compiler=cpp_compiler, info=info, linker=linker)
     raise EnvironmentException('Could not find suitable CUDA compiler: "{}"'.format(("; ".join([" ".join(c) for c in compilers]))))
 
-def detect_fortran_compiler(env: 'Environment', for_machine: MachineChoice) -> Compiler:
-    popen_exceptions: T.Dict[str, T.Union[Exception, str]] = {}
+def detect_fortran_compiler(env , for_machine )  :
+    popen_exceptions    = {}
     compilers, ccache, exe_wrap = _get_compilers(env, 'fortran', for_machine)
     is_cross = env.is_cross_build(for_machine)
     info = env.machines[for_machine]
-    cls: T.Type[FortranCompiler]
+    #cls: T.Type[FortranCompiler]
     for compiler in compilers:
         for arg in ['--version', '-V']:
             try:
@@ -717,7 +717,7 @@ def detect_fortran_compiler(env: 'Environment', for_machine: MachineChoice) -> C
             version = search_version(out)
             full_version = out.split('\n', 1)[0]
 
-            guess_gcc_or_lcc: T.Optional[str] = None
+            guess_gcc_or_lcc  = None
             if 'GNU Fortran' in out:
                 guess_gcc_or_lcc = 'gcc'
             if 'e2k' in out and 'lcc' in out:
@@ -837,18 +837,18 @@ def detect_fortran_compiler(env: 'Environment', for_machine: MachineChoice) -> C
     _handle_exceptions(popen_exceptions, compilers)
     raise EnvironmentException('Unreachable code (exception to make mypy happy)')
 
-def detect_objc_compiler(env: 'Environment', for_machine: MachineChoice) -> 'Compiler':
+def detect_objc_compiler(env , for_machine )  :
     return _detect_objc_or_objcpp_compiler(env, for_machine, True)
 
-def detect_objcpp_compiler(env: 'Environment', for_machine: MachineChoice) -> 'Compiler':
+def detect_objcpp_compiler(env , for_machine )  :
     return _detect_objc_or_objcpp_compiler(env, for_machine, False)
 
-def _detect_objc_or_objcpp_compiler(env: 'Environment', for_machine: MachineChoice, objc: bool) -> 'Compiler':
-    popen_exceptions: T.Dict[str, T.Union[Exception, str]] = {}
+def _detect_objc_or_objcpp_compiler(env , for_machine , objc )  :
+    popen_exceptions    = {}
     compilers, ccache, exe_wrap = _get_compilers(env, 'objc' if objc else 'objcpp', for_machine)
     is_cross = env.is_cross_build(for_machine)
     info = env.machines[for_machine]
-    comp: T.Union[T.Type[ObjCCompiler], T.Type[ObjCPPCompiler]]
+    #comp: T.Union[T.Type[ObjCCompiler], T.Type[ObjCPPCompiler]]
 
     for compiler in compilers:
         arg = ['--version']
@@ -894,7 +894,7 @@ def _detect_objc_or_objcpp_compiler(env: 'Environment', for_machine: MachineChoi
     _handle_exceptions(popen_exceptions, compilers)
     raise EnvironmentException('Unreachable code (exception to make mypy happy)')
 
-def detect_java_compiler(env: 'Environment', for_machine: MachineChoice) -> Compiler:
+def detect_java_compiler(env , for_machine )  :
     exelist = env.lookup_binary_entry(for_machine, 'java')
     info = env.machines[for_machine]
     if exelist is None:
@@ -916,7 +916,7 @@ def detect_java_compiler(env: 'Environment', for_machine: MachineChoice) -> Comp
         return comp_class(exelist, version, for_machine, info)
     raise EnvironmentException('Unknown compiler "' + ' '.join(exelist) + '"')
 
-def detect_cs_compiler(env: 'Environment', for_machine: MachineChoice) -> Compiler:
+def detect_cs_compiler(env , for_machine )  :
     compilers, ccache, exe_wrap = _get_compilers(env, 'cs', for_machine)
     popen_exceptions = {}
     info = env.machines[for_machine]
@@ -928,7 +928,7 @@ def detect_cs_compiler(env: 'Environment', for_machine: MachineChoice) -> Compil
             continue
 
         version = search_version(out)
-        cls: T.Union[T.Type[MonoCompiler], T.Type[VisualStudioCsCompiler]]
+        #cls: T.Union[T.Type[MonoCompiler], T.Type[VisualStudioCsCompiler]]
         if 'Mono' in out:
             cls = MonoCompiler
         elif "Visual C#" in out:
@@ -941,13 +941,13 @@ def detect_cs_compiler(env: 'Environment', for_machine: MachineChoice) -> Compil
     _handle_exceptions(popen_exceptions, compilers)
     raise EnvironmentException('Unreachable code (exception to make mypy happy)')
 
-def detect_cython_compiler(env: 'Environment', for_machine: MachineChoice) -> Compiler:
+def detect_cython_compiler(env , for_machine )  :
     """Search for a cython compiler."""
     compilers, _, _ = _get_compilers(env, 'cython', for_machine)
     is_cross = env.is_cross_build(for_machine)
     info = env.machines[for_machine]
 
-    popen_exceptions: T.Dict[str, Exception] = {}
+    popen_exceptions   = {}
     for comp in compilers:
         try:
             err = Popen_safe(comp + ['-V'])[2]
@@ -963,7 +963,7 @@ def detect_cython_compiler(env: 'Environment', for_machine: MachineChoice) -> Co
     _handle_exceptions(popen_exceptions, compilers)
     raise EnvironmentException('Unreachable code (exception to make mypy happy)')
 
-def detect_vala_compiler(env: 'Environment', for_machine: MachineChoice) -> Compiler:
+def detect_vala_compiler(env , for_machine )  :
     exelist = env.lookup_binary_entry(for_machine, 'vala')
     is_cross = env.is_cross_build(for_machine)
     info = env.machines[for_machine]
@@ -982,7 +982,7 @@ def detect_vala_compiler(env: 'Environment', for_machine: MachineChoice) -> Comp
         return comp_class(exelist, version, for_machine, is_cross, info)
     raise EnvironmentException('Unknown compiler "' + ' '.join(exelist) + '"')
 
-def detect_rust_compiler(env: 'Environment', for_machine: MachineChoice) -> RustCompiler:
+def detect_rust_compiler(env , for_machine )  :
     popen_exceptions = {}  # type: T.Dict[str, Exception]
     compilers, _, exe_wrap = _get_compilers(env, 'rust', for_machine)
     is_cross = env.is_cross_build(for_machine)
@@ -1001,7 +1001,7 @@ def detect_rust_compiler(env: 'Environment', for_machine: MachineChoice) -> Rust
             continue
 
         version = search_version(out)
-        cls: T.Type[RustCompiler] = RustCompiler
+        cls  = RustCompiler
 
         # Clippy is a wrapper around rustc, but it doesn't have rustc in it's
         # output. We can otherwise treat it as rustc.
@@ -1029,8 +1029,8 @@ def detect_rust_compiler(env: 'Environment', for_machine: MachineChoice) -> Rust
             compiler = compiler.copy()  # avoid mutating the original list
 
             if override is None:
-                extra_args: T.Dict[str, T.Union[str, bool]] = {}
-                always_args: T.List[str] = []
+                extra_args    = {}
+                always_args  = []
                 if is_link_exe:
                     compiler.extend(cls.use_linker_args(cc.linker.exelist[0]))
                     extra_args['direct'] = True
@@ -1085,7 +1085,7 @@ def detect_rust_compiler(env: 'Environment', for_machine: MachineChoice) -> Rust
     _handle_exceptions(popen_exceptions, compilers)
     raise EnvironmentException('Unreachable code (exception to make mypy happy)')
 
-def detect_d_compiler(env: 'Environment', for_machine: MachineChoice) -> Compiler:
+def detect_d_compiler(env , for_machine )  :
     info = env.machines[for_machine]
 
     # Detect the target architecture, required for proper architecture handling on Windows.
@@ -1191,7 +1191,7 @@ def detect_d_compiler(env: 'Environment', for_machine: MachineChoice) -> Compile
     _handle_exceptions(popen_exceptions, compilers)
     raise EnvironmentException('Unreachable code (exception to make mypy happy)')
 
-def detect_swift_compiler(env: 'Environment', for_machine: MachineChoice) -> Compiler:
+def detect_swift_compiler(env , for_machine )  :
     exelist = env.lookup_binary_entry(for_machine, 'swift')
     is_cross = env.is_cross_build(for_machine)
     info = env.machines[for_machine]
@@ -1219,7 +1219,7 @@ def detect_swift_compiler(env: 'Environment', for_machine: MachineChoice) -> Com
 # GNU/Clang defines and version
 # =============================
 
-def _get_gnu_compiler_defines(compiler: T.List[str]) -> T.Dict[str, str]:
+def _get_gnu_compiler_defines(compiler )   :
     """
     Detect GNU compiler platform type (Apple, MinGW, Unix)
     """
@@ -1232,7 +1232,7 @@ def _get_gnu_compiler_defines(compiler: T.List[str]) -> T.Dict[str, str]:
     # Parse several lines of the type:
     # `#define ___SOME_DEF some_value`
     # and extract `___SOME_DEF`
-    defines: T.Dict[str, str] = {}
+    defines   = {}
     for line in output.split('\n'):
         if not line:
             continue
@@ -1245,7 +1245,7 @@ def _get_gnu_compiler_defines(compiler: T.List[str]) -> T.Dict[str, str]:
             defines[rest[0]] = rest[1]
     return defines
 
-def _get_clang_compiler_defines(compiler: T.List[str]) -> T.Dict[str, str]:
+def _get_clang_compiler_defines(compiler )   :
     """
     Get the list of Clang pre-processor defines
     """
@@ -1253,7 +1253,7 @@ def _get_clang_compiler_defines(compiler: T.List[str]) -> T.Dict[str, str]:
     p, output, error = Popen_safe(args, write='', stdin=subprocess.PIPE)
     if p.returncode != 0:
         raise EnvironmentException('Unable to get clang pre-processor defines:\n' + output + error)
-    defines: T.Dict[str, str] = {}
+    defines   = {}
     for line in output.split('\n'):
         if not line:
             continue
@@ -1266,14 +1266,14 @@ def _get_clang_compiler_defines(compiler: T.List[str]) -> T.Dict[str, str]:
             defines[rest[0]] = rest[1]
     return defines
 
-def _get_gnu_version_from_defines(defines: T.Dict[str, str]) -> str:
+def _get_gnu_version_from_defines(defines  )  :
     dot = '.'
     major = defines.get('__GNUC__', '0')
     minor = defines.get('__GNUC_MINOR__', '0')
     patch = defines.get('__GNUC_PATCHLEVEL__', '0')
     return dot.join((major, minor, patch))
 
-def _get_lcc_version_from_defines(defines: T.Dict[str, str]) -> str:
+def _get_lcc_version_from_defines(defines  )  :
     dot = '.'
     generation_and_major = defines.get('__LCC__', '100')
     generation = generation_and_major[:1]

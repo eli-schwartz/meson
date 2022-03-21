@@ -31,10 +31,10 @@ if T.TYPE_CHECKING:
 class DubDependency(ExternalDependency):
     class_dubbin = None
 
-    def __init__(self, name: str, environment: 'Environment', kwargs: T.Dict[str, T.Any]):
+    def __init__(self, name , environment , kwargs  ):
         super().__init__(DependencyTypeName('dub'), environment, kwargs, language='d')
         self.name = name
-        self.module_path: T.Optional[str] = None
+        self.module_path  = None
 
         _temp_comp = super().get_compiler()
         assert isinstance(_temp_comp, DCompiler)
@@ -125,7 +125,7 @@ class DubDependency(ExternalDependency):
         # Handle dependencies
         libs = []
 
-        def add_lib_args(field_name: str, target: T.Dict[str, T.Dict[str, str]]) -> None:
+        def add_lib_args(field_name , target   )  :
             if field_name in target['buildSettings']:
                 for lib in target['buildSettings'][field_name]:
                     if lib not in libs:
@@ -151,11 +151,11 @@ class DubDependency(ExternalDependency):
                         self.is_found = False
 
     def _find_right_lib_path(self,
-                             default_path: str,
-                             comp: str,
-                             description: T.Dict[str, str],
-                             folder_only: bool = False,
-                             file_name: str = '') -> T.Optional[str]:
+                             default_path ,
+                             comp ,
+                             description  ,
+                             folder_only  = False,
+                             file_name  = '')  :
         module_path = lib_file_name = ''
         if folder_only:
             module_path = default_path
@@ -203,17 +203,17 @@ class DubDependency(ExternalDependency):
 
         return ''
 
-    def _call_dubbin(self, args: T.List[str], env: T.Optional[T.Dict[str, str]] = None) -> T.Tuple[int, str]:
+    def _call_dubbin(self, args , env   = None)   :
         assert isinstance(self.dubbin, ExternalProgram)
         p, out = Popen_safe(self.dubbin.get_command() + args, env=env)[0:2]
         return p.returncode, out.strip()
 
-    def _call_copmbin(self, args: T.List[str], env: T.Optional[T.Dict[str, str]] = None) -> T.Tuple[int, str]:
+    def _call_copmbin(self, args , env   = None)   :
         p, out = Popen_safe(self.compiler.get_exelist() + args, env=env)[0:2]
         return p.returncode, out.strip()
 
-    def _check_dub(self) -> T.Union[bool, ExternalProgram]:
-        dubbin: T.Union[bool, ExternalProgram] = ExternalProgram('dub', silent=True)
+    def _check_dub(self)   :
+        dubbin   = ExternalProgram('dub', silent=True)
         assert isinstance(dubbin, ExternalProgram)
         if dubbin.found():
             try:

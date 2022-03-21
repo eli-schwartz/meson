@@ -85,7 +85,7 @@ if T.TYPE_CHECKING:
 
 @functools.total_ordering
 class BoostIncludeDir():
-    def __init__(self, path: Path, version_int: int):
+    def __init__(self, path , version_int ):
         self.path = path
         self.version_int = version_int
         major = int(self.version_int / 100000)
@@ -94,10 +94,10 @@ class BoostIncludeDir():
         self.version = '{}.{}.{}'.format((major), (minor), (patch))
         self.version_lib = '{}_{}'.format((major), (minor))
 
-    def __repr__(self) -> str:
+    def __repr__(self)  :
         return '<BoostIncludeDir: {} -- {}>'.format((self.version), (self.path))
 
-    def __lt__(self, other: object) -> bool:
+    def __lt__(self, other )  :
         if isinstance(other, BoostIncludeDir):
             return (self.version_int, self.path) < (other.version_int, other.path)
         return NotImplemented
@@ -112,7 +112,7 @@ class BoostLibraryFile():
     reg_abi_tag = re.compile(r'^s?g?y?d?p?n?$')
     reg_ver_tag = re.compile(r'^[0-9_]+$')
 
-    def __init__(self, path: Path):
+    def __init__(self, path ):
         self.path = path
         self.name = self.path.name
 
@@ -186,10 +186,10 @@ class BoostLibraryFile():
             else:
                 self.toolset = i
 
-    def __repr__(self) -> str:
+    def __repr__(self)  :
         return '<LIB: {} {:<32} {}>'.format((self.abitag), (self.mod_name), (self.path))
 
-    def __lt__(self, other: object) -> bool:
+    def __lt__(self, other )  :
         if isinstance(other, BoostLibraryFile):
             return (
                 self.mod_name, self.static, self.version_lib, self.arch,
@@ -206,16 +206,16 @@ class BoostLibraryFile():
             )
         return NotImplemented
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other )  :
         if isinstance(other, BoostLibraryFile):
             return self.name == other.name
         return NotImplemented
 
-    def __hash__(self) -> int:
+    def __hash__(self)  :
         return hash(self.name)
 
     @property
-    def abitag(self) -> str:
+    def abitag(self)  :
         abitag = ''
         abitag += 'S' if self.static else '-'
         abitag += 'M' if self.mt else '-'
@@ -231,13 +231,13 @@ class BoostLibraryFile():
         abitag += ' ' + (self.version_lib or 'x_xx')
         return abitag
 
-    def is_boost(self) -> bool:
+    def is_boost(self)  :
         return any([self.name.startswith(x) for x in ['libboost_', 'boost_']])
 
-    def is_python_lib(self) -> bool:
+    def is_python_lib(self)  :
         return any([self.mod_name.startswith(x) for x in BoostLibraryFile.boost_python_libs])
 
-    def fix_python_name(self, tags: T.List[str]) -> T.List[str]:
+    def fix_python_name(self, tags )  :
         # Handle the boost_python naming madeness.
         # See https://github.com/mesonbuild/meson/issues/4788 for some distro
         # specific naming variations.
@@ -249,7 +249,7 @@ class BoostLibraryFile():
         cur_vers = m_cur.group(2)
 
         # Update the current version string if the new version string is longer
-        def update_vers(new_vers: str) -> None:
+        def update_vers(new_vers )  :
             nonlocal cur_vers
             new_vers = new_vers.replace('_', '')
             new_vers = new_vers.replace('.', '')
@@ -271,7 +271,7 @@ class BoostLibraryFile():
         self.mod_name = cur_name + cur_vers
         return other_tags
 
-    def mod_name_matches(self, mod_name: str) -> bool:
+    def mod_name_matches(self, mod_name )  :
         if self.mod_name == mod_name:
             return True
         if not self.is_python_lib():
@@ -295,19 +295,19 @@ class BoostLibraryFile():
 
         return cur_vers.startswith(arg_vers)
 
-    def version_matches(self, version_lib: str) -> bool:
+    def version_matches(self, version_lib )  :
         # If no version tag is present, assume that it fits
         if not self.version_lib or not version_lib:
             return True
         return self.version_lib == version_lib
 
-    def arch_matches(self, arch: str) -> bool:
+    def arch_matches(self, arch )  :
         # If no version tag is present, assume that it fits
         if not self.arch or not arch:
             return True
         return self.arch == arch
 
-    def vscrt_matches(self, vscrt: str) -> bool:
+    def vscrt_matches(self, vscrt )  :
         # If no vscrt tag present, assume that it fits  ['/MD', '/MDd', '/MT', '/MTd']
         if not vscrt:
             return True
@@ -323,7 +323,7 @@ class BoostLibraryFile():
         mlog.warning('Boost: unknown vscrt tag {}. This may cause the compilation to fail. Please consider reporting this as a bug.'.format((vscrt)), once=True)
         return True
 
-    def get_compiler_args(self) -> T.List[str]:
+    def get_compiler_args(self)  :
         args = []  # type: T.List[str]
         if self.mod_name in boost_libraries:
             libdef = boost_libraries[self.mod_name]  # type: BoostLibrary
@@ -337,11 +337,11 @@ class BoostLibraryFile():
                 args += libdef.single
         return args
 
-    def get_link_args(self) -> T.List[str]:
+    def get_link_args(self)  :
         return [self.path.as_posix()]
 
 class BoostDependency(SystemDependency):
-    def __init__(self, environment: Environment, kwargs: T.Dict[str, T.Any]) -> None:
+    def __init__(self, environment , kwargs  )  :
         super().__init__('boost', environment, kwargs, language='cpp')
         buildtype = environment.coredata.get_option(mesonlib.OptionKey('buildtype'))
         assert isinstance(buildtype, str)
@@ -382,7 +382,7 @@ class BoostDependency(SystemDependency):
         # Finally, look for paths from .pc files and from searching the filesystem
         self.detect_roots()
 
-    def check_and_set_roots(self, roots: T.List[Path], use_system: bool) -> None:
+    def check_and_set_roots(self, roots , use_system )  :
         roots = list(mesonlib.OrderedSet(roots))
         for j in roots:
             #   1. Look for the boost headers (boost/version.hpp)
@@ -400,7 +400,7 @@ class BoostDependency(SystemDependency):
                 self.boost_root = j
                 break
 
-    def detect_boost_machine_file(self, props: 'Properties') -> None:
+    def detect_boost_machine_file(self, props )  :
         """Detect boost with values in the machine file or environment.
 
         The machine file values are defaulted to the environment values.
@@ -438,7 +438,7 @@ class BoostDependency(SystemDependency):
 
         self.check_and_set_roots(paths, use_system=False)
 
-    def run_check(self, inc_dirs: T.List[BoostIncludeDir], lib_dirs: T.List[Path]) -> bool:
+    def run_check(self, inc_dirs , lib_dirs )  :
         mlog.debug('  - potential library dirs: {}'.format([x.as_posix() for x in lib_dirs]))
         mlog.debug('  - potential include dirs: {}'.format([x.path.as_posix() for x in inc_dirs]))
 
@@ -516,7 +516,7 @@ class BoostDependency(SystemDependency):
 
         return False
 
-    def detect_inc_dirs(self, root: Path) -> T.List[BoostIncludeDir]:
+    def detect_inc_dirs(self, root )  :
         candidates = []  # type: T.List[Path]
         inc_root = root / 'include'
 
@@ -532,7 +532,7 @@ class BoostDependency(SystemDependency):
         candidates = [x for x in candidates if x.exists()]
         return [self._include_dir_from_version_header(x) for x in candidates]
 
-    def detect_lib_dirs(self, root: Path, use_system: bool) -> T.List[Path]:
+    def detect_lib_dirs(self, root , use_system )  :
         # First check the system include paths. Only consider those within the
         # given root path
 
@@ -579,7 +579,7 @@ class BoostDependency(SystemDependency):
 
         return sorted(matching_arch) + sorted(no_arch)
 
-    def filter_libraries(self, libs: T.List[BoostLibraryFile], lib_vers: str) -> T.List[BoostLibraryFile]:
+    def filter_libraries(self, libs , lib_vers )  :
         # MSVC is very picky with the library tags
         vscrt = ''
         try:
@@ -616,7 +616,7 @@ class BoostDependency(SystemDependency):
 
         return libs
 
-    def detect_libraries(self, libdir: Path) -> T.List[BoostLibraryFile]:
+    def detect_libraries(self, libdir )  :
         libs = set()  # type: T.Set[BoostLibraryFile]
         for i in libdir.iterdir():
             if not i.is_file():
@@ -628,7 +628,7 @@ class BoostDependency(SystemDependency):
 
         return [x for x in libs if x.is_boost()]  # Filter out no boost libraries
 
-    def detect_split_root(self, inc_dir: Path, lib_dir: Path) -> None:
+    def detect_split_root(self, inc_dir , lib_dir )  :
         boost_inc_dir = None
         for j in [inc_dir / 'version.hpp', inc_dir / 'boost' / 'version.hpp']:
             if j.is_file():
@@ -640,7 +640,7 @@ class BoostDependency(SystemDependency):
 
         self.is_found = self.run_check([boost_inc_dir], [lib_dir])
 
-    def detect_roots(self) -> None:
+    def detect_roots(self)  :
         roots = []  # type: T.List[Path]
 
         # Try getting the BOOST_ROOT from a boost.pc if it exists. This primarily
@@ -695,7 +695,7 @@ class BoostDependency(SystemDependency):
 
         self.check_and_set_roots(roots, use_system=True)
 
-    def log_details(self) -> str:
+    def log_details(self)  :
         res = ''
         if self.modules_found:
             res += 'found: ' + ', '.join(self.modules_found)
@@ -705,12 +705,12 @@ class BoostDependency(SystemDependency):
             res += 'missing: ' + ', '.join(self.modules_missing)
         return res
 
-    def log_info(self) -> str:
+    def log_info(self)  :
         if self.boost_root:
             return self.boost_root.as_posix()
         return ''
 
-    def _include_dir_from_version_header(self, hfile: Path) -> BoostIncludeDir:
+    def _include_dir_from_version_header(self, hfile )  :
         # Extract the version with a regex. Using clib_compiler.get_define would
         # also work, however, this is slower (since it the compiler has to be
         # invoked) and overkill since the layout of the header is always the same.
@@ -722,7 +722,7 @@ class BoostDependency(SystemDependency):
             return BoostIncludeDir(hfile.parents[1], 0)
         return BoostIncludeDir(hfile.parents[1], int(m.group(1)))
 
-    def _extra_compile_args(self) -> T.List[str]:
+    def _extra_compile_args(self)  :
         # BOOST_ALL_DYN_LINK should not be required with the known defines below
         return ['-DBOOST_ALL_NO_LIB']  # Disable automatic linking
 
@@ -754,7 +754,7 @@ boost_arch_map = {
 #
 
 class BoostLibrary():
-    def __init__(self, name: str, shared: T.List[str], static: T.List[str], single: T.List[str], multi: T.List[str]):
+    def __init__(self, name , shared , static , single , multi ):
         self.name = name
         self.shared = shared
         self.static = static
@@ -762,7 +762,7 @@ class BoostLibrary():
         self.multi = multi
 
 class BoostModule():
-    def __init__(self, name: str, key: str, desc: str, libs: T.List[str]):
+    def __init__(self, name , key , desc , libs ):
         self.name = name
         self.key = key
         self.desc = desc

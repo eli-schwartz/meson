@@ -91,7 +91,7 @@ _T = T.TypeVar('_T')
 _V = T.TypeVar('_V')
 
 class AstInterpreter(InterpreterBase):
-    def __init__(self, source_root: str, subdir: str, subproject: str, visitors: T.Optional[T.List[AstVisitor]] = None):
+    def __init__(self, source_root , subdir , subproject , visitors  = None):
         super().__init__(source_root, subdir, subproject)
         self.visitors = visitors if visitors is not None else []
         self.processed_buildfiles = set() # type: T.Set[str]
@@ -159,21 +159,21 @@ class AstInterpreter(InterpreterBase):
                            'structured_sources': self.func_do_nothing,
                            })
 
-    def _unholder_args(self, args: _T, kwargs: _V) -> T.Tuple[_T, _V]:
+    def _unholder_args(self, args , kwargs )   :
         return args, kwargs
 
-    def _holderify(self, res: _T) -> _T:
+    def _holderify(self, res )  :
         return res
 
-    def func_do_nothing(self, node: BaseNode, args: T.List[TYPE_nvar], kwargs: T.Dict[str, TYPE_nvar]) -> bool:
+    def func_do_nothing(self, node , args , kwargs  )  :
         return True
 
-    def load_root_meson_file(self) -> None:
+    def load_root_meson_file(self)  :
         super().load_root_meson_file()
         for i in self.visitors:
             self.ast.accept(i)
 
-    def func_subdir(self, node: BaseNode, args: T.List[TYPE_nvar], kwargs: T.Dict[str, TYPE_nvar]) -> None:
+    def func_subdir(self, node , args , kwargs  )  :
         args = self.flatten_args(args)
         if len(args) != 1 or not isinstance(args[0], str):
             sys.stderr.write('Unable to evaluate subdir({}) in AstInterpreter --> Skipping\n'.format((args)))
@@ -209,33 +209,33 @@ class AstInterpreter(InterpreterBase):
         self.evaluate_codeblock(codeblock)
         self.subdir = prev_subdir
 
-    def method_call(self, node: BaseNode) -> bool:
+    def method_call(self, node )  :
         return True
 
-    def evaluate_fstring(self, node: mparser.FormatStringNode) -> str:
+    def evaluate_fstring(self, node )  :
         assert isinstance(node, mparser.FormatStringNode)
         return node.value
 
-    def evaluate_arraystatement(self, cur: mparser.ArrayNode) -> TYPE_nvar:
+    def evaluate_arraystatement(self, cur )  :
         return self.reduce_arguments(cur.args)[0]
 
-    def evaluate_arithmeticstatement(self, cur: ArithmeticNode) -> int:
+    def evaluate_arithmeticstatement(self, cur )  :
         self.evaluate_statement(cur.left)
         self.evaluate_statement(cur.right)
         return 0
 
-    def evaluate_uminusstatement(self, cur: UMinusNode) -> int:
+    def evaluate_uminusstatement(self, cur )  :
         self.evaluate_statement(cur.value)
         return 0
 
-    def evaluate_ternary(self, node: TernaryNode) -> None:
+    def evaluate_ternary(self, node )  :
         assert isinstance(node, TernaryNode)
         self.evaluate_statement(node.condition)
         self.evaluate_statement(node.trueblock)
         self.evaluate_statement(node.falseblock)
 
-    def evaluate_dictstatement(self, node: mparser.DictNode) -> TYPE_nkwargs:
-        def resolve_key(node: mparser.BaseNode) -> str:
+    def evaluate_dictstatement(self, node )  :
+        def resolve_key(node )  :
             if isinstance(node, mparser.StringNode):
                 return node.value
             return '__AST_UNKNOWN__'
@@ -248,7 +248,7 @@ class AstInterpreter(InterpreterBase):
         self.argument_depth -= 1
         return {}
 
-    def evaluate_plusassign(self, node: PlusAssignmentNode) -> None:
+    def evaluate_plusassign(self, node )  :
         assert isinstance(node, PlusAssignmentNode)
         # Cheat by doing a reassignment
         self.assignments[node.var_name] = node.value  # Save a reference to the value node
@@ -256,18 +256,18 @@ class AstInterpreter(InterpreterBase):
             self.reverse_assignment[node.value.ast_id] = node
         self.assign_vals[node.var_name] = self.evaluate_statement(node.value)
 
-    def evaluate_indexing(self, node: IndexNode) -> int:
+    def evaluate_indexing(self, node )  :
         return 0
 
-    def unknown_function_called(self, func_name: str) -> None:
+    def unknown_function_called(self, func_name )  :
         pass
 
     def reduce_arguments(
                 self,
-                args: mparser.ArgumentNode,
-                key_resolver: T.Callable[[mparser.BaseNode], str] = default_resolve_key,
-                duplicate_key_error: T.Optional[str] = None,
-            ) -> T.Tuple[T.List[TYPE_nvar], TYPE_nkwargs]:
+                args ,
+                key_resolver   = default_resolve_key,
+                duplicate_key_error  = None,
+            )   :
         if isinstance(args, ArgumentNode):
             kwargs = {}  # type: T.Dict[str, TYPE_nvar]
             for key, val in args.kwargs.items():
@@ -278,26 +278,26 @@ class AstInterpreter(InterpreterBase):
         else:
             return self.flatten_args(args), {}
 
-    def evaluate_comparison(self, node: ComparisonNode) -> bool:
+    def evaluate_comparison(self, node )  :
         self.evaluate_statement(node.left)
         self.evaluate_statement(node.right)
         return False
 
-    def evaluate_andstatement(self, cur: AndNode) -> bool:
+    def evaluate_andstatement(self, cur )  :
         self.evaluate_statement(cur.left)
         self.evaluate_statement(cur.right)
         return False
 
-    def evaluate_orstatement(self, cur: OrNode) -> bool:
+    def evaluate_orstatement(self, cur )  :
         self.evaluate_statement(cur.left)
         self.evaluate_statement(cur.right)
         return False
 
-    def evaluate_notstatement(self, cur: NotNode) -> bool:
+    def evaluate_notstatement(self, cur )  :
         self.evaluate_statement(cur.value)
         return False
 
-    def evaluate_foreach(self, node: ForeachClauseNode) -> None:
+    def evaluate_foreach(self, node )  :
         try:
             self.evaluate_codeblock(node.block)
         except ContinueRequest:
@@ -305,24 +305,24 @@ class AstInterpreter(InterpreterBase):
         except BreakRequest:
             pass
 
-    def evaluate_if(self, node: IfClauseNode) -> None:
+    def evaluate_if(self, node )  :
         for i in node.ifs:
             self.evaluate_codeblock(i.block)
         if not isinstance(node.elseblock, EmptyNode):
             self.evaluate_codeblock(node.elseblock)
 
-    def get_variable(self, varname: str) -> int:
+    def get_variable(self, varname )  :
         return 0
 
-    def assignment(self, node: AssignmentNode) -> None:
+    def assignment(self, node )  :
         assert isinstance(node, AssignmentNode)
         self.assignments[node.var_name] = node.value # Save a reference to the value node
         if node.value.ast_id:
             self.reverse_assignment[node.value.ast_id] = node
         self.assign_vals[node.var_name] = self.evaluate_statement(node.value) # Evaluate the value just in case
 
-    def resolve_node(self, node: BaseNode, include_unknown_args: bool = False, id_loop_detect: T.Optional[T.List[str]] = None) -> T.Optional[T.Any]:
-        def quick_resolve(n: BaseNode, loop_detect: T.Optional[T.List[str]] = None) -> T.Any:
+    def resolve_node(self, node , include_unknown_args  = False, id_loop_detect  = None)  :
+        def quick_resolve(n , loop_detect  = None)  :
             if loop_detect is None:
                 loop_detect = []
             if isinstance(n, IdNode):
@@ -409,7 +409,7 @@ class AstInterpreter(InterpreterBase):
 
         return result
 
-    def flatten_args(self, args_raw: T.Union[TYPE_nvar, T.Sequence[TYPE_nvar]], include_unknown_args: bool = False, id_loop_detect: T.Optional[T.List[str]] = None) -> T.List[TYPE_nvar]:
+    def flatten_args(self, args_raw  , include_unknown_args  = False, id_loop_detect  = None)  :
         # Make sure we are always dealing with lists
         if isinstance(args_raw, list):
             args = args_raw
@@ -430,7 +430,7 @@ class AstInterpreter(InterpreterBase):
                 flattend_args += [i]
         return flattend_args
 
-    def flatten_kwargs(self, kwargs: T.Dict[str, TYPE_nvar], include_unknown_args: bool = False) -> T.Dict[str, TYPE_nvar]:
+    def flatten_kwargs(self, kwargs  , include_unknown_args  = False)   :
         flattend_kwargs = {}
         for key, val in kwargs.items():
             if isinstance(val, BaseNode):

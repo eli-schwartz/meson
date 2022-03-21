@@ -31,16 +31,16 @@ if T.TYPE_CHECKING:
     TV_DepID = T.Tuple[T.Tuple[str, TV_DepIDEntry], ...]
 
 # These must be defined in this file to avoid cyclical references.
-packages: T.Dict[
-    str,
-    T.Union[T.Type[ExternalDependency], 'DependencyFactory', 'WrappedFactoryFunc']
-] = {}
-_packages_accept_language: T.Set[str] = set()
+packages            = {}
 
-def get_dep_identifier(name: str, kwargs: T.Dict[str, T.Any]) -> 'TV_DepID':
-    identifier: 'TV_DepID' = (('name', name), )
+
+
+_packages_accept_language  = set()
+
+def get_dep_identifier(name , kwargs  )  :
+    identifier  = (('name', name), )
     from ..interpreter import permitted_dependency_kwargs
-    assert len(permitted_dependency_kwargs) == 19, \
+    assert len(permitted_dependency_kwargs) == 19,\
            'Extra kwargs have been added to dependency(), please review if it makes sense to handle it here'
     for key, value in kwargs.items():
         # 'version' is irrelevant for caching; the caller must check version matches
@@ -79,7 +79,7 @@ display_name_map = {
     'wxwidgets': 'WxWidgets',
 }
 
-def find_external_dependency(name: str, env: 'Environment', kwargs: T.Dict[str, object]) -> T.Union['ExternalDependency', NotFoundDependency]:
+def find_external_dependency(name , env , kwargs  )   :
     assert name
     required = kwargs.get('required', True)
     if not isinstance(required, bool):
@@ -102,8 +102,8 @@ def find_external_dependency(name: str, env: 'Environment', kwargs: T.Dict[str, 
     # build a list of dependency methods to try
     candidates = _build_external_dependency_list(name, env, for_machine, kwargs)
 
-    pkg_exc: T.List[DependencyException] = []
-    pkgdep:  T.List[ExternalDependency]  = []
+    pkg_exc  = []
+    pkgdep    = []
     details = ''
 
     for c in candidates:
@@ -126,7 +126,7 @@ def find_external_dependency(name: str, env: 'Environment', kwargs: T.Dict[str, 
             # if the dependency was found
             if d.found():
 
-                info: mlog.TV_LoggableList = []
+                info  = []
                 if d.version:
                     info.append(mlog.normal_cyan(d.version))
 
@@ -163,8 +163,8 @@ def find_external_dependency(name: str, env: 'Environment', kwargs: T.Dict[str, 
     return NotFoundDependency(name, env)
 
 
-def _build_external_dependency_list(name: str, env: 'Environment', for_machine: MachineChoice,
-                                    kwargs: T.Dict[str, T.Any]) -> T.List['DependencyGenerator']:
+def _build_external_dependency_list(name , env , for_machine ,
+                                    kwargs  )  :
     # First check if the method is valid
     if 'method' in kwargs and kwargs['method'] not in [e.value for e in DependencyMethods]:
         raise DependencyException('method {!r} is invalid'.format(kwargs['method']))
@@ -179,14 +179,14 @@ def _build_external_dependency_list(name: str, env: 'Environment', for_machine: 
             entry1 = T.cast('T.Type[ExternalDependency]', packages[lname])  # mypy doesn't understand isinstance(..., type)
             if issubclass(entry1, ExternalDependency):
                 # TODO: somehow make mypy understand that entry1(env, kwargs) is OK...
-                func: T.Callable[[], 'ExternalDependency'] = lambda: entry1(env, kwargs)  # type: ignore
+                func   = lambda: entry1(env, kwargs)  # type: ignore
                 dep = [func]
         else:
             entry2 = T.cast('T.Union[DependencyFactory, WrappedFactoryFunc]', packages[lname])
             dep = entry2(env, for_machine, kwargs)
         return dep
 
-    candidates: T.List['DependencyGenerator'] = []
+    candidates  = []
 
     # If it's explicitly requested, use the dub detection method (only)
     if 'dub' == kwargs.get('method', ''):

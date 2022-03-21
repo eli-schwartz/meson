@@ -18,122 +18,122 @@
 from .. import mparser
 
 class AstVisitor:
-    def __init__(self) -> None:
+    def __init__(self)  :
         pass
 
-    def visit_default_func(self, node: mparser.BaseNode) -> None:
+    def visit_default_func(self, node )  :
         pass
 
-    def visit_BooleanNode(self, node: mparser.BooleanNode) -> None:
+    def visit_BooleanNode(self, node )  :
         self.visit_default_func(node)
 
-    def visit_IdNode(self, node: mparser.IdNode) -> None:
+    def visit_IdNode(self, node )  :
         self.visit_default_func(node)
 
-    def visit_NumberNode(self, node: mparser.NumberNode) -> None:
+    def visit_NumberNode(self, node )  :
         self.visit_default_func(node)
 
-    def visit_StringNode(self, node: mparser.StringNode) -> None:
+    def visit_StringNode(self, node )  :
         self.visit_default_func(node)
 
-    def visit_FormatStringNode(self, node: mparser.FormatStringNode) -> None:
+    def visit_FormatStringNode(self, node )  :
         self.visit_default_func(node)
 
-    def visit_ContinueNode(self, node: mparser.ContinueNode) -> None:
+    def visit_ContinueNode(self, node )  :
         self.visit_default_func(node)
 
-    def visit_BreakNode(self, node: mparser.BreakNode) -> None:
+    def visit_BreakNode(self, node )  :
         self.visit_default_func(node)
 
-    def visit_ArrayNode(self, node: mparser.ArrayNode) -> None:
+    def visit_ArrayNode(self, node )  :
         self.visit_default_func(node)
         node.args.accept(self)
 
-    def visit_DictNode(self, node: mparser.DictNode) -> None:
+    def visit_DictNode(self, node )  :
         self.visit_default_func(node)
         node.args.accept(self)
 
-    def visit_EmptyNode(self, node: mparser.EmptyNode) -> None:
+    def visit_EmptyNode(self, node )  :
         self.visit_default_func(node)
 
-    def visit_OrNode(self, node: mparser.OrNode) -> None:
-        self.visit_default_func(node)
-        node.left.accept(self)
-        node.right.accept(self)
-
-    def visit_AndNode(self, node: mparser.AndNode) -> None:
+    def visit_OrNode(self, node )  :
         self.visit_default_func(node)
         node.left.accept(self)
         node.right.accept(self)
 
-    def visit_ComparisonNode(self, node: mparser.ComparisonNode) -> None:
+    def visit_AndNode(self, node )  :
         self.visit_default_func(node)
         node.left.accept(self)
         node.right.accept(self)
 
-    def visit_ArithmeticNode(self, node: mparser.ArithmeticNode) -> None:
+    def visit_ComparisonNode(self, node )  :
         self.visit_default_func(node)
         node.left.accept(self)
         node.right.accept(self)
 
-    def visit_NotNode(self, node: mparser.NotNode) -> None:
+    def visit_ArithmeticNode(self, node )  :
+        self.visit_default_func(node)
+        node.left.accept(self)
+        node.right.accept(self)
+
+    def visit_NotNode(self, node )  :
         self.visit_default_func(node)
         node.value.accept(self)
 
-    def visit_CodeBlockNode(self, node: mparser.CodeBlockNode) -> None:
+    def visit_CodeBlockNode(self, node )  :
         self.visit_default_func(node)
         for i in node.lines:
             i.accept(self)
 
-    def visit_IndexNode(self, node: mparser.IndexNode) -> None:
+    def visit_IndexNode(self, node )  :
         self.visit_default_func(node)
         node.iobject.accept(self)
         node.index.accept(self)
 
-    def visit_MethodNode(self, node: mparser.MethodNode) -> None:
+    def visit_MethodNode(self, node )  :
         self.visit_default_func(node)
         node.source_object.accept(self)
         node.args.accept(self)
 
-    def visit_FunctionNode(self, node: mparser.FunctionNode) -> None:
+    def visit_FunctionNode(self, node )  :
         self.visit_default_func(node)
         node.args.accept(self)
 
-    def visit_AssignmentNode(self, node: mparser.AssignmentNode) -> None:
+    def visit_AssignmentNode(self, node )  :
         self.visit_default_func(node)
         node.value.accept(self)
 
-    def visit_PlusAssignmentNode(self, node: mparser.PlusAssignmentNode) -> None:
+    def visit_PlusAssignmentNode(self, node )  :
         self.visit_default_func(node)
         node.value.accept(self)
 
-    def visit_ForeachClauseNode(self, node: mparser.ForeachClauseNode) -> None:
+    def visit_ForeachClauseNode(self, node )  :
         self.visit_default_func(node)
         node.items.accept(self)
         node.block.accept(self)
 
-    def visit_IfClauseNode(self, node: mparser.IfClauseNode) -> None:
+    def visit_IfClauseNode(self, node )  :
         self.visit_default_func(node)
         for i in node.ifs:
             i.accept(self)
         node.elseblock.accept(self)
 
-    def visit_UMinusNode(self, node: mparser.UMinusNode) -> None:
+    def visit_UMinusNode(self, node )  :
         self.visit_default_func(node)
         node.value.accept(self)
 
-    def visit_IfNode(self, node: mparser.IfNode) -> None:
+    def visit_IfNode(self, node )  :
         self.visit_default_func(node)
         node.condition.accept(self)
         node.block.accept(self)
 
-    def visit_TernaryNode(self, node: mparser.TernaryNode) -> None:
+    def visit_TernaryNode(self, node )  :
         self.visit_default_func(node)
         node.condition.accept(self)
         node.trueblock.accept(self)
         node.falseblock.accept(self)
 
-    def visit_ArgumentNode(self, node: mparser.ArgumentNode) -> None:
+    def visit_ArgumentNode(self, node )  :
         self.visit_default_func(node)
         for i in node.arguments:
             i.accept(self)

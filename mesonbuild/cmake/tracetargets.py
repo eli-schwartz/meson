@@ -14,18 +14,18 @@ if T.TYPE_CHECKING:
     from ..compilers import Compiler
 
 class ResolvedTarget:
-    def __init__(self) -> None:
-        self.include_directories: T.List[str] = []
-        self.link_flags:          T.List[str] = []
-        self.public_compile_opts: T.List[str] = []
-        self.libraries:           T.List[str] = []
+    def __init__(self)  :
+        self.include_directories  = []
+        self.link_flags           = []
+        self.public_compile_opts  = []
+        self.libraries            = []
 
-def resolve_cmake_trace_targets(target_name: str,
-                                trace: 'CMakeTraceParser',
-                                env: 'Environment',
+def resolve_cmake_trace_targets(target_name ,
+                                trace ,
+                                env ,
                                 *,
-                                clib_compiler: T.Optional['Compiler'] = None,
-                                not_found_warning: T.Callable[[str], None] = lambda x: None) -> ResolvedTarget:
+                                clib_compiler  = None,
+                                not_found_warning   = lambda x: None)  :
     res = ResolvedTarget()
     targets = [target_name]
 
@@ -35,7 +35,7 @@ def resolve_cmake_trace_targets(target_name: str,
 
     is_debug = cmake_is_debug(env)
 
-    processed_targets: T.List[str] = []
+    processed_targets  = []
     while len(targets) > 0:
         curr = targets.pop(0)
 

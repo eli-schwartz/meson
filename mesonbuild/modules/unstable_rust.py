@@ -29,9 +29,9 @@ class RustModule(ExtensionModule):
     """A module that holds helper functions for rust."""
 
     @FeatureNew('rust module', '0.57.0')
-    def __init__(self, interpreter: 'Interpreter') -> None:
+    def __init__(self, interpreter )  :
         super().__init__(interpreter)
-        self._bindgen_bin: T.Optional['ExternalProgram'] = None
+        self._bindgen_bin  = None
         self.methods.update({
             'test': self.test,
             'bindgen': self.bindgen,
@@ -48,7 +48,7 @@ class RustModule(ExtensionModule):
             listify=True,
             default=[]),
     )
-    def test(self, state: 'ModuleState', args: T.Tuple[str, BuildTarget], kwargs: 'FuncTest') -> ModuleReturnValue:
+    def test(self, state , args  , kwargs )  :
         """Generate a rust test target from a given rust target.
 
         Rust puts it's unitests inside it's main source files, unlike most
@@ -91,7 +91,7 @@ class RustModule(ExtensionModule):
         ```
         """
         name = args[0]
-        base_target: BuildTarget = args[1]
+        base_target  = args[1]
         if not base_target.uses_rust():
             raise InterpreterException('Second positional argument to rustmod.test() must be a rust based target')
         extra_args = kwargs['args']
@@ -152,7 +152,7 @@ class RustModule(ExtensionModule):
         ),
         KwargInfo('output', str, required=True),
     )
-    def bindgen(self, state: 'ModuleState', args: T.List, kwargs: 'FuncBindgen') -> ModuleReturnValue:
+    def bindgen(self, state , args , kwargs )  :
         """Wrapper around bindgen to simplify it's use.
 
         The main thing this simplifies is the use of `include_directory`
@@ -161,15 +161,15 @@ class RustModule(ExtensionModule):
         header, *_deps = self.interpreter.source_strings_to_files(kwargs['input'])
 
         # Split File and Target dependencies to add pass to CustomTarget
-        depends: T.List['SourceOutputs'] = []
-        depend_files: T.List[File] = []
+        depends  = []
+        depend_files  = []
         for d in _deps:
             if isinstance(d, File):
                 depend_files.append(d)
             else:
                 depends.append(d)
 
-        inc_strs: T.List[str] = []
+        inc_strs  = []
         for i in kwargs['include_directories']:
             # bindgen always uses clang, so it's safe to hardcode -I here
             inc_strs.extend(['-I{}'.format((x)) for x in i.to_string_list(
@@ -178,7 +178,7 @@ class RustModule(ExtensionModule):
         if self._bindgen_bin is None:
             self._bindgen_bin = state.find_program('bindgen')
 
-        name: str
+        #name: str
         if isinstance(header, File):
             name = header.fname
         elif isinstance(header, (BuildTarget, BothLibraries, ExtractedObjects, StructuredSources)):
@@ -206,5 +206,5 @@ class RustModule(ExtensionModule):
         return ModuleReturnValue([target], [target])
 
 
-def initialize(interp: 'Interpreter') -> RustModule:
+def initialize(interp )  :
     return RustModule(interp)

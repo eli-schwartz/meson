@@ -21,7 +21,7 @@ from ..mesonlib import OptionKey
 
 # This could also be used for XCode.
 
-def need_regen(regeninfo: RegenInfo, regen_timestamp: float) -> bool:
+def need_regen(regeninfo , regen_timestamp )  :
     for i in regeninfo.depfiles:
         curfile = os.path.join(regeninfo.build_dir, i)
         curtime = os.stat(curfile).st_mtime
@@ -35,7 +35,7 @@ def need_regen(regeninfo: RegenInfo, regen_timestamp: float) -> bool:
     Vs2010Backend.touch_regen_timestamp(regeninfo.build_dir)
     return False
 
-def regen(regeninfo: RegenInfo, meson_command: T.List[str], backend: str) -> None:
+def regen(regeninfo , meson_command , backend )  :
     cmd = meson_command + ['--internal',
                            'regenerate',
                            regeninfo.build_dir,
@@ -43,7 +43,7 @@ def regen(regeninfo: RegenInfo, meson_command: T.List[str], backend: str) -> Non
                            '--backend=' + backend]
     subprocess.check_call(cmd)
 
-def run(args: T.List[str]) -> int:
+def run(args )  :
     private_dir = args[0]
     dumpfile = os.path.join(private_dir, 'regeninfo.dump')
     coredata_file = os.path.join(private_dir, 'coredata.dat')

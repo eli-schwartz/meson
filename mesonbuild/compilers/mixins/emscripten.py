@@ -34,7 +34,7 @@ else:
     Compiler = object
 
 
-def wrap_js_includes(args: T.List[str]) -> T.List[str]:
+def wrap_js_includes(args )  :
     final_args = []
     for i in args:
         if i.endswith('.js') and not i.startswith('-'):
@@ -45,7 +45,7 @@ def wrap_js_includes(args: T.List[str]) -> T.List[str]:
 
 class EmscriptenMixin(Compiler):
 
-    def _get_compile_output(self, dirname: str, mode: str) -> str:
+    def _get_compile_output(self, dirname , mode )  :
         # In pre-processor mode, the output is sent to stdout and discarded
         if mode == 'preprocess':
             return None
@@ -58,17 +58,17 @@ class EmscriptenMixin(Compiler):
             suffix = 'o'
         return os.path.join(dirname, 'output.' + suffix)
 
-    def thread_flags(self, env: 'Environment') -> T.List[str]:
+    def thread_flags(self, env )  :
         return ['-s', 'USE_PTHREADS=1']
 
-    def thread_link_flags(self, env: 'Environment') -> T.List[str]:
+    def thread_link_flags(self, env )  :
         args = ['-s', 'USE_PTHREADS=1']
-        count: int = env.coredata.options[OptionKey('thread_count', lang=self.language, machine=self.for_machine)].value
+        count  = env.coredata.options[OptionKey('thread_count', lang=self.language, machine=self.for_machine)].value
         if count:
             args.extend(['-s', 'PTHREAD_POOL_SIZE={}'.format((count))])
         return args
 
-    def get_options(self) -> 'coredata.KeyedOptionDictType':
+    def get_options(self)  :
         opts = super().get_options()
         key = OptionKey('thread_count', machine=self.for_machine, lang=self.language)
         opts.update({
@@ -81,14 +81,14 @@ class EmscriptenMixin(Compiler):
         return opts
 
     @classmethod
-    def native_args_to_unix(cls, args: T.List[str]) -> T.List[str]:
+    def native_args_to_unix(cls, args )  :
         return wrap_js_includes(super().native_args_to_unix(args))
 
-    def get_dependency_link_args(self, dep: 'Dependency') -> T.List[str]:
+    def get_dependency_link_args(self, dep )  :
         return wrap_js_includes(super().get_dependency_link_args(dep))
 
-    def find_library(self, libname: str, env: 'Environment', extra_dirs: T.List[str],
-                     libtype: LibType = LibType.PREFER_SHARED) -> T.Optional[T.List[str]]:
+    def find_library(self, libname , env , extra_dirs ,
+                     libtype  = LibType.PREFER_SHARED)  :
         if not libname.endswith('.js'):
             return super().find_library(libname, env, extra_dirs, libtype)
         if os.path.isabs(libname):

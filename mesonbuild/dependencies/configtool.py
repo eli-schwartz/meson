@@ -35,12 +35,12 @@ class ConfigToolDependency(ExternalDependency):
         Because some tools are stupid and don't return 0
     """
 
-    tools: T.Optional[T.List[str]] = None
-    tool_name: T.Optional[str] = None
+    tools  = None
+    tool_name  = None
     version_arg = '--version'
     __strip_version = re.compile(r'^[0-9][0-9.]+')
 
-    def __init__(self, name: str, environment: 'Environment', kwargs: T.Dict[str, T.Any], language: T.Optional[str] = None):
+    def __init__(self, name , environment , kwargs  , language  = None):
         super().__init__(DependencyTypeName('config-tool'), environment, kwargs, language=language)
         self.name = name
         # You may want to overwrite the class version in some cases
@@ -63,7 +63,7 @@ class ConfigToolDependency(ExternalDependency):
             return
         self.version = version
 
-    def _sanitize_version(self, version: str) -> str:
+    def _sanitize_version(self, version )  :
         """Remove any non-numeric, non-point version suffixes."""
         m = self.__strip_version.match(version)
         if m:
@@ -72,12 +72,12 @@ class ConfigToolDependency(ExternalDependency):
             return m.group(0).rstrip('.')
         return version
 
-    def find_config(self, versions: T.List[str], returncode: int = 0) \
-            -> T.Tuple[T.Optional[T.List[str]], T.Optional[str]]:
+    def find_config(self, versions , returncode  = 0)\
+              :
         """Helper method that searches for config tool binaries in PATH and
         returns the one that best matches the given version requirements.
         """
-        best_match: T.Tuple[T.Optional[T.List[str]], T.Optional[str]] = (None, None)
+        best_match   = (None, None)
         for potential_bin in find_external_program(
                 self.env, self.for_machine, self.tool_name,
                 self.tool_name, self.tools, allow_default_for_cross=False):
@@ -112,10 +112,10 @@ class ConfigToolDependency(ExternalDependency):
 
         return best_match
 
-    def report_config(self, version: T.Optional[str], req_version: T.List[str]) -> bool:
+    def report_config(self, version , req_version )  :
         """Helper method to print messages about the tool."""
 
-        found_msg: T.List[T.Union[str, mlog.AnsiDecorator]] = [mlog.bold(self.tool_name), 'found:']
+        found_msg   = [mlog.bold(self.tool_name), 'found:']
 
         if self.config is None:
             found_msg.append(mlog.red('NO'))
@@ -130,7 +130,7 @@ class ConfigToolDependency(ExternalDependency):
 
         return self.config is not None
 
-    def get_config_value(self, args: T.List[str], stage: str) -> T.List[str]:
+    def get_config_value(self, args , stage )  :
         p, out, err = Popen_safe(self.config + args)
         if p.returncode != 0:
             if self.required:
@@ -138,7 +138,7 @@ class ConfigToolDependency(ExternalDependency):
             return []
         return split_args(out)
 
-    def get_configtool_variable(self, variable_name: str) -> str:
+    def get_configtool_variable(self, variable_name )  :
         p, out, _ = Popen_safe(self.config + ['--{}'.format((variable_name))])
         if p.returncode != 0:
             if self.required:
@@ -149,13 +149,13 @@ class ConfigToolDependency(ExternalDependency):
         mlog.debug('Got config-tool variable {} : {}'.format((variable_name), (variable)))
         return variable
 
-    def log_tried(self) -> str:
+    def log_tried(self)  :
         return self.type_name
 
-    def get_variable(self, *, cmake: T.Optional[str] = None, pkgconfig: T.Optional[str] = None,
-                     configtool: T.Optional[str] = None, internal: T.Optional[str] = None,
-                     default_value: T.Optional[str] = None,
-                     pkgconfig_define: T.Optional[T.List[str]] = None) -> T.Union[str, T.List[str]]:
+    def get_variable(self, *, cmake  = None, pkgconfig  = None,
+                     configtool  = None, internal  = None,
+                     default_value  = None,
+                     pkgconfig_define  = None)   :
         if configtool:
             # In the not required case '' (empty string) will be returned if the
             # variable is not found. Since '' is a valid value to return we

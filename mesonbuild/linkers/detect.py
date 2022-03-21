@@ -41,7 +41,7 @@ if T.TYPE_CHECKING:
     from ..compilers import Compiler
     from ..mesonlib import MachineChoice
 
-defaults: T.Dict[str, T.List[str]] = {}
+defaults   = {}
 defaults['static_linker'] = ['ar', 'gar']
 defaults['vs_static_linker'] = ['lib']
 defaults['clang_cl_static_linker'] = ['llvm-lib']
@@ -49,16 +49,16 @@ defaults['cuda_static_linker'] = ['nvlink']
 defaults['gcc_static_linker'] = ['gcc-ar']
 defaults['clang_static_linker'] = ['llvm-ar']
 
-def __failed_to_detect_linker(compiler: T.List[str], args: T.List[str], stdout: str, stderr: str) -> 'T.NoReturn':
+def __failed_to_detect_linker(compiler , args , stdout , stderr )  :
     msg = 'Unable to detect linker for compiler "{} {}"\nstdout: {}\nstderr: {}'.format(
         ' '.join(compiler), ' '.join(args), stdout, stderr)
     raise EnvironmentException(msg)
 
 
-def guess_win_linker(env: 'Environment', compiler: T.List[str], comp_class: T.Type['Compiler'],
-                     for_machine: MachineChoice, *,
-                     use_linker_prefix: bool = True, invoked_directly: bool = True,
-                     extra_args: T.Optional[T.List[str]] = None) -> 'DynamicLinker':
+def guess_win_linker(env , compiler , comp_class ,
+                     for_machine , *,
+                     use_linker_prefix  = True, invoked_directly  = True,
+                     extra_args  = None)  :
     env.coredata.add_lang_args(comp_class.language, comp_class, for_machine, env)
 
     # Explicitly pass logo here so that we can get the version of link.exe
@@ -125,9 +125,9 @@ def guess_win_linker(env: 'Environment', compiler: T.List[str], comp_class: T.Ty
             "You may need to reorder entries to your %PATH% variable to resolve this.".format((fullpath)))
     __failed_to_detect_linker(compiler, check_args, o, e)
 
-def guess_nix_linker(env: 'Environment', compiler: T.List[str], comp_class: T.Type['Compiler'],
-                     for_machine: MachineChoice, *,
-                     extra_args: T.Optional[T.List[str]] = None) -> 'DynamicLinker':
+def guess_nix_linker(env , compiler , comp_class ,
+                     for_machine , *,
+                     extra_args  = None)  :
     """Helper for guessing what linker to use on Unix-Like OSes.
 
     :compiler: Invocation to use to get linker
@@ -152,7 +152,7 @@ def guess_nix_linker(env: 'Environment', compiler: T.List[str], comp_class: T.Ty
 
     _, o, e = Popen_safe(compiler + check_args)
     v = search_version(o + e)
-    linker: DynamicLinker
+    #linker: DynamicLinker
     if 'LLD' in o.split('\n')[0]:
         linker = LLVMDynamicLinker(
             compiler, for_machine, comp_class.LINKER_PREFIX, override, version=v)
@@ -191,7 +191,7 @@ def guess_nix_linker(env: 'Environment', compiler: T.List[str], comp_class: T.Ty
             v = 'unknown version'
         linker = AppleDynamicLinker(compiler, for_machine, comp_class.LINKER_PREFIX, override, version=v)
     elif 'GNU' in o or 'GNU' in e:
-        cls: T.Type[GnuDynamicLinker]
+        #cls: T.Type[GnuDynamicLinker]
         if 'gold' in o or 'gold' in e:
             cls = GnuGoldDynamicLinker
         else:

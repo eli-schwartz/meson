@@ -36,12 +36,12 @@ parser.add_argument('args', nargs='+')
 TOOL_WARNING_FILE = None
 RELINKING_WARNING = 'Relinking will always happen on source changes.'
 
-def dummy_syms(outfilename: str) -> None:
+def dummy_syms(outfilename )  :
     """Just touch it so relinking happens always."""
     with open(outfilename, 'w', encoding='utf-8'):
         pass
 
-def write_if_changed(text: str, outfilename: str) -> None:
+def write_if_changed(text , outfilename )  :
     try:
         with open(outfilename, encoding='utf-8') as f:
             oldtext = f.read()
@@ -52,7 +52,7 @@ def write_if_changed(text: str, outfilename: str) -> None:
     with open(outfilename, 'w', encoding='utf-8') as f:
         f.write(text)
 
-def print_tool_warning(tools: T.List[str], msg: str, stderr: T.Optional[str] = None) -> None:
+def print_tool_warning(tools , msg , stderr  = None)  :
     global TOOL_WARNING_FILE
     if os.path.exists(TOOL_WARNING_FILE):
         return
@@ -64,14 +64,14 @@ def print_tool_warning(tools: T.List[str], msg: str, stderr: T.Optional[str] = N
     with open(TOOL_WARNING_FILE, 'w', encoding='utf-8'):
         pass
 
-def get_tool(name: str) -> T.List[str]:
+def get_tool(name )  :
     evar = name.upper()
     if evar in os.environ:
         import shlex
         return shlex.split(os.environ[evar])
     return [name]
 
-def call_tool(name: str, args: T.List[str], **kwargs: T.Any) -> str:
+def call_tool(name , args , **kwargs )  :
     tool = get_tool(name)
     try:
         p, output, e = Popen_safe(tool + args, **kwargs)
@@ -86,7 +86,7 @@ def call_tool(name: str, args: T.List[str], **kwargs: T.Any) -> str:
         return None
     return output
 
-def call_tool_nowarn(tool: T.List[str], **kwargs: T.Any) -> T.Tuple[str, str]:
+def call_tool_nowarn(tool , **kwargs )   :
     try:
         p, output, e = Popen_safe(tool, **kwargs)
     except FileNotFoundError:
@@ -97,7 +97,7 @@ def call_tool_nowarn(tool: T.List[str], **kwargs: T.Any) -> T.Tuple[str, str]:
         return None, e
     return output, None
 
-def gnu_syms(libfilename: str, outfilename: str) -> None:
+def gnu_syms(libfilename , outfilename )  :
     # Get the name of the library
     output = call_tool('readelf', ['-d', libfilename])
     if not output:
@@ -124,7 +124,7 @@ def gnu_syms(libfilename: str, outfilename: str) -> None:
         result += [' '.join(entry)]
     write_if_changed('\n'.join(result) + '\n', outfilename)
 
-def solaris_syms(libfilename: str, outfilename: str) -> None:
+def solaris_syms(libfilename , outfilename )  :
     # gnu_syms() works with GNU nm & readelf, not Solaris nm & elfdump
     origpath = os.environ['PATH']
     try:
@@ -133,7 +133,7 @@ def solaris_syms(libfilename: str, outfilename: str) -> None:
     finally:
         os.environ['PATH'] = origpath
 
-def osx_syms(libfilename: str, outfilename: str) -> None:
+def osx_syms(libfilename , outfilename )  :
     # Get the name of the library
     output = call_tool('otool', ['-l', libfilename])
     if not output:
@@ -154,7 +154,7 @@ def osx_syms(libfilename: str, outfilename: str) -> None:
     result += [' '.join(x.split()[0:2]) for x in output.split('\n')]
     write_if_changed('\n'.join(result) + '\n', outfilename)
 
-def openbsd_syms(libfilename: str, outfilename: str) -> None:
+def openbsd_syms(libfilename , outfilename )  :
     # Get the name of the library
     output = call_tool('readelf', ['-d', libfilename])
     if not output:
@@ -171,7 +171,7 @@ def openbsd_syms(libfilename: str, outfilename: str) -> None:
     result += [' '.join(x.split()[0:2]) for x in output.split('\n') if x and not x.endswith('U ')]
     write_if_changed('\n'.join(result) + '\n', outfilename)
 
-def freebsd_syms(libfilename: str, outfilename: str) -> None:
+def freebsd_syms(libfilename , outfilename )  :
     # Get the name of the library
     output = call_tool('readelf', ['-d', libfilename])
     if not output:
@@ -189,7 +189,7 @@ def freebsd_syms(libfilename: str, outfilename: str) -> None:
     result += [' '.join(x.split()[0:2]) for x in output.split('\n')]
     write_if_changed('\n'.join(result) + '\n', outfilename)
 
-def cygwin_syms(impfilename: str, outfilename: str) -> None:
+def cygwin_syms(impfilename , outfilename )  :
     # Get the name of the library
     output = call_tool('dlltool', ['-I', impfilename])
     if not output:
@@ -208,7 +208,7 @@ def cygwin_syms(impfilename: str, outfilename: str) -> None:
         result.append(line.split(maxsplit=1)[0])
     write_if_changed('\n'.join(result) + '\n', outfilename)
 
-def _get_implib_dllname(impfilename: str) -> T.Tuple[T.List[str], str]:
+def _get_implib_dllname(impfilename )   :
     all_stderr = ''
     # First try lib.exe, which is provided by MSVC. Then llvm-lib.exe, by LLVM
     # for clang-cl.
@@ -232,7 +232,7 @@ def _get_implib_dllname(impfilename: str) -> T.Tuple[T.List[str], str]:
     all_stderr += e
     return ([], all_stderr)
 
-def _get_implib_exports(impfilename: str) -> T.Tuple[T.List[str], str]:
+def _get_implib_exports(impfilename )   :
     all_stderr = ''
     # Force dumpbin.exe to use en-US so we can parse its output
     env = os.environ.copy()
@@ -258,7 +258,7 @@ def _get_implib_exports(impfilename: str) -> T.Tuple[T.List[str], str]:
         all_stderr += e
     return ([], all_stderr)
 
-def windows_syms(impfilename: str, outfilename: str) -> None:
+def windows_syms(impfilename , outfilename )  :
     # Get the name of the library
     result, e = _get_implib_dllname(impfilename)
     if not result:
@@ -274,7 +274,7 @@ def windows_syms(impfilename: str, outfilename: str) -> None:
     result += symbols
     write_if_changed('\n'.join(result) + '\n', outfilename)
 
-def gen_symbols(libfilename: str, impfilename: str, outfilename: str, cross_host: str) -> None:
+def gen_symbols(libfilename , impfilename , outfilename , cross_host )  :
     if cross_host is not None:
         # In case of cross builds just always relink. In theory we could
         # determine the correct toolset, but we would need to use the correct
@@ -313,7 +313,7 @@ def gen_symbols(libfilename: str, impfilename: str, outfilename: str, cross_host
                 pass
         dummy_syms(outfilename)
 
-def run(args: T.List[str]) -> int:
+def run(args )  :
     global TOOL_WARNING_FILE
     options = parser.parse_args(args)
     if len(options.args) != 4:

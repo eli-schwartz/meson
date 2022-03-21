@@ -14,24 +14,24 @@ if T.TYPE_CHECKING:
     from ...interpreterbase import SubProject
 
 class RangeHolder(MesonInterpreterObject, IterableObject):
-    def __init__(self, start: int, stop: int, step: int, *, subproject: 'SubProject') -> None:
+    def __init__(self, start , stop , step , *, subproject )  :
         super().__init__(subproject=subproject)
         self.range = range(start, stop, step)
         self.operators.update({
             MesonOperator.INDEX: self.op_index,
         })
 
-    def op_index(self, other: int) -> int:
+    def op_index(self, other )  :
         try:
             return self.range[other]
         except IndexError:
             raise InvalidArguments('Index {} out of bounds of range.'.format((other)))
 
-    def iter_tuple_size(self) -> None:
+    def iter_tuple_size(self)  :
         return None
 
-    def iter_self(self) -> T.Iterator[int]:
+    def iter_self(self)  :
         return iter(self.range)
 
-    def size(self) -> int:
+    def size(self)  :
         return len(self.range)

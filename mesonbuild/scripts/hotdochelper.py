@@ -15,7 +15,7 @@ parser.add_argument('--builddir')
 parser.add_argument('--project-version')
 
 
-def run(argv: T.List[str]) -> int:
+def run(argv )  :
     options, args = parser.parse_known_args(argv)
     subenv = os.environ.copy()
 

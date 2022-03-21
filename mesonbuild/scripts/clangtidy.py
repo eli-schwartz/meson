@@ -19,10 +19,10 @@ from pathlib import Path
 from .run_tool import run_tool
 import typing as T
 
-def run_clang_tidy(fname: Path, builddir: Path) -> subprocess.CompletedProcess:
+def run_clang_tidy(fname , builddir )  :
     return subprocess.run(['clang-tidy', '-p', str(builddir), str(fname)])
 
-def run(args: T.List[str]) -> int:
+def run(args )  :
     parser = argparse.ArgumentParser()
     parser.add_argument('sourcedir')
     parser.add_argument('builddir')

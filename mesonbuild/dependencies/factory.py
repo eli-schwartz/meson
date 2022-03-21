@@ -76,27 +76,24 @@ class DependencyFactory:
         set this argument.
     """
 
-    def __init__(self, name: str, methods: T.List[DependencyMethods], *,
-                 extra_kwargs: T.Optional[T.Dict[str, T.Any]] = None,
-                 pkgconfig_name: T.Optional[str] = None,
-                 pkgconfig_class: 'T.Type[PkgConfigDependency]' = PkgConfigDependency,
-                 cmake_name: T.Optional[str] = None,
-                 cmake_class: 'T.Union[T.Type[CMakeDependency], CmakeDependencyFunc]' = CMakeDependency,
-                 configtool_class: 'T.Optional[T.Type[ConfigToolDependency]]' = None,
-                 framework_name: T.Optional[str] = None,
-                 framework_class: 'T.Type[ExtraFrameworkDependency]' = ExtraFrameworkDependency,
-                 builtin_class: 'T.Type[BuiltinDependency]' = BuiltinDependency,
-                 system_class: 'T.Type[SystemDependency]' = SystemDependency):
+    def __init__(self, name , methods , *,
+                 extra_kwargs   = None,
+                 pkgconfig_name  = None,
+                 pkgconfig_class  = PkgConfigDependency,
+                 cmake_name  = None,
+                 cmake_class  = CMakeDependency,
+                 configtool_class  = None,
+                 framework_name  = None,
+                 framework_class  = ExtraFrameworkDependency,
+                 builtin_class  = BuiltinDependency,
+                 system_class  = SystemDependency):
 
         if DependencyMethods.CONFIG_TOOL in methods and not configtool_class:
             raise DependencyException('A configtool must have a custom class')
 
         self.extra_kwargs = extra_kwargs or {}
         self.methods = methods
-        self.classes: T.Dict[
-            DependencyMethods,
-            T.Callable[['Environment', T.Dict[str, T.Any]], ExternalDependency]
-        ] = {
+        self.classes                                     = {
             # Just attach the correct name right now, either the generic name
             # or the method specific name.
             DependencyMethods.EXTRAFRAMEWORK: lambda env, kwargs: framework_class(framework_name or name, env, kwargs),
@@ -106,11 +103,14 @@ class DependencyFactory:
             DependencyMethods.BUILTIN:        lambda env, kwargs: builtin_class(name, env, kwargs),
             DependencyMethods.CONFIG_TOOL:    None,
         }
+
+
+
         if configtool_class is not None:
             self.classes[DependencyMethods.CONFIG_TOOL] = lambda env, kwargs: configtool_class(name, env, kwargs)
 
     @staticmethod
-    def _process_method(method: DependencyMethods, env: 'Environment', for_machine: MachineChoice) -> bool:
+    def _process_method(method , env , for_machine )  :
         """Report whether a method is valid or not.
 
         If the method is valid, return true, otherwise return false. This is
@@ -124,8 +124,8 @@ class DependencyFactory:
             return False
         return True
 
-    def __call__(self, env: 'Environment', for_machine: MachineChoice,
-                 kwargs: T.Dict[str, T.Any]) -> T.List['DependencyGenerator']:
+    def __call__(self, env , for_machine ,
+                 kwargs  )  :
         """Return a list of Dependencies with the arguments already attached."""
         methods = process_method_kw(self.methods, kwargs)
         nwargs = self.extra_kwargs.copy()
@@ -135,7 +135,7 @@ class DependencyFactory:
                 if self._process_method(m, env, for_machine)]
 
 
-def factory_methods(methods: T.Set[DependencyMethods]) -> T.Callable[['FactoryFunc'], 'WrappedFactoryFunc']:
+def factory_methods(methods )   :
     """Decorator for handling methods for dependency factory functions.
 
     This helps to make factory functions self documenting
@@ -144,10 +144,10 @@ def factory_methods(methods: T.Set[DependencyMethods]) -> T.Callable[['FactoryFu
     >>>     pass
     """
 
-    def inner(func: 'FactoryFunc') -> 'WrappedFactoryFunc':
+    def inner(func )  :
 
         @functools.wraps(func)
-        def wrapped(env: 'Environment', for_machine: MachineChoice, kwargs: T.Dict[str, T.Any]) -> T.List['DependencyGenerator']:
+        def wrapped(env , for_machine , kwargs  )  :
             return func(env, for_machine, kwargs, process_method_kw(methods, kwargs))
 
         return wrapped

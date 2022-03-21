@@ -20,46 +20,46 @@ from .. import mparser
 import typing as T
 
 class AstIndentationGenerator(AstVisitor):
-    def __init__(self) -> None:
+    def __init__(self)  :
         self.level = 0
 
-    def visit_default_func(self, node: mparser.BaseNode) -> None:
+    def visit_default_func(self, node )  :
         # Store the current level in the node
         node.level = self.level
 
-    def visit_ArrayNode(self, node: mparser.ArrayNode) -> None:
+    def visit_ArrayNode(self, node )  :
         self.visit_default_func(node)
         self.level += 1
         node.args.accept(self)
         self.level -= 1
 
-    def visit_DictNode(self, node: mparser.DictNode) -> None:
+    def visit_DictNode(self, node )  :
         self.visit_default_func(node)
         self.level += 1
         node.args.accept(self)
         self.level -= 1
 
-    def visit_MethodNode(self, node: mparser.MethodNode) -> None:
+    def visit_MethodNode(self, node )  :
         self.visit_default_func(node)
         node.source_object.accept(self)
         self.level += 1
         node.args.accept(self)
         self.level -= 1
 
-    def visit_FunctionNode(self, node: mparser.FunctionNode) -> None:
+    def visit_FunctionNode(self, node )  :
         self.visit_default_func(node)
         self.level += 1
         node.args.accept(self)
         self.level -= 1
 
-    def visit_ForeachClauseNode(self, node: mparser.ForeachClauseNode) -> None:
+    def visit_ForeachClauseNode(self, node )  :
         self.visit_default_func(node)
         self.level += 1
         node.items.accept(self)
         node.block.accept(self)
         self.level -= 1
 
-    def visit_IfClauseNode(self, node: mparser.IfClauseNode) -> None:
+    def visit_IfClauseNode(self, node )  :
         self.visit_default_func(node)
         for i in node.ifs:
             i.accept(self)
@@ -68,7 +68,7 @@ class AstIndentationGenerator(AstVisitor):
             node.elseblock.accept(self)
             self.level -= 1
 
-    def visit_IfNode(self, node: mparser.IfNode) -> None:
+    def visit_IfNode(self, node )  :
         self.visit_default_func(node)
         self.level += 1
         node.condition.accept(self)
@@ -76,10 +76,10 @@ class AstIndentationGenerator(AstVisitor):
         self.level -= 1
 
 class AstIDGenerator(AstVisitor):
-    def __init__(self) -> None:
+    def __init__(self)  :
         self.counter = {}  # type: T.Dict[str, int]
 
-    def visit_default_func(self, node: mparser.BaseNode) -> None:
+    def visit_default_func(self, node )  :
         name = type(node).__name__
         if name not in self.counter:
             self.counter[name] = 0
@@ -87,20 +87,20 @@ class AstIDGenerator(AstVisitor):
         self.counter[name] += 1
 
 class AstConditionLevel(AstVisitor):
-    def __init__(self) -> None:
+    def __init__(self)  :
         self.condition_level = 0
 
-    def visit_default_func(self, node: mparser.BaseNode) -> None:
+    def visit_default_func(self, node )  :
         node.condition_level = self.condition_level
 
-    def visit_ForeachClauseNode(self, node: mparser.ForeachClauseNode) -> None:
+    def visit_ForeachClauseNode(self, node )  :
         self.visit_default_func(node)
         self.condition_level += 1
         node.items.accept(self)
         node.block.accept(self)
         self.condition_level -= 1
 
-    def visit_IfClauseNode(self, node: mparser.IfClauseNode) -> None:
+    def visit_IfClauseNode(self, node )  :
         self.visit_default_func(node)
         for i in node.ifs:
             i.accept(self)
@@ -109,7 +109,7 @@ class AstConditionLevel(AstVisitor):
             node.elseblock.accept(self)
             self.condition_level -= 1
 
-    def visit_IfNode(self, node: mparser.IfNode) -> None:
+    def visit_IfNode(self, node )  :
         self.visit_default_func(node)
         self.condition_level += 1
         node.condition.accept(self)

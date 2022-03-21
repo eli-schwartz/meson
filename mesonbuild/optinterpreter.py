@@ -51,8 +51,8 @@ optname_regex = re.compile('[^a-zA-Z0-9_-]')
 
 
 class OptionInterpreter:
-    def __init__(self, subproject: 'SubProject') -> None:
-        self.options: 'coredata.KeyedOptionDictType' = {}
+    def __init__(self, subproject )  :
+        self.options  = {}
         self.subproject = subproject
         self.option_types = {'string': self.string_parser,
                              'boolean': self.boolean_parser,
@@ -62,7 +62,7 @@ class OptionInterpreter:
                              'feature': self.feature_parser,
                              }
 
-    def process(self, option_file: str) -> None:
+    def process(self, option_file )  :
         try:
             with open(option_file, encoding='utf-8') as f:
                 ast = mparser.Parser(f.read(), option_file).parse()
@@ -87,7 +87,7 @@ class OptionInterpreter:
                 raise mesonlib.MesonException(
                     str(e), lineno=cur.lineno, colno=cur.colno, file=option_file)
 
-    def reduce_single(self, arg: T.Union[str, mparser.BaseNode]) -> 'TYPE_var':
+    def reduce_single(self, arg  )  :
         if isinstance(arg, str):
             return arg
         elif isinstance(arg, (mparser.StringNode, mparser.BooleanNode,
@@ -124,7 +124,7 @@ class OptionInterpreter:
         else:
             raise OptionException('Arguments may only be string, int, bool, or array of those.')
 
-    def reduce_arguments(self, args: mparser.ArgumentNode) -> T.Tuple['TYPE_var', 'TYPE_kwargs']:
+    def reduce_arguments(self, args )   :
         if args.incorrect_order():
             raise OptionException('All keyword arguments must be after positional arguments.')
         reduced_pos = [self.reduce_single(arg) for arg in args.arguments]
@@ -136,7 +136,7 @@ class OptionInterpreter:
             reduced_kw[key.value] = self.reduce_single(a)
         return reduced_pos, reduced_kw
 
-    def evaluate_statement(self, node: mparser.BaseNode) -> None:
+    def evaluate_statement(self, node )  :
         if not isinstance(node, mparser.FunctionNode):
             raise OptionException('Option file may only contain option definitions')
         func_name = node.func_name
@@ -157,7 +157,7 @@ class OptionInterpreter:
                             default=False, since='0.60.0')
                   )
     @typed_pos_args('option', str)
-    def func_option(self, args: T.Tuple[str], kwargs: 'FuncOptionArgs') -> None:
+    def func_option(self, args , kwargs )  :
         opt_name = args[0]
         if optname_regex.search(opt_name) is not None:
             raise OptionException('Option names can only contain letters, numbers or dashes.')
@@ -183,17 +183,17 @@ class OptionInterpreter:
         self.options[key] = opt
 
     @permittedKwargs({'value', 'yield'})
-    def string_parser(self, description: str, kwargs: 'ParserArgs') -> coredata.UserOption:
+    def string_parser(self, description , kwargs )  :
         value = kwargs.get('value', '')
         return coredata.UserStringOption(description, value, kwargs['yield'])
 
     @permittedKwargs({'value', 'yield'})
-    def boolean_parser(self, description: str, kwargs: 'ParserArgs') -> coredata.UserOption:
+    def boolean_parser(self, description , kwargs )  :
         value = kwargs.get('value', True)
         return coredata.UserBooleanOption(description, value, kwargs['yield'])
 
     @permittedKwargs({'value', 'yield', 'choices'})
-    def combo_parser(self, description: str, kwargs: 'ParserArgs') -> coredata.UserOption:
+    def combo_parser(self, description , kwargs )  :
         choices = kwargs.get('choices')
         if not choices:
             raise OptionException('Combo option missing "choices" keyword.')
@@ -201,7 +201,7 @@ class OptionInterpreter:
         return coredata.UserComboOption(description, choices, value, kwargs['yield'])
 
     @permittedKwargs({'value', 'min', 'max', 'yield'})
-    def integer_parser(self, description: str, kwargs: 'ParserArgs') -> coredata.UserOption:
+    def integer_parser(self, description , kwargs )  :
         value = kwargs.get('value')
         if value is None:
             raise OptionException('Integer option must contain value argument.')
@@ -209,7 +209,7 @@ class OptionInterpreter:
         return coredata.UserIntegerOption(description, inttuple, kwargs['yield'])
 
     @permittedKwargs({'value', 'yield', 'choices'})
-    def string_array_parser(self, description: str, kwargs: 'ParserArgs') -> coredata.UserOption:
+    def string_array_parser(self, description , kwargs )  :
         choices = kwargs.get('choices', [])
         value = kwargs.get('value', choices)
         if not isinstance(value, list):
@@ -219,6 +219,6 @@ class OptionInterpreter:
                                         yielding=kwargs['yield'])
 
     @permittedKwargs({'value', 'yield'})
-    def feature_parser(self, description: str, kwargs: 'ParserArgs') -> coredata.UserOption:
+    def feature_parser(self, description , kwargs )  :
         value = kwargs.get('value', 'auto')
         return coredata.UserFeatureOption(description, value, kwargs['yield'])

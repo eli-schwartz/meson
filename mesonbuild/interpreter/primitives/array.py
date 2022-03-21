@@ -27,7 +27,7 @@ if T.TYPE_CHECKING:
     from ...interpreterbase import TYPE_kwargs
 
 class ArrayHolder(ObjectHolder[T.List[TYPE_var]], IterableObject):
-    def __init__(self, obj: T.List[TYPE_var], interpreter: 'Interpreter') -> None:
+    def __init__(self, obj , interpreter )  :
         super().__init__(obj, interpreter)
         self.methods.update({
             'contains': self.contains_method,
@@ -48,23 +48,23 @@ class ArrayHolder(ObjectHolder[T.List[TYPE_var]], IterableObject):
             MesonOperator.INDEX: self.op_index,
         })
 
-    def display_name(self) -> str:
+    def display_name(self)  :
         return 'array'
 
-    def iter_tuple_size(self) -> None:
+    def iter_tuple_size(self)  :
         return None
 
-    def iter_self(self) -> T.Iterator[TYPE_var]:
+    def iter_self(self)  :
         return iter(self.held_object)
 
-    def size(self) -> int:
+    def size(self)  :
         return len(self.held_object)
 
     @noArgsFlattening
     @noKwargs
     @typed_pos_args('array.contains', object)
-    def contains_method(self, args: T.Tuple[object], kwargs: TYPE_kwargs) -> bool:
-        def check_contains(el: T.List[TYPE_var]) -> bool:
+    def contains_method(self, args , kwargs )  :
+        def check_contains(el )  :
             for element in el:
                 if isinstance(element, list):
                     found = check_contains(element)
@@ -77,13 +77,13 @@ class ArrayHolder(ObjectHolder[T.List[TYPE_var]], IterableObject):
 
     @noKwargs
     @noPosargs
-    def length_method(self, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> int:
+    def length_method(self, args , kwargs )  :
         return len(self.held_object)
 
     @noArgsFlattening
     @noKwargs
     @typed_pos_args('array.get', int, optargs=[object])
-    def get_method(self, args: T.Tuple[int, T.Optional[TYPE_var]], kwargs: TYPE_kwargs) -> TYPE_var:
+    def get_method(self, args  , kwargs )  :
         index = args[0]
         if index < -len(self.held_object) or index >= len(self.held_object):
             if args[1] is None:
@@ -92,7 +92,7 @@ class ArrayHolder(ObjectHolder[T.List[TYPE_var]], IterableObject):
         return self.held_object[index]
 
     @typed_operator(MesonOperator.PLUS, object)
-    def op_plus(self, other: TYPE_var) -> T.List[TYPE_var]:
+    def op_plus(self, other )  :
         if not isinstance(other, list):
             if not isinstance(self.current_node, PlusAssignmentNode):
                 FeatureNew.single_use('list.<plus>', '0.60.0', self.subproject, 'The right hand operand was not a list.',
@@ -101,7 +101,7 @@ class ArrayHolder(ObjectHolder[T.List[TYPE_var]], IterableObject):
         return self.held_object + other
 
     @typed_operator(MesonOperator.INDEX, int)
-    def op_index(self, other: int) -> TYPE_var:
+    def op_index(self, other )  :
         try:
             return self.held_object[other]
         except IndexError:

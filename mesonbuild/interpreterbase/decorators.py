@@ -36,10 +36,10 @@ if T.TYPE_CHECKING:
     _TV_ARG1 = T.TypeVar('_TV_ARG1', bound=TYPE_var, contravariant=True)
 
     class FN_Operator(Protocol[_TV_IntegerObject, _TV_ARG1]):
-        def __call__(s, self: _TV_IntegerObject, other: _TV_ARG1) -> TYPE_var: ...
+        def __call__(s, self , other )  : ...
     _TV_FN_Operator = T.TypeVar('_TV_FN_Operator', bound=FN_Operator)
 
-def get_callee_args(wrapped_args: T.Sequence[T.Any]) -> T.Tuple['mparser.BaseNode', T.List['TYPE_var'], 'TYPE_kwargs', 'SubProject']:
+def get_callee_args(wrapped_args )     :
     # First argument could be InterpreterBase, InterpreterObject or ModuleObject.
     # In the case of a ModuleObject it is the 2nd argument (ModuleState) that
     # contains the needed information.
@@ -54,27 +54,27 @@ def get_callee_args(wrapped_args: T.Sequence[T.Any]) -> T.Tuple['mparser.BaseNod
         kwargs = wrapped_args[-1]
     return node, args, kwargs, subproject
 
-def noPosargs(f: TV_func) -> TV_func:
+def noPosargs(f )  :
     @wraps(f)
-    def wrapped(*wrapped_args: T.Any, **wrapped_kwargs: T.Any) -> T.Any:
+    def wrapped(*wrapped_args , **wrapped_kwargs )  :
         args = get_callee_args(wrapped_args)[1]
         if args:
             raise InvalidArguments('Function does not take positional arguments.')
         return f(*wrapped_args, **wrapped_kwargs)
     return T.cast('TV_func', wrapped)
 
-def noKwargs(f: TV_func) -> TV_func:
+def noKwargs(f )  :
     @wraps(f)
-    def wrapped(*wrapped_args: T.Any, **wrapped_kwargs: T.Any) -> T.Any:
+    def wrapped(*wrapped_args , **wrapped_kwargs )  :
         kwargs = get_callee_args(wrapped_args)[2]
         if kwargs:
             raise InvalidArguments('Function does not take keyword arguments.')
         return f(*wrapped_args, **wrapped_kwargs)
     return T.cast('TV_func', wrapped)
 
-def stringArgs(f: TV_func) -> TV_func:
+def stringArgs(f )  :
     @wraps(f)
-    def wrapped(*wrapped_args: T.Any, **wrapped_kwargs: T.Any) -> T.Any:
+    def wrapped(*wrapped_args , **wrapped_kwargs )  :
         args = get_callee_args(wrapped_args)[1]
         if not isinstance(args, list):
             mlog.debug('Not a list:', str(args))
@@ -85,24 +85,24 @@ def stringArgs(f: TV_func) -> TV_func:
         return f(*wrapped_args, **wrapped_kwargs)
     return T.cast('TV_func', wrapped)
 
-def noArgsFlattening(f: TV_func) -> TV_func:
+def noArgsFlattening(f )  :
     setattr(f, 'no-args-flattening', True)  # noqa: B010
     return f
 
-def noSecondLevelHolderResolving(f: TV_func) -> TV_func:
+def noSecondLevelHolderResolving(f )  :
     setattr(f, 'no-second-level-holder-flattening', True)  # noqa: B010
     return f
 
-def unholder_return(f: TV_func) -> T.Callable[..., TYPE_var]:
+def unholder_return(f )   :
     @wraps(f)
-    def wrapped(*wrapped_args: T.Any, **wrapped_kwargs: T.Any) -> T.Any:
+    def wrapped(*wrapped_args , **wrapped_kwargs )  :
         res = f(*wrapped_args, **wrapped_kwargs)
         return _unholder(res)
     return T.cast('T.Callable[..., TYPE_var]', wrapped)
 
-def disablerIfNotFound(f: TV_func) -> TV_func:
+def disablerIfNotFound(f )  :
     @wraps(f)
-    def wrapped(*wrapped_args: T.Any, **wrapped_kwargs: T.Any) -> T.Any:
+    def wrapped(*wrapped_args , **wrapped_kwargs )  :
         kwargs = get_callee_args(wrapped_args)[2]
         disabler = kwargs.pop('disabler', False)
         ret = f(*wrapped_args, **wrapped_kwargs)
@@ -113,12 +113,12 @@ def disablerIfNotFound(f: TV_func) -> TV_func:
 
 class permittedKwargs:
 
-    def __init__(self, permitted: T.Set[str]):
+    def __init__(self, permitted ):
         self.permitted = permitted  # type: T.Set[str]
 
-    def __call__(self, f: TV_func) -> TV_func:
+    def __call__(self, f )  :
         @wraps(f)
-        def wrapped(*wrapped_args: T.Any, **wrapped_kwargs: T.Any) -> T.Any:
+        def wrapped(*wrapped_args , **wrapped_kwargs )  :
             kwargs = get_callee_args(wrapped_args)[2]
             unknowns = set(kwargs).difference(self.permitted)
             if unknowns:
@@ -127,32 +127,32 @@ class permittedKwargs:
             return f(*wrapped_args, **wrapped_kwargs)
         return T.cast('TV_func', wrapped)
 
-def typed_operator(operator: MesonOperator,
-                   types: T.Union[T.Type, T.Tuple[T.Type, ...]]) -> T.Callable[['_TV_FN_Operator'], '_TV_FN_Operator']:
+def typed_operator(operator ,
+                   types   )   :
     """Decorator that does type checking for operator calls.
 
     The principle here is similar to typed_pos_args, however much simpler
     since only one other object ever is passed
     """
-    def inner(f: '_TV_FN_Operator') -> '_TV_FN_Operator':
+    def inner(f )  :
         @wraps(f)
-        def wrapper(self: 'InterpreterObject', other: TYPE_var) -> TYPE_var:
+        def wrapper(self , other )  :
             if not isinstance(other, types):
                 raise InvalidArguments('The `{}` of {} does not accept objects of type {} ({})'.format((operator.value), (self.display_name()), (type(other).__name__), (other)))
             return f(self, other)
         return T.cast('_TV_FN_Operator', wrapper)
     return inner
 
-def unary_operator(operator: MesonOperator) -> T.Callable[['_TV_FN_Operator'], '_TV_FN_Operator']:
+def unary_operator(operator )   :
     """Decorator that does type checking for unary operator calls.
 
     This decorator is for unary operators that do not take any other objects.
     It should be impossible for a user to accidentally break this. Triggering
     this check always indicates a bug in the Meson interpreter.
     """
-    def inner(f: '_TV_FN_Operator') -> '_TV_FN_Operator':
+    def inner(f )  :
         @wraps(f)
-        def wrapper(self: 'InterpreterObject', other: TYPE_var) -> TYPE_var:
+        def wrapper(self , other )  :
             if other is not None:
                 raise mesonlib.MesonBugException('The unary operator `{}` of {} was passed the object {} of type {}'.format((operator.value), (self.display_name()), (other), (type(other).__name__)))
             return f(self, other)
@@ -160,10 +160,10 @@ def unary_operator(operator: MesonOperator) -> T.Callable[['_TV_FN_Operator'], '
     return inner
 
 
-def typed_pos_args(name: str, *types: T.Union[T.Type, T.Tuple[T.Type, ...]],
-                   varargs: T.Optional[T.Union[T.Type, T.Tuple[T.Type, ...]]] = None,
-                   optargs: T.Optional[T.List[T.Union[T.Type, T.Tuple[T.Type, ...]]]] = None,
-                   min_varargs: int = 0, max_varargs: int = 0) -> T.Callable[..., T.Any]:
+def typed_pos_args(name , *types   ,
+                   varargs    = None,
+                   optargs    = None,
+                   min_varargs  = 0, max_varargs  = 0)   :
     """Decorator that types type checking of positional arguments.
 
     This supports two different models of optional arguments, the first is the
@@ -208,17 +208,17 @@ def typed_pos_args(name: str, *types: T.Union[T.Type, T.Tuple[T.Type, ...]],
     correct, all of the arguments are string names of files. If the first
     argument is something else the it should be separated.
     """
-    def inner(f: TV_func) -> TV_func:
+    def inner(f )  :
 
         @wraps(f)
-        def wrapper(*wrapped_args: T.Any, **wrapped_kwargs: T.Any) -> T.Any:
+        def wrapper(*wrapped_args , **wrapped_kwargs )  :
             args = get_callee_args(wrapped_args)[1]
 
             # These are implementation programming errors, end users should never see them.
             assert isinstance(args, list), args
             assert max_varargs >= 0, 'max_varags cannot be negative'
             assert min_varargs >= 0, 'min_varags cannot be negative'
-            assert optargs is None or varargs is None, \
+            assert optargs is None or varargs is None,\
                 'varargs and optargs not supported together as this would be ambiguous'
 
             num_args = len(args)
@@ -297,14 +297,14 @@ class ContainerTypeInfo:
         not be empty, and other cases where an empty container is allowed.
     """
 
-    def __init__(self, container: T.Type, contains: T.Union[T.Type, T.Tuple[T.Type, ...]], *,
-                 pairs: bool = False, allow_empty: bool = True):
+    def __init__(self, container , contains   , *,
+                 pairs  = False, allow_empty  = True):
         self.container = container
         self.contains = contains
         self.pairs = pairs
         self.allow_empty = allow_empty
 
-    def check(self, value: T.Any) -> bool:
+    def check(self, value )  :
         """Check that a value is valid.
 
         :param value: A value to check
@@ -322,7 +322,7 @@ class ContainerTypeInfo:
             return False
         return True
 
-    def description(self) -> str:
+    def description(self)  :
         """Human readable description of this container type.
 
         :return: string to be printed
@@ -383,19 +383,19 @@ class KwargInfo(T.Generic[_T]):
     :param not_set_warning: A warning message that is logged if the kwarg is not
         set by the user.
     """
-    def __init__(self, name: str,
-                 types: T.Union[T.Type[_T], T.Tuple[T.Union[T.Type[_T], ContainerTypeInfo], ...], ContainerTypeInfo],
-                 *, required: bool = False, listify: bool = False,
-                 default: T.Optional[_T] = None,
-                 since: T.Optional[str] = None,
-                 since_message: T.Optional[str] = None,
-                 since_values: T.Optional[T.Dict[_T, T.Union[str, T.Tuple[str, str]]]] = None,
-                 deprecated: T.Optional[str] = None,
-                 deprecated_message: T.Optional[str] = None,
-                 deprecated_values: T.Optional[T.Dict[_T, T.Union[str, T.Tuple[str, str]]]] = None,
-                 validator: T.Optional[T.Callable[[T.Any], T.Optional[str]]] = None,
-                 convertor: T.Optional[T.Callable[[_T], object]] = None,
-                 not_set_warning: T.Optional[str] = None):
+    def __init__(self, name ,
+                 types     ,
+                 *, required  = False, listify  = False,
+                 default  = None,
+                 since  = None,
+                 since_message  = None,
+                 since_values     = None,
+                 deprecated  = None,
+                 deprecated_message  = None,
+                 deprecated_values     = None,
+                 validator   = None,
+                 convertor   = None,
+                 not_set_warning  = None):
         self.name = name
         self.types = types
         self.required = required
@@ -412,18 +412,18 @@ class KwargInfo(T.Generic[_T]):
         self.not_set_warning = not_set_warning
 
     def evolve(self, *,
-               name: T.Union[str, _NULL_T] = _NULL,
-               required: T.Union[bool, _NULL_T] = _NULL,
-               listify: T.Union[bool, _NULL_T] = _NULL,
-               default: T.Union[_T, None, _NULL_T] = _NULL,
-               since: T.Union[str, None, _NULL_T] = _NULL,
-               since_message: T.Union[str, None, _NULL_T] = _NULL,
-               since_values: T.Union[T.Dict[_T, T.Union[str, T.Tuple[str, str]]], None, _NULL_T] = _NULL,
-               deprecated: T.Union[str, None, _NULL_T] = _NULL,
-               deprecated_message: T.Union[str, None, _NULL_T] = _NULL,
-               deprecated_values: T.Union[T.Dict[_T, T.Union[str, T.Tuple[str, str]]], None, _NULL_T] = _NULL,
-               validator: T.Union[T.Callable[[_T], T.Optional[str]], None, _NULL_T] = _NULL,
-               convertor: T.Union[T.Callable[[_T], TYPE_var], None, _NULL_T] = _NULL) -> 'KwargInfo':
+               name   = _NULL,
+               required   = _NULL,
+               listify   = _NULL,
+               default    = _NULL,
+               since    = _NULL,
+               since_message    = _NULL,
+               since_values       = _NULL,
+               deprecated    = _NULL,
+               deprecated_message    = _NULL,
+               deprecated_values       = _NULL,
+               validator     = _NULL,
+               convertor     = _NULL)  :
         """Create a shallow copy of this KwargInfo, with modifications.
 
         This allows us to create a new copy of a KwargInfo with modifications.
@@ -452,7 +452,7 @@ class KwargInfo(T.Generic[_T]):
         )
 
 
-def typed_kwargs(name: str, *types: KwargInfo) -> T.Callable[..., T.Any]:
+def typed_kwargs(name , *types )   :
     """Decorator for type checking keyword arguments.
 
     Used to wrap a meson DSL implementation function, where it checks various
@@ -467,9 +467,9 @@ def typed_kwargs(name: str, *types: KwargInfo) -> T.Callable[..., T.Any]:
         (if applicable)
     :param *types: KwargInfo entries for each keyword argument.
     """
-    def inner(f: TV_func) -> TV_func:
+    def inner(f )  :
 
-        def types_description(types_tuple: T.Tuple[T.Union[T.Type, ContainerTypeInfo], ...]) -> str:
+        def types_description(types_tuple   )  :
             candidates = []
             for t in types_tuple:
                 if isinstance(t, ContainerTypeInfo):
@@ -480,7 +480,7 @@ def typed_kwargs(name: str, *types: KwargInfo) -> T.Callable[..., T.Any]:
             shouldbe += ', '.join(candidates)
             return shouldbe
 
-        def raw_description(t: object) -> str:
+        def raw_description(t )  :
             """describe a raw type (ie, one that is not a ContainerTypeInfo)."""
             if isinstance(t, list):
                 if t:
@@ -492,8 +492,8 @@ def typed_kwargs(name: str, *types: KwargInfo) -> T.Callable[..., T.Any]:
                 return 'dict[]'
             return type(t).__name__
 
-        def check_value_type(types_tuple: T.Tuple[T.Union[T.Type, ContainerTypeInfo], ...],
-                             value: T.Any) -> bool:
+        def check_value_type(types_tuple   ,
+                             value )  :
             for t in types_tuple:
                 if isinstance(t, ContainerTypeInfo):
                     if t.check(value):
@@ -503,9 +503,9 @@ def typed_kwargs(name: str, *types: KwargInfo) -> T.Callable[..., T.Any]:
             return False
 
         @wraps(f)
-        def wrapper(*wrapped_args: T.Any, **wrapped_kwargs: T.Any) -> T.Any:
+        def wrapper(*wrapped_args , **wrapped_kwargs )  :
 
-            def emit_feature_change(values: T.Dict[str, T.Union[str, T.Tuple[str, str]]], feature: T.Union[T.Type['FeatureDeprecated'], T.Type['FeatureNew']]) -> None:
+            def emit_feature_change(values    , feature  )  :
                 for n, version in values.items():
                     if isinstance(value, (dict, list)):
                         warn = n in value
@@ -579,16 +579,16 @@ def typed_kwargs(name: str, *types: KwargInfo) -> T.Callable[..., T.Any]:
 class FeatureCheckBase(metaclass=abc.ABCMeta):
     "Base class for feature version checks"
 
-    feature_registry: T.ClassVar[T.Dict[str, T.Dict[str, T.Set[T.Tuple[str, T.Optional['mparser.BaseNode']]]]]]
+    #feature_registry: T.ClassVar[T.Dict[str, T.Dict[str, T.Set[T.Tuple[str, T.Optional['mparser.BaseNode']]]]]]
     emit_notice = False
 
-    def __init__(self, feature_name: str, feature_version: str, extra_message: str = ''):
+    def __init__(self, feature_name , feature_version , extra_message  = ''):
         self.feature_name = feature_name  # type: str
         self.feature_version = feature_version    # type: str
         self.extra_message = extra_message  # type: str
 
     @staticmethod
-    def get_target_version(subproject: str) -> str:
+    def get_target_version(subproject )  :
         # Don't do any checks if project() has not been parsed yet
         if subproject not in mesonlib.project_meson_versions:
             return ''
@@ -596,10 +596,10 @@ class FeatureCheckBase(metaclass=abc.ABCMeta):
 
     @staticmethod
     @abc.abstractmethod
-    def check_version(target_version: str, feature_version: str) -> bool:
+    def check_version(target_version , feature_version )  :
         pass
 
-    def use(self, subproject: 'SubProject', location: T.Optional['mparser.BaseNode'] = None) -> None:
+    def use(self, subproject , location  = None)  :
         tv = self.get_target_version(subproject)
         # No target version
         if tv == '':
@@ -627,7 +627,7 @@ class FeatureCheckBase(metaclass=abc.ABCMeta):
         self.log_usage_warning(tv, location)
 
     @classmethod
-    def report(cls, subproject: str) -> None:
+    def report(cls, subproject )  :
         if subproject not in cls.feature_registry:
             return
         warning_str = cls.get_warning_str_prefix(cls.get_target_version(subproject))
@@ -644,20 +644,20 @@ class FeatureCheckBase(metaclass=abc.ABCMeta):
         if '\n' in warning_str:
             mlog.warning(warning_str)
 
-    def log_usage_warning(self, tv: str, location: T.Optional['mparser.BaseNode']) -> None:
+    def log_usage_warning(self, tv , location )  :
         raise InterpreterException('log_usage_warning not implemented')
 
     @staticmethod
-    def get_warning_str_prefix(tv: str) -> str:
+    def get_warning_str_prefix(tv )  :
         raise InterpreterException('get_warning_str_prefix not implemented')
 
     @staticmethod
-    def get_notice_str_prefix(tv: str) -> str:
+    def get_notice_str_prefix(tv )  :
         raise InterpreterException('get_notice_str_prefix not implemented')
 
-    def __call__(self, f: TV_func) -> TV_func:
+    def __call__(self, f )  :
         @wraps(f)
-        def wrapped(*wrapped_args: T.Any, **wrapped_kwargs: T.Any) -> T.Any:
+        def wrapped(*wrapped_args , **wrapped_kwargs )  :
             node, _, _, subproject = get_callee_args(wrapped_args)
             if subproject is None:
                 raise AssertionError('{!r}'.format((wrapped_args)))
@@ -666,8 +666,8 @@ class FeatureCheckBase(metaclass=abc.ABCMeta):
         return T.cast('TV_func', wrapped)
 
     @classmethod
-    def single_use(cls, feature_name: str, version: str, subproject: 'SubProject',
-                   extra_message: str = '', location: T.Optional['mparser.BaseNode'] = None) -> None:
+    def single_use(cls, feature_name , version , subproject ,
+                   extra_message  = '', location  = None)  :
         """Oneline version that instantiates and calls use()."""
         cls(feature_name, version, extra_message).use(subproject, location)
 
@@ -681,18 +681,18 @@ class FeatureNew(FeatureCheckBase):
     feature_registry = {}  # type: T.ClassVar[T.Dict[str, T.Dict[str, T.Set[T.Tuple[str, T.Optional[mparser.BaseNode]]]]]]
 
     @staticmethod
-    def check_version(target_version: str, feature_version: str) -> bool:
+    def check_version(target_version , feature_version )  :
         return mesonlib.version_compare_condition_with_min(target_version, feature_version)
 
     @staticmethod
-    def get_warning_str_prefix(tv: str) -> str:
+    def get_warning_str_prefix(tv )  :
         return 'Project specifies a minimum meson_version \'{}\' but uses features which were added in newer versions:'.format((tv))
 
     @staticmethod
-    def get_notice_str_prefix(tv: str) -> str:
+    def get_notice_str_prefix(tv )  :
         return ''
 
-    def log_usage_warning(self, tv: str, location: T.Optional['mparser.BaseNode']) -> None:
+    def log_usage_warning(self, tv , location )  :
         args = [
             'Project targeting', "'{}'".format((tv)),
             'but tried to use feature introduced in',
@@ -713,19 +713,19 @@ class FeatureDeprecated(FeatureCheckBase):
     emit_notice = True
 
     @staticmethod
-    def check_version(target_version: str, feature_version: str) -> bool:
+    def check_version(target_version , feature_version )  :
         # For deprecation checks we need to return the inverse of FeatureNew checks
         return not mesonlib.version_compare_condition_with_min(target_version, feature_version)
 
     @staticmethod
-    def get_warning_str_prefix(tv: str) -> str:
+    def get_warning_str_prefix(tv )  :
         return 'Deprecated features used:'
 
     @staticmethod
-    def get_notice_str_prefix(tv: str) -> str:
+    def get_notice_str_prefix(tv )  :
         return 'Future-deprecated features used:'
 
-    def log_usage_warning(self, tv: str, location: T.Optional['mparser.BaseNode']) -> None:
+    def log_usage_warning(self, tv , location )  :
         args = [
             'Project targeting', "'{}'".format((tv)),
             'but tried to use feature deprecated since',
@@ -741,19 +741,19 @@ class FeatureCheckKwargsBase(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def feature_check_class(self) -> T.Type[FeatureCheckBase]:
+    def feature_check_class(self)  :
         pass
 
-    def __init__(self, feature_name: str, feature_version: str,
-                 kwargs: T.List[str], extra_message: T.Optional[str] = None):
+    def __init__(self, feature_name , feature_version ,
+                 kwargs , extra_message  = None):
         self.feature_name = feature_name
         self.feature_version = feature_version
         self.kwargs = kwargs
         self.extra_message = extra_message
 
-    def __call__(self, f: TV_func) -> TV_func:
+    def __call__(self, f )  :
         @wraps(f)
-        def wrapped(*wrapped_args: T.Any, **wrapped_kwargs: T.Any) -> T.Any:
+        def wrapped(*wrapped_args , **wrapped_kwargs )  :
             node, _, kwargs, subproject = get_callee_args(wrapped_args)
             if subproject is None:
                 raise AssertionError('{!r}'.format((wrapped_args)))

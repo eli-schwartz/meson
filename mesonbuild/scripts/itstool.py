@@ -29,8 +29,8 @@ parser.add_argument('--its', action='append', default=[])
 parser.add_argument('mo_files', nargs='+')
 
 
-def run_join(build_dir: str, itstool: str, its_files: T.List[str], mo_files: T.List[str],
-             in_fname: str, out_fname: str) -> int:
+def run_join(build_dir , itstool , its_files , mo_files ,
+             in_fname , out_fname )  :
     if not mo_files:
         print('No mo files specified to use for translation.')
         return 1
@@ -66,7 +66,7 @@ def run_join(build_dir: str, itstool: str, its_files: T.List[str], mo_files: T.L
         return subprocess.call(cmd)
 
 
-def run(args: T.List[str]) -> int:
+def run(args )  :
     options = parser.parse_args(args)
     command = options.command
     build_dir = os.environ.get('MESON_BUILD_ROOT', os.getcwd())

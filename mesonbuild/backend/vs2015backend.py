@@ -20,7 +20,7 @@ import typing as T
 
 
 class Vs2015Backend(Vs2010Backend):
-    def __init__(self, build: T.Optional[Build], interpreter: T.Optional[Interpreter]):
+    def __init__(self, build , interpreter ):
         super().__init__(build, interpreter)
         self.name = 'vs2015'
         self.vs_version = '2015'

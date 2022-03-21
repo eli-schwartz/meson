@@ -35,7 +35,7 @@ DT_MIPS_RLD_MAP_REL = 1879048245
 INSTALL_NAME_TOOL = False
 
 class DataSizes:
-    def __init__(self, ptrsize: int, is_le: bool) -> None:
+    def __init__(self, ptrsize , is_le )  :
         if is_le:
             p = '<'
         else:
@@ -62,7 +62,7 @@ class DataSizes:
             self.OffSize = 4
 
 class DynamicEntry(DataSizes):
-    def __init__(self, ifile: T.BinaryIO, ptrsize: int, is_le: bool) -> None:
+    def __init__(self, ifile , ptrsize , is_le )  :
         super().__init__(ptrsize, is_le)
         self.ptrsize = ptrsize
         if ptrsize == 64:
@@ -72,7 +72,7 @@ class DynamicEntry(DataSizes):
             self.d_tag = struct.unpack(self.Sword, ifile.read(self.SwordSize))[0]
             self.val = struct.unpack(self.Word, ifile.read(self.WordSize))[0]
 
-    def write(self, ofile: T.BinaryIO) -> None:
+    def write(self, ofile )  :
         if self.ptrsize == 64:
             ofile.write(struct.pack(self.Sxword, self.d_tag))
             ofile.write(struct.pack(self.XWord, self.val))
@@ -81,7 +81,7 @@ class DynamicEntry(DataSizes):
             ofile.write(struct.pack(self.Word, self.val))
 
 class SectionHeader(DataSizes):
-    def __init__(self, ifile: T.BinaryIO, ptrsize: int, is_le: bool) -> None:
+    def __init__(self, ifile , ptrsize , is_le )  :
         super().__init__(ptrsize, is_le)
         if ptrsize == 64:
             is_64 = True
@@ -121,7 +121,7 @@ class SectionHeader(DataSizes):
             self.sh_entsize = struct.unpack(self.Word, ifile.read(self.WordSize))[0]
 
 class Elf(DataSizes):
-    def __init__(self, bfile: str, verbose: bool = True) -> None:
+    def __init__(self, bfile , verbose  = True)  :
         self.bfile = bfile
         self.verbose = verbose
         self.sections = []  # type: T.List[SectionHeader]
@@ -137,7 +137,7 @@ class Elf(DataSizes):
             self.close_bf()
             raise
 
-    def open_bf(self, bfile: str) -> None:
+    def open_bf(self, bfile )  :
         self.bf = None
         self.bf_perms = None
         try:
@@ -152,7 +152,7 @@ class Elf(DataSizes):
                 self.bf_perms = None
                 raise e
 
-    def close_bf(self) -> None:
+    def close_bf(self)  :
         if self.bf is not None:
             if self.bf_perms is not None:
                 os.fchmod(self.bf.fileno(), self.bf_perms)
@@ -160,16 +160,16 @@ class Elf(DataSizes):
             self.bf.close()
             self.bf = None
 
-    def __enter__(self) -> 'Elf':
+    def __enter__(self)  :
         return self
 
-    def __del__(self) -> None:
+    def __del__(self)  :
         self.close_bf()
 
-    def __exit__(self, exc_type: T.Any, exc_value: T.Any, traceback: T.Any) -> None:
+    def __exit__(self, exc_type , exc_value , traceback )  :
         self.close_bf()
 
-    def detect_elf_type(self) -> T.Tuple[int, bool]:
+    def detect_elf_type(self)   :
         data = self.bf.read(6)
         if data[1:4] != b'ELF':
             # This script gets called to non-elf targets too
@@ -191,7 +191,7 @@ class Elf(DataSizes):
             sys.exit('File {!r} has unknown ELF endianness.'.format((self.bfile)))
         return ptrsize, is_le
 
-    def parse_header(self) -> None:
+    def parse_header(self)  :
         self.bf.seek(0)
         self.e_ident = struct.unpack('16s', self.bf.read(16))[0]
         self.e_type = struct.unpack(self.Half, self.bf.read(self.HalfSize))[0]
@@ -208,12 +208,12 @@ class Elf(DataSizes):
         self.e_shnum = struct.unpack(self.Half, self.bf.read(self.HalfSize))[0]
         self.e_shstrndx = struct.unpack(self.Half, self.bf.read(self.HalfSize))[0]
 
-    def parse_sections(self) -> None:
+    def parse_sections(self)  :
         self.bf.seek(self.e_shoff)
         for _ in range(self.e_shnum):
             self.sections.append(SectionHeader(self.bf, self.ptrsize, self.is_le))
 
-    def read_str(self) -> bytes:
+    def read_str(self)  :
         arr = []
         x = self.bf.read(1)
         while x != b'\0':
@@ -223,7 +223,7 @@ class Elf(DataSizes):
                 raise RuntimeError('Tried to read past the end of the file')
         return b''.join(arr)
 
-    def find_section(self, target_name: bytes) -> T.Optional[SectionHeader]:
+    def find_section(self, target_name )  :
         section_names = self.sections[self.e_shstrndx]
         for i in self.sections:
             self.bf.seek(section_names.sh_offset + i.sh_name)
@@ -232,7 +232,7 @@ class Elf(DataSizes):
                 return i
         return None
 
-    def parse_dynamic(self) -> None:
+    def parse_dynamic(self)  :
         sec = self.find_section(b'.dynamic')
         if sec is None:
             return
@@ -244,13 +244,13 @@ class Elf(DataSizes):
                 break
 
     @generate_list
-    def get_section_names(self) -> T.Generator[str, None, None]:
+    def get_section_names(self)    :
         section_names = self.sections[self.e_shstrndx]
         for i in self.sections:
             self.bf.seek(section_names.sh_offset + i.sh_name)
             yield self.read_str().decode()
 
-    def get_soname(self) -> T.Optional[str]:
+    def get_soname(self)  :
         soname = None
         strtab = None
         for i in self.dynamic:
@@ -263,7 +263,7 @@ class Elf(DataSizes):
         self.bf.seek(strtab.val + soname.val)
         return self.read_str().decode()
 
-    def get_entry_offset(self, entrynum: int) -> T.Optional[int]:
+    def get_entry_offset(self, entrynum )  :
         sec = self.find_section(b'.dynstr')
         for i in self.dynamic:
             if i.d_tag == entrynum:
@@ -272,14 +272,14 @@ class Elf(DataSizes):
                 return res
         return None
 
-    def get_rpath(self) -> T.Optional[str]:
+    def get_rpath(self)  :
         offset = self.get_entry_offset(DT_RPATH)
         if offset is None:
             return None
         self.bf.seek(offset)
         return self.read_str().decode()
 
-    def get_runpath(self) -> T.Optional[str]:
+    def get_runpath(self)  :
         offset = self.get_entry_offset(DT_RUNPATH)
         if offset is None:
             return None
@@ -287,7 +287,7 @@ class Elf(DataSizes):
         return self.read_str().decode()
 
     @generate_list
-    def get_deps(self) -> T.Generator[str, None, None]:
+    def get_deps(self)    :
         sec = self.find_section(b'.dynstr')
         for i in self.dynamic:
             if i.d_tag == DT_NEEDED:
@@ -295,7 +295,7 @@ class Elf(DataSizes):
                 self.bf.seek(offset)
                 yield self.read_str().decode()
 
-    def fix_deps(self, prefix: bytes) -> None:
+    def fix_deps(self, prefix )  :
         sec = self.find_section(b'.dynstr')
         deps = []
         for i in self.dynamic:
@@ -313,13 +313,13 @@ class Elf(DataSizes):
                 self.bf.seek(offset)
                 self.bf.write(newname)
 
-    def fix_rpath(self, fname: str, rpath_dirs_to_remove: T.Set[bytes], new_rpath: bytes) -> None:
+    def fix_rpath(self, fname , rpath_dirs_to_remove , new_rpath )  :
         # The path to search for can be either rpath or runpath.
         # Fix both of them to be sure.
         self.fix_rpathtype_entry(fname, rpath_dirs_to_remove, new_rpath, DT_RPATH)
         self.fix_rpathtype_entry(fname, rpath_dirs_to_remove, new_rpath, DT_RUNPATH)
 
-    def fix_rpathtype_entry(self, fname: str, rpath_dirs_to_remove: T.Set[bytes], new_rpath: bytes, entrynum: int) -> None:
+    def fix_rpathtype_entry(self, fname , rpath_dirs_to_remove , new_rpath , entrynum )  :
         rp_off = self.get_entry_offset(entrynum)
         if rp_off is None:
             if self.verbose:
@@ -364,7 +364,7 @@ class Elf(DataSizes):
             self.bf.write(new_rpath)
             self.bf.write(b'\0')
 
-    def remove_rpath_entry(self, entrynum: int) -> None:
+    def remove_rpath_entry(self, entrynum )  :
         sec = self.find_section(b'.dynamic')
         if sec is None:
             return None
@@ -384,13 +384,13 @@ class Elf(DataSizes):
             entry.write(self.bf)
         return None
 
-def fix_elf(fname: str, rpath_dirs_to_remove: T.Set[bytes], new_rpath: T.Optional[bytes], verbose: bool = True) -> None:
+def fix_elf(fname , rpath_dirs_to_remove , new_rpath , verbose  = True)  :
     if new_rpath is not None:
         with Elf(fname, verbose) as e:
             # note: e.get_rpath() and e.get_runpath() may be useful
             e.fix_rpath(fname, rpath_dirs_to_remove, new_rpath)
 
-def get_darwin_rpaths_to_remove(fname: str) -> T.List[str]:
+def get_darwin_rpaths_to_remove(fname )  :
     out = subprocess.check_output(['otool', '-l', fname],
                                   universal_newlines=True,
                                   stderr=subprocess.DEVNULL)
@@ -408,7 +408,7 @@ def get_darwin_rpaths_to_remove(fname: str) -> T.List[str]:
             result.append(rp)
     return result
 
-def fix_darwin(fname: str, new_rpath: str, final_path: str, install_name_mappings: T.Dict[str, str]) -> None:
+def fix_darwin(fname , new_rpath , final_path , install_name_mappings  )  :
     try:
         rpaths = get_darwin_rpaths_to_remove(fname)
     except subprocess.CalledProcessError:
@@ -458,7 +458,7 @@ def fix_darwin(fname: str, new_rpath: str, final_path: str, install_name_mapping
     except Exception as err:
         raise SystemExit(err)
 
-def fix_jar(fname: str) -> None:
+def fix_jar(fname )  :
     subprocess.check_call(['jar', 'xfv', fname, 'META-INF/MANIFEST.MF'])
     with open('META-INF/MANIFEST.MF', 'r+', encoding='utf-8') as f:
         lines = f.readlines()
@@ -469,7 +469,7 @@ def fix_jar(fname: str) -> None:
         f.truncate()
     subprocess.check_call(['jar', 'ufm', fname, 'META-INF/MANIFEST.MF'])
 
-def fix_rpath(fname: str, rpath_dirs_to_remove: T.Set[bytes], new_rpath: T.Union[str, bytes], final_path: str, install_name_mappings: T.Dict[str, str], verbose: bool = True) -> None:
+def fix_rpath(fname , rpath_dirs_to_remove , new_rpath  , final_path , install_name_mappings  , verbose  = True)  :
     global INSTALL_NAME_TOOL
     # Static libraries, import libraries, debug information, headers, etc
     # never have rpaths

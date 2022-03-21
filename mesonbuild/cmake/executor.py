@@ -40,7 +40,7 @@ class CMakeExecutor:
     class_cmakevers = PerMachine(None, None)  # type: PerMachine[T.Optional[str]]
     class_cmake_cache = {}  # type: T.Dict[T.Any, TYPE_result]
 
-    def __init__(self, environment: 'Environment', version: str, for_machine: MachineChoice, silent: bool = False):
+    def __init__(self, environment , version , for_machine , silent  = False):
         self.min_version = version
         self.environment = environment
         self.for_machine = for_machine
@@ -65,7 +65,7 @@ class CMakeExecutor:
         if self.prefix_paths:
             self.extra_cmake_args += ['-DCMAKE_PREFIX_PATH={}'.format(';'.join(self.prefix_paths))]
 
-    def find_cmake_binary(self, environment: 'Environment', silent: bool = False) -> T.Tuple[T.Optional['ExternalProgram'], T.Optional[str]]:
+    def find_cmake_binary(self, environment , silent  = False)   :
         # Only search for CMake the first time and store the result in the class
         # definition
         if isinstance(CMakeExecutor.class_cmakebin[self.for_machine], NonExistingExternalProgram):
@@ -100,7 +100,7 @@ class CMakeExecutor:
 
         return CMakeExecutor.class_cmakebin[self.for_machine], CMakeExecutor.class_cmakevers[self.for_machine]
 
-    def check_cmake(self, cmakebin: 'ExternalProgram') -> T.Optional[str]:
+    def check_cmake(self, cmakebin )  :
         if not cmakebin.found():
             mlog.log('Did not find CMake {!r}'.format((cmakebin.name)))
             return None
@@ -123,25 +123,25 @@ class CMakeExecutor:
         cmvers = re.search(r'(cmake|cmake3)\s*version\s*([\d.]+)', out).group(2)
         return cmvers
 
-    def set_exec_mode(self, print_cmout: T.Optional[bool] = None, always_capture_stderr: T.Optional[bool] = None) -> None:
+    def set_exec_mode(self, print_cmout  = None, always_capture_stderr  = None)  :
         if print_cmout is not None:
             self.print_cmout = print_cmout
         if always_capture_stderr is not None:
             self.always_capture_stderr = always_capture_stderr
 
-    def _cache_key(self, args: T.List[str], build_dir: Path, env: T.Optional[T.Dict[str, str]]) -> TYPE_cache_key:
+    def _cache_key(self, args , build_dir , env  )  :
         fenv = frozenset(env.items()) if env is not None else frozenset()
         targs = tuple(args)
         return (self.cmakebin.get_path(), targs, build_dir.as_posix(), fenv)
 
-    def _call_cmout_stderr(self, args: T.List[str], build_dir: Path, env: T.Optional[T.Dict[str, str]]) -> TYPE_result:
+    def _call_cmout_stderr(self, args , build_dir , env  )  :
         cmd = self.cmakebin.get_command() + args
         proc = S.Popen(cmd, stdout=S.PIPE, stderr=S.PIPE, cwd=str(build_dir), env=env)  # TODO [PYTHON_37]: drop Path conversion
 
         # stdout and stderr MUST be read at the same time to avoid pipe
         # blocking issues. The easiest way to do this is with a separate
         # thread for one of the pipes.
-        def print_stdout() -> None:
+        def print_stdout()  :
             while True:
                 line = proc.stdout.readline()
                 if not line:
@@ -177,7 +177,7 @@ class CMakeExecutor:
 
         return proc.returncode, None, raw_trace
 
-    def _call_cmout(self, args: T.List[str], build_dir: Path, env: T.Optional[T.Dict[str, str]]) -> TYPE_result:
+    def _call_cmout(self, args , build_dir , env  )  :
         cmd = self.cmakebin.get_command() + args
         proc = S.Popen(cmd, stdout=S.PIPE, stderr=S.STDOUT, cwd=str(build_dir), env=env)  # TODO [PYTHON_37]: drop Path conversion
         while True:
@@ -189,7 +189,7 @@ class CMakeExecutor:
         proc.wait()
         return proc.returncode, None, None
 
-    def _call_quiet(self, args: T.List[str], build_dir: Path, env: T.Optional[T.Dict[str, str]]) -> TYPE_result:
+    def _call_quiet(self, args , build_dir , env  )  :
         build_dir.mkdir(parents=True, exist_ok=True)
         cmd = self.cmakebin.get_command() + args
         ret = S.run(cmd, env=env, cwd=str(build_dir), close_fds=False,
@@ -199,7 +199,7 @@ class CMakeExecutor:
         err = ret.stderr.decode(errors='ignore')
         return rc, out, err
 
-    def _call_impl(self, args: T.List[str], build_dir: Path, env: T.Optional[T.Dict[str, str]]) -> TYPE_result:
+    def _call_impl(self, args , build_dir , env  )  :
         mlog.debug('Calling CMake ({}) in {} with:'.format((self.cmakebin.get_command()), (build_dir)))
         for i in args:
             mlog.debug('  - "{}"'.format((i)))
@@ -211,7 +211,7 @@ class CMakeExecutor:
             else:
                 return self._call_cmout(args, build_dir, env)
 
-    def call(self, args: T.List[str], build_dir: Path, env: T.Optional[T.Dict[str, str]] = None, disable_cache: bool = False) -> TYPE_result:
+    def call(self, args , build_dir , env   = None, disable_cache  = False)  :
         if env is None:
             env = os.environ.copy()
 
@@ -226,20 +226,20 @@ class CMakeExecutor:
             cache[key] = self._call_impl(args, build_dir, env)
         return cache[key]
 
-    def found(self) -> bool:
+    def found(self)  :
         return self.cmakebin is not None
 
-    def version(self) -> str:
+    def version(self)  :
         return self.cmakevers
 
-    def executable_path(self) -> str:
+    def executable_path(self)  :
         return self.cmakebin.get_path()
 
-    def get_command(self) -> T.List[str]:
+    def get_command(self)  :
         return self.cmakebin.get_command()
 
-    def get_cmake_prefix_paths(self) -> T.List[str]:
+    def get_cmake_prefix_paths(self)  :
         return self.prefix_paths
 
-    def machine_choice(self) -> MachineChoice:
+    def machine_choice(self)  :
         return self.for_machine

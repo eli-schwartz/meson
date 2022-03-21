@@ -29,16 +29,16 @@ if T.TYPE_CHECKING:
 
 
 @factory_methods({DependencyMethods.PKGCONFIG, DependencyMethods.CONFIG_TOOL, DependencyMethods.SYSTEM})
-def mpi_factory(env: 'Environment',
-                for_machine: 'MachineChoice',
-                kwargs: T.Dict[str, T.Any],
-                methods: T.List[DependencyMethods]) -> T.List['DependencyGenerator']:
+def mpi_factory(env ,
+                for_machine ,
+                kwargs  ,
+                methods )  :
     language = kwargs.get('language', 'c')
     if language not in {'c', 'cpp', 'fortran'}:
         # OpenMPI doesn't work without any other languages
         return []
 
-    candidates: T.List['DependencyGenerator'] = []
+    candidates  = []
     compiler = detect_compiler('mpi', env, for_machine, language)
     if compiler is None:
         return []
@@ -102,20 +102,20 @@ def mpi_factory(env: 'Environment',
 
 class _MPIConfigToolDependency(ConfigToolDependency):
 
-    def _filter_compile_args(self, args: T.Sequence[str]) -> T.List[str]:
+    def _filter_compile_args(self, args )  :
         """
         MPI wrappers return a bunch of garbage args.
         Drop -O2 and everything that is not needed.
         """
         result = []
-        multi_args: T.Tuple[str, ...] = ('-I', )
+        multi_args   = ('-I', )
         if self.language == 'fortran':
             fc = self.env.coredata.compilers[self.for_machine]['fortran']
             multi_args += fc.get_module_incdir_args()
 
         include_next = False
         for f in args:
-            if f.startswith(('-D', '-f') + multi_args) or f == '-pthread' \
+            if f.startswith(('-D', '-f') + multi_args) or f == '-pthread'\
                     or (f.startswith('-W') and f != '-Wall' and not f.startswith('-Werror')):
                 result.append(f)
                 if f in multi_args:
@@ -126,7 +126,7 @@ class _MPIConfigToolDependency(ConfigToolDependency):
                 result.append(f)
         return result
 
-    def _filter_link_args(self, args: T.Sequence[str]) -> T.List[str]:
+    def _filter_link_args(self, args )  :
         """
         MPI wrappers return a bunch of garbage args.
         Drop -O2 and everything that is not needed.
@@ -143,7 +143,7 @@ class _MPIConfigToolDependency(ConfigToolDependency):
                 result.append(f)
         return result
 
-    def _is_link_arg(self, f: str) -> bool:
+    def _is_link_arg(self, f )  :
         if self.clib_compiler.id == 'intel-cl':
             return f == '/link' or f.startswith('/LIBPATH') or f.endswith('.lib')   # always .lib whether static or dynamic
         else:
@@ -158,8 +158,8 @@ class IntelMPIConfigToolDependency(_MPIConfigToolDependency):
 
     version_arg = '-v'  # --version is not the same as -v
 
-    def __init__(self, name: str, env: 'Environment', kwargs: T.Dict[str, T.Any],
-                 language: T.Optional[str] = None):
+    def __init__(self, name , env , kwargs  ,
+                 language  = None):
         super().__init__(name, env, kwargs, language=language)
         if not self.is_found:
             return
@@ -168,7 +168,7 @@ class IntelMPIConfigToolDependency(_MPIConfigToolDependency):
         self.compile_args = self._filter_compile_args(args)
         self.link_args = self._filter_link_args(args)
 
-    def _sanitize_version(self, out: str) -> str:
+    def _sanitize_version(self, out )  :
         v = re.search(r'(\d{4}) Update (\d)', out)
         if v:
             return '{}.{}'.format(v.group(1), v.group(2))
@@ -181,8 +181,8 @@ class OpenMPIConfigToolDependency(_MPIConfigToolDependency):
 
     version_arg = '--showme:version'
 
-    def __init__(self, name: str, env: 'Environment', kwargs: T.Dict[str, T.Any],
-                 language: T.Optional[str] = None):
+    def __init__(self, name , env , kwargs  ,
+                 language  = None):
         super().__init__(name, env, kwargs, language=language)
         if not self.is_found:
             return
@@ -193,7 +193,7 @@ class OpenMPIConfigToolDependency(_MPIConfigToolDependency):
         l_args = self.get_config_value(['--showme:link'], 'link_args')
         self.link_args = self._filter_link_args(l_args)
 
-    def _sanitize_version(self, out: str) -> str:
+    def _sanitize_version(self, out )  :
         v = re.search(r'\d+.\d+.\d+', out)
         if v:
             return v.group(0)
@@ -204,8 +204,8 @@ class MSMPIDependency(SystemDependency):
 
     """The Microsoft MPI."""
 
-    def __init__(self, name: str, env: 'Environment', kwargs: T.Dict[str, T.Any],
-                 language: T.Optional[str] = None):
+    def __init__(self, name , env , kwargs  ,
+                 language  = None):
         super().__init__(name, env, kwargs, language=language)
         # MSMPI only supports the C API
         if language not in {'c', 'fortran', None}:

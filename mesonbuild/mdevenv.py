@@ -13,7 +13,7 @@ import typing as T
 if T.TYPE_CHECKING:
     from .backends import InstallData
 
-def add_arguments(parser: argparse.ArgumentParser) -> None:
+def add_arguments(parser )  :
     parser.add_argument('-C', dest='wd', action=RealPathAction,
                         help='Directory to cd into before running')
     parser.add_argument('--dump', action='store_true',
@@ -21,14 +21,14 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('command', nargs=argparse.REMAINDER,
                         help='Command to run in developer environment (default: interactive shell)')
 
-def get_windows_shell() -> str:
+def get_windows_shell()  :
     mesonbuild = Path(__file__).parent
     script = mesonbuild / 'scripts' / 'cmd_or_ps.ps1'
     command = ['powershell.exe', '-noprofile', '-executionpolicy', 'bypass', '-file', str(script)]
     result = subprocess.check_output(command)
     return result.decode().strip()
 
-def get_env(b: build.Build, build_dir: str) -> T.Tuple[T.Dict[str, str], T.Set[str]]:
+def get_env(b , build_dir )    :
     extra_env = build.EnvironmentVariables()
     extra_env.set('MESON_DEVENV', ['1'])
     extra_env.set('MESON_PROJECT_NAME', [b.project_name])
@@ -45,7 +45,7 @@ def get_env(b: build.Build, build_dir: str) -> T.Tuple[T.Dict[str, str], T.Set[s
 
     return env, varnames
 
-def bash_completion_files(b: build.Build, install_data: 'InstallData') -> T.List[str]:
+def bash_completion_files(b , install_data )  :
     result = []
     dep = dependencies.PkgConfigDependency('bash-completion', b.environment,
                                            {'silent': True, 'version': '>=2.10'})
@@ -63,7 +63,7 @@ def bash_completion_files(b: build.Build, install_data: 'InstallData') -> T.List
                 result.append(f.path)
     return result
 
-def add_gdb_auto_load(autoload_path: Path, gdb_helper: str, fname: Path) -> None:
+def add_gdb_auto_load(autoload_path , gdb_helper , fname )  :
     # Copy or symlink the GDB helper into our private directory tree
     destdir = autoload_path / fname.parent
     destdir.mkdir(parents=True, exist_ok=True)
@@ -75,7 +75,7 @@ def add_gdb_auto_load(autoload_path: Path, gdb_helper: str, fname: Path) -> None
     except (FileExistsError, shutil.SameFileError):
         pass
 
-def write_gdb_script(privatedir: Path, install_data: 'InstallData') -> None:
+def write_gdb_script(privatedir , install_data )  :
     if not shutil.which('gdb'):
         return
     bdir = privatedir.parent
@@ -107,7 +107,7 @@ def write_gdb_script(privatedir: Path, install_data: 'InstallData') -> None:
         if first_time:
             mlog.log('Meson detected GDB helpers and added config in', mlog.bold(str(gdbinit_path)))
 
-def run(options: argparse.Namespace) -> int:
+def run(options )  :
     privatedir = Path(options.wd) / 'meson-private'
     buildfile = privatedir / 'build.dat'
     if not buildfile.is_file():

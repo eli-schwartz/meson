@@ -39,35 +39,35 @@ class CsCompiler(BasicLinkerIsCompilerMixin, Compiler):
 
     language = 'cs'
 
-    def __init__(self, exelist: T.List[str], version: str, for_machine: MachineChoice,
-                 info: 'MachineInfo', runner: T.Optional[str] = None):
+    def __init__(self, exelist , version , for_machine ,
+                 info , runner  = None):
         super().__init__(exelist, version, for_machine, info)
         self.runner = runner
 
     @classmethod
-    def get_display_language(cls) -> str:
+    def get_display_language(cls)  :
         return 'C sharp'
 
-    def get_always_args(self) -> T.List[str]:
+    def get_always_args(self)  :
         return ['/nologo']
 
-    def get_linker_always_args(self) -> T.List[str]:
+    def get_linker_always_args(self)  :
         return ['/nologo']
 
-    def get_output_args(self, fname: str) -> T.List[str]:
+    def get_output_args(self, fname )  :
         return ['-out:' + fname]
 
-    def get_link_args(self, fname: str) -> T.List[str]:
+    def get_link_args(self, fname )  :
         return ['-r:' + fname]
 
-    def get_werror_args(self) -> T.List[str]:
+    def get_werror_args(self)  :
         return ['-warnaserror']
 
-    def get_pic_args(self) -> T.List[str]:
+    def get_pic_args(self)  :
         return []
 
-    def compute_parameters_with_absolute_paths(self, parameter_list: T.List[str],
-                                               build_dir: str) -> T.List[str]:
+    def compute_parameters_with_absolute_paths(self, parameter_list ,
+                                               build_dir )  :
         for idx, i in enumerate(parameter_list):
             if i[:2] == '-L':
                 parameter_list[idx] = i[:2] + os.path.normpath(os.path.join(build_dir, i[2:]))
@@ -76,13 +76,13 @@ class CsCompiler(BasicLinkerIsCompilerMixin, Compiler):
 
         return parameter_list
 
-    def get_pch_use_args(self, pch_dir: str, header: str) -> T.List[str]:
+    def get_pch_use_args(self, pch_dir , header )  :
         return []
 
-    def get_pch_name(self, header_name: str) -> str:
+    def get_pch_name(self, header_name )  :
         return ''
 
-    def sanity_check(self, work_dir: str, environment: 'Environment') -> None:
+    def sanity_check(self, work_dir , environment )  :
         src = 'sanity.cs'
         obj = 'sanity.exe'
         source_name = os.path.join(work_dir, src)
@@ -106,16 +106,16 @@ class CsCompiler(BasicLinkerIsCompilerMixin, Compiler):
         if pe.returncode != 0:
             raise EnvironmentException('Executables created by Mono compiler %s are not runnable.' % self.name_string())
 
-    def needs_static_linker(self) -> bool:
+    def needs_static_linker(self)  :
         return False
 
-    def get_buildtype_args(self, buildtype: str) -> T.List[str]:
+    def get_buildtype_args(self, buildtype )  :
         return mono_buildtype_args[buildtype]
 
-    def get_debug_args(self, is_debug: bool) -> T.List[str]:
+    def get_debug_args(self, is_debug )  :
         return ['-debug'] if is_debug else []
 
-    def get_optimization_args(self, optimization_level: str) -> T.List[str]:
+    def get_optimization_args(self, optimization_level )  :
         return cs_optimization_args[optimization_level]
 
 
@@ -123,11 +123,11 @@ class MonoCompiler(CsCompiler):
 
     id = 'mono'
 
-    def __init__(self, exelist: T.List[str], version: str, for_machine: MachineChoice,
-                 info: 'MachineInfo'):
+    def __init__(self, exelist , version , for_machine ,
+                 info ):
         super().__init__(exelist, version, for_machine, info, runner='mono')
 
-    def rsp_file_syntax(self) -> 'RSPFileSyntax':
+    def rsp_file_syntax(self)  :
         return RSPFileSyntax.GCC
 
 
@@ -135,7 +135,7 @@ class VisualStudioCsCompiler(CsCompiler):
 
     id = 'csc'
 
-    def get_buildtype_args(self, buildtype: str) -> T.List[str]:
+    def get_buildtype_args(self, buildtype )  :
         res = mono_buildtype_args[buildtype]
         if not self.info.is_windows():
             tmp = []
@@ -146,5 +146,5 @@ class VisualStudioCsCompiler(CsCompiler):
             res = tmp
         return res
 
-    def rsp_file_syntax(self) -> 'RSPFileSyntax':
+    def rsp_file_syntax(self)  :
         return RSPFileSyntax.MSVC

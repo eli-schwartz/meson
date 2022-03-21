@@ -68,7 +68,7 @@ class IntelGnuLikeCompiler(GnuLikeCompiler):
     }
     id = 'intel'
 
-    def __init__(self) -> None:
+    def __init__(self)  :
         super().__init__()
         # As of 19.0.0 ICC doesn't have sanitizer, color, or lto support.
         #
@@ -80,23 +80,23 @@ class IntelGnuLikeCompiler(GnuLikeCompiler):
             'b_ndebug', 'b_staticpic', 'b_pie']}
         self.lang_header = 'none'
 
-    def get_pch_suffix(self) -> str:
+    def get_pch_suffix(self)  :
         return 'pchi'
 
-    def get_pch_use_args(self, pch_dir: str, header: str) -> T.List[str]:
+    def get_pch_use_args(self, pch_dir , header )  :
         return ['-pch', '-pch_dir', os.path.join(pch_dir), '-x',
                 self.lang_header, '-include', header, '-x', 'none']
 
-    def get_pch_name(self, header_name: str) -> str:
+    def get_pch_name(self, header_name )  :
         return os.path.basename(header_name) + '.' + self.get_pch_suffix()
 
-    def openmp_flags(self) -> T.List[str]:
+    def openmp_flags(self)  :
         if mesonlib.version_compare(self.version, '>=15.0.0'):
             return ['-qopenmp']
         else:
             return ['-openmp']
 
-    def get_compiler_check_args(self, mode: CompileCheckMode) -> T.List[str]:
+    def get_compiler_check_args(self, mode )  :
         extra_args = [
             '-diag-error', '10006',  # ignoring unknown option
             '-diag-error', '10148',  # Option not supported
@@ -107,19 +107,19 @@ class IntelGnuLikeCompiler(GnuLikeCompiler):
         ]
         return super().get_compiler_check_args(mode) + extra_args
 
-    def get_profile_generate_args(self) -> T.List[str]:
+    def get_profile_generate_args(self)  :
         return ['-prof-gen=threadsafe']
 
-    def get_profile_use_args(self) -> T.List[str]:
+    def get_profile_use_args(self)  :
         return ['-prof-use']
 
-    def get_buildtype_args(self, buildtype: str) -> T.List[str]:
+    def get_buildtype_args(self, buildtype )  :
         return self.BUILD_ARGS[buildtype]
 
-    def get_optimization_args(self, optimization_level: str) -> T.List[str]:
+    def get_optimization_args(self, optimization_level )  :
         return self.OPTIM_ARGS[optimization_level]
 
-    def get_has_func_attribute_extra_args(self, name: str) -> T.List[str]:
+    def get_has_func_attribute_extra_args(self, name )  :
         return ['-diag-error', '1292']
 
 
@@ -147,7 +147,7 @@ class IntelVisualStudioLikeCompiler(VisualStudioLikeCompiler):
 
     id = 'intel-cl'
 
-    def get_compiler_check_args(self, mode: CompileCheckMode) -> T.List[str]:
+    def get_compiler_check_args(self, mode )  :
         args = super().get_compiler_check_args(mode)
         if mode is not CompileCheckMode.LINK:
             args.extend([
@@ -160,7 +160,7 @@ class IntelVisualStudioLikeCompiler(VisualStudioLikeCompiler):
             ])
         return args
 
-    def get_toolset_version(self) -> T.Optional[str]:
+    def get_toolset_version(self)  :
         # ICL provides a cl.exe that returns the version of MSVC it tries to
         # emulate, so we'll get the version from that and pass it to the same
         # function the real MSVC uses to calculate the toolset version.
@@ -169,14 +169,14 @@ class IntelVisualStudioLikeCompiler(VisualStudioLikeCompiler):
         version = int(v1 + v2)
         return self._calculate_toolset_version(version)
 
-    def openmp_flags(self) -> T.List[str]:
+    def openmp_flags(self)  :
         return ['/Qopenmp']
 
-    def get_buildtype_args(self, buildtype: str) -> T.List[str]:
+    def get_buildtype_args(self, buildtype )  :
         return self.BUILD_ARGS[buildtype]
 
-    def get_optimization_args(self, optimization_level: str) -> T.List[str]:
+    def get_optimization_args(self, optimization_level )  :
         return self.OPTIM_ARGS[optimization_level]
 
-    def get_pch_base_name(self, header: str) -> str:
+    def get_pch_base_name(self, header )  :
         return os.path.basename(header)

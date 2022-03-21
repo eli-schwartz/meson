@@ -95,7 +95,7 @@ class CSharpProject(SampleImpl):
         self.name = options.name
         self.version = options.version
 
-    def create_executable(self) -> None:
+    def create_executable(self)  :
         lowercase_token = re.sub(r'[^a-z0-9]', '_', self.name.lower())
         uppercase_token = lowercase_token.upper()
         class_name = uppercase_token[0] + lowercase_token[1:]
@@ -109,7 +109,7 @@ class CSharpProject(SampleImpl):
                                          source_name=source_name,
                                          version=self.version))
 
-    def create_library(self) -> None:
+    def create_library(self)  :
         lowercase_token = re.sub(r'[^a-z0-9]', '_', self.name.lower())
         uppercase_token = lowercase_token.upper()
         class_name = uppercase_token[0] + lowercase_token[1:]

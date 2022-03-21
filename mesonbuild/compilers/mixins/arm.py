@@ -76,7 +76,7 @@ class ArmCompiler(Compiler):
 
     id = 'arm'
 
-    def __init__(self) -> None:
+    def __init__(self)  :
         if not self.is_cross:
             raise mesonlib.EnvironmentException('armcc supports only cross-compilation.')
         default_warn_args = []  # type: T.List[str]
@@ -87,21 +87,21 @@ class ArmCompiler(Compiler):
         # Assembly
         self.can_compile_suffixes.add('s')
 
-    def get_pic_args(self) -> T.List[str]:
+    def get_pic_args(self)  :
         # FIXME: Add /ropi, /rwpi, /fpic etc. qualifiers to --apcs
         return []
 
-    def get_buildtype_args(self, buildtype: str) -> T.List[str]:
+    def get_buildtype_args(self, buildtype )  :
         return arm_buildtype_args[buildtype]
 
     # Override CCompiler.get_always_args
-    def get_always_args(self) -> T.List[str]:
+    def get_always_args(self)  :
         return []
 
-    def get_dependency_gen_args(self, outtarget: str, outfile: str) -> T.List[str]:
+    def get_dependency_gen_args(self, outtarget , outfile )  :
         return ['--depend_target', outtarget, '--depend', outfile, '--depend_single_line']
 
-    def get_pch_use_args(self, pch_dir: str, header: str) -> T.List[str]:
+    def get_pch_use_args(self, pch_dir , header )  :
         # FIXME: Add required arguments
         # NOTE from armcc user guide:
         # "Support for Precompiled Header (PCH) files is deprecated from ARM Compiler 5.05
@@ -109,26 +109,26 @@ class ArmCompiler(Compiler):
         # PCH files."
         return []
 
-    def get_pch_suffix(self) -> str:
+    def get_pch_suffix(self)  :
         # NOTE from armcc user guide:
         # "Support for Precompiled Header (PCH) files is deprecated from ARM Compiler 5.05
         # onwards on all platforms. Note that ARM Compiler on Windows 8 never supported
         # PCH files."
         return 'pch'
 
-    def thread_flags(self, env: 'Environment') -> T.List[str]:
+    def thread_flags(self, env )  :
         return []
 
-    def get_coverage_args(self) -> T.List[str]:
+    def get_coverage_args(self)  :
         return []
 
-    def get_optimization_args(self, optimization_level: str) -> T.List[str]:
+    def get_optimization_args(self, optimization_level )  :
         return arm_optimization_args[optimization_level]
 
-    def get_debug_args(self, is_debug: bool) -> T.List[str]:
+    def get_debug_args(self, is_debug )  :
         return clike_debug_args[is_debug]
 
-    def compute_parameters_with_absolute_paths(self, parameter_list: T.List[str], build_dir: str) -> T.List[str]:
+    def compute_parameters_with_absolute_paths(self, parameter_list , build_dir )  :
         for idx, i in enumerate(parameter_list):
             if i[:2] == '-I' or i[:2] == '-L':
                 parameter_list[idx] = i[:2] + os.path.normpath(os.path.join(build_dir, i[2:]))
@@ -143,7 +143,7 @@ class ArmclangCompiler(Compiler):
 
     id = 'armclang'
 
-    def __init__(self) -> None:
+    def __init__(self)  :
         if not self.is_cross:
             raise mesonlib.EnvironmentException('armclang supports only cross-compilation.')
         # Check whether 'armlink' is available in path
@@ -158,36 +158,36 @@ class ArmclangCompiler(Compiler):
         # Assembly
         self.can_compile_suffixes.add('s')
 
-    def get_pic_args(self) -> T.List[str]:
+    def get_pic_args(self)  :
         # PIC support is not enabled by default for ARM,
         # if users want to use it, they need to add the required arguments explicitly
         return []
 
-    def get_colorout_args(self, colortype: str) -> T.List[str]:
+    def get_colorout_args(self, colortype )  :
         return clang_color_args[colortype][:]
 
-    def get_buildtype_args(self, buildtype: str) -> T.List[str]:
+    def get_buildtype_args(self, buildtype )  :
         return armclang_buildtype_args[buildtype]
 
-    def get_pch_suffix(self) -> str:
+    def get_pch_suffix(self)  :
         return 'gch'
 
-    def get_pch_use_args(self, pch_dir: str, header: str) -> T.List[str]:
+    def get_pch_use_args(self, pch_dir , header )  :
         # Workaround for Clang bug http://llvm.org/bugs/show_bug.cgi?id=15136
         # This flag is internal to Clang (or at least not documented on the man page)
         # so it might change semantics at any time.
         return ['-include-pch', os.path.join(pch_dir, self.get_pch_name(header))]
 
-    def get_dependency_gen_args(self, outtarget: str, outfile: str) -> T.List[str]:
+    def get_dependency_gen_args(self, outtarget , outfile )  :
         return ['-MD', '-MT', outtarget, '-MF', outfile]
 
-    def get_optimization_args(self, optimization_level: str) -> T.List[str]:
+    def get_optimization_args(self, optimization_level )  :
         return armclang_optimization_args[optimization_level]
 
-    def get_debug_args(self, is_debug: bool) -> T.List[str]:
+    def get_debug_args(self, is_debug )  :
         return clike_debug_args[is_debug]
 
-    def compute_parameters_with_absolute_paths(self, parameter_list: T.List[str], build_dir: str) -> T.List[str]:
+    def compute_parameters_with_absolute_paths(self, parameter_list , build_dir )  :
         for idx, i in enumerate(parameter_list):
             if i[:2] == '-I' or i[:2] == '-L':
                 parameter_list[idx] = i[:2] + os.path.normpath(os.path.join(build_dir, i[2:]))

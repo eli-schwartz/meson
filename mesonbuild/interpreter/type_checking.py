@@ -16,17 +16,17 @@ from ..mesonlib import File, FileMode, MachineChoice, listify, has_path_sep, Opt
 from ..programs import ExternalProgram
 
 # Helper definition for type checks that are `Optional[T]`
-NoneType: T.Type[None] = type(None)
+NoneType  = type(None)
 
 if T.TYPE_CHECKING:
     from typing_extensions import Literal
 
     from ..interpreterbase import TYPE_var
 
-def in_set_validator(choices: T.Set[str]) -> T.Callable[[str], T.Optional[str]]:
+def in_set_validator(choices )   :
     """Check that the choice given was one of the given set."""
 
-    def inner(check: str) -> T.Optional[str]:
+    def inner(check )  :
         if check not in choices:
             return "must be one of {}, not {}".format((', '.join(sorted(choices))), (check))
         return None
@@ -34,7 +34,7 @@ def in_set_validator(choices: T.Set[str]) -> T.Callable[[str], T.Optional[str]]:
     return inner
 
 
-def _language_validator(l: T.List[str]) -> T.Optional[str]:
+def _language_validator(l )  :
     """Validate language keyword argument.
 
     Particularly for functions like `add_compiler()`, and `add_*_args()`
@@ -45,7 +45,7 @@ def _language_validator(l: T.List[str]) -> T.Optional[str]:
     return None
 
 
-def _install_mode_validator(mode: T.List[T.Union[str, bool, int]]) -> T.Optional[str]:
+def _install_mode_validator(mode   )  :
     """Validate the `install_mode` keyword argument.
 
     This is a rather odd thing, it's a scalar, or an array of 3 values in the form:
@@ -87,7 +87,7 @@ def _install_mode_validator(mode: T.List[T.Union[str, bool, int]]) -> T.Optional
     return None
 
 
-def _install_mode_convertor(mode: T.Optional[T.List[T.Union[str, bool, int]]]) -> FileMode:
+def _install_mode_convertor(mode   )  :
     """Convert the DSL form of the `install_mode` keyword argument to `FileMode`
 
     This is not required, and if not required returns None
@@ -99,7 +99,7 @@ def _install_mode_convertor(mode: T.Optional[T.List[T.Union[str, bool, int]]]) -
     return FileMode(*(m if isinstance(m, str) else None for m in mode))
 
 
-def _lower_strlist(input: T.List[str]) -> T.List[str]:
+def _lower_strlist(input )  :
     """Lower a list of strings.
 
     mypy (but not pyright) gets confused about using a lambda as the convertor function
@@ -119,7 +119,7 @@ LANGUAGE_KW = KwargInfo(
     validator=_language_validator,
     convertor=_lower_strlist)
 
-INSTALL_MODE_KW: KwargInfo[T.List[T.Union[str, bool, int]]] = KwargInfo(
+INSTALL_MODE_KW    = KwargInfo(
     'install_mode',
     ContainerTypeInfo(list, (str, bool, int)),
     listify=True,
@@ -128,18 +128,18 @@ INSTALL_MODE_KW: KwargInfo[T.List[T.Union[str, bool, int]]] = KwargInfo(
     convertor=_install_mode_convertor,
 )
 
-REQUIRED_KW: KwargInfo[T.Union[bool, UserFeatureOption]] = KwargInfo(
+REQUIRED_KW   = KwargInfo(
     'required',
     (bool, UserFeatureOption),
     default=True,
     # TODO: extract_required_kwarg could be converted to a convertor
 )
 
-DISABLER_KW: KwargInfo[bool] = KwargInfo('disabler', bool, default=False)
+DISABLER_KW  = KwargInfo('disabler', bool, default=False)
 
-def _env_validator(value: T.Union[EnvironmentVariables, T.List['TYPE_var'], T.Dict[str, 'TYPE_var'], str, None],
-                   allow_dict_list: bool = True) -> T.Optional[str]:
-    def _splitter(v: str) -> T.Optional[str]:
+def _env_validator(value      ,
+                   allow_dict_list  = True)  :
+    def _splitter(v )  :
         split = v.split('=', 1)
         if len(split) == 1:
             return '"{}" is not two string values separated by an "="'.format((v))
@@ -168,11 +168,11 @@ def _env_validator(value: T.Union[EnvironmentVariables, T.List['TYPE_var'], T.Di
     # we're okay at this point
     return None
 
-def _options_validator(value: T.Union[EnvironmentVariables, T.List['TYPE_var'], T.Dict[str, 'TYPE_var'], str, None]) -> T.Optional[str]:
+def _options_validator(value      )  :
     # Reusing the env validator is a littl overkill, but nicer than duplicating the code
     return _env_validator(value, allow_dict_list=False)
 
-def split_equal_string(input: str) -> T.Tuple[str, str]:
+def split_equal_string(input )   :
     """Split a string in the form `x=y`
 
     This assumes that the string has already been validated to split properly.
@@ -184,9 +184,9 @@ _FullEnvInitValueType = T.Union[EnvironmentVariables, T.List[str], T.List[T.List
 
 # Split _env_convertor() and env_convertor_with_method() to make mypy happy.
 # It does not want extra arguments in KwargInfo convertor callable.
-def env_convertor_with_method(value: _FullEnvInitValueType,
-                              init_method: Literal['set', 'prepend', 'append'] = 'set',
-                              separator: str = os.pathsep) -> EnvironmentVariables:
+def env_convertor_with_method(value ,
+                              init_method    = 'set',
+                              separator  = os.pathsep)  :
     if isinstance(value, str):
         return EnvironmentVariables(dict([split_equal_string(value)]), init_method, separator)
     elif isinstance(value, list):
@@ -197,38 +197,38 @@ def env_convertor_with_method(value: _FullEnvInitValueType,
         return EnvironmentVariables()
     return value
 
-def _env_convertor(value: _FullEnvInitValueType) -> EnvironmentVariables:
+def _env_convertor(value )  :
     return env_convertor_with_method(value)
 
-ENV_KW: KwargInfo[T.Union[EnvironmentVariables, T.List, T.Dict, str, None]] = KwargInfo(
+ENV_KW      = KwargInfo(
     'env',
     (EnvironmentVariables, list, dict, str, NoneType),
     validator=_env_validator,
     convertor=_env_convertor,
 )
 
-DEPFILE_KW: KwargInfo[T.Optional[str]] = KwargInfo(
+DEPFILE_KW  = KwargInfo(
     'depfile',
     (str, type(None)),
     validator=lambda x: 'Depfile must be a plain filename with a subdirectory' if has_path_sep(x) else None
 )
 
 # TODO: CustomTargetIndex should be supported here as well
-DEPENDS_KW: KwargInfo[T.List[T.Union[BuildTarget, CustomTarget]]] = KwargInfo(
+DEPENDS_KW   = KwargInfo(
     'depends',
     ContainerTypeInfo(list, (BuildTarget, CustomTarget)),
     listify=True,
     default=[],
 )
 
-DEPEND_FILES_KW: KwargInfo[T.List[T.Union[str, File]]] = KwargInfo(
+DEPEND_FILES_KW   = KwargInfo(
     'depend_files',
     ContainerTypeInfo(list, (File, str)),
     listify=True,
     default=[],
 )
 
-COMMAND_KW: KwargInfo[T.List[T.Union[str, BuildTarget, CustomTarget, CustomTargetIndex, ExternalProgram, File]]] = KwargInfo(
+COMMAND_KW       = KwargInfo(
     'command',
     # TODO: should accept CustomTargetIndex as well?
     ContainerTypeInfo(list, (str, BuildTarget, CustomTarget, CustomTargetIndex, ExternalProgram, File), allow_empty=False),
@@ -237,15 +237,15 @@ COMMAND_KW: KwargInfo[T.List[T.Union[str, BuildTarget, CustomTarget, CustomTarge
     default=[],
 )
 
-def _override_options_convertor(raw: T.List[str]) -> T.Dict[OptionKey, str]:
-    output: T.Dict[OptionKey, str] = {}
+def _override_options_convertor(raw )   :
+    output   = {}
     for each in raw:
         k, v = split_equal_string(each)
         output[OptionKey.from_string(k)] = v
     return output
 
 
-OVERRIDE_OPTIONS_KW: KwargInfo[T.List[str]] = KwargInfo(
+OVERRIDE_OPTIONS_KW  = KwargInfo(
     'override_options',
     ContainerTypeInfo(list, str),
     listify=True,
@@ -255,7 +255,7 @@ OVERRIDE_OPTIONS_KW: KwargInfo[T.List[str]] = KwargInfo(
 )
 
 
-def _output_validator(outputs: T.List[str]) -> T.Optional[str]:
+def _output_validator(outputs )  :
     for i in outputs:
         if i == '':
             return 'Output must not be empty.'
@@ -268,7 +268,7 @@ def _output_validator(outputs: T.List[str]) -> T.Optional[str]:
 
     return None
 
-CT_OUTPUT_KW: KwargInfo[T.List[str]] = KwargInfo(
+CT_OUTPUT_KW  = KwargInfo(
     'output',
     ContainerTypeInfo(list, str, allow_empty=False),
     listify=True,
@@ -277,14 +277,14 @@ CT_OUTPUT_KW: KwargInfo[T.List[str]] = KwargInfo(
     validator=_output_validator,
 )
 
-CT_INPUT_KW: KwargInfo[T.List[T.Union[str, File, ExternalProgram, BuildTarget, CustomTarget, CustomTargetIndex, ExtractedObjects, GeneratedList]]] = KwargInfo(
+CT_INPUT_KW         = KwargInfo(
     'input',
     ContainerTypeInfo(list, (str, File, ExternalProgram, BuildTarget, CustomTarget, CustomTargetIndex, ExtractedObjects, GeneratedList)),
     listify=True,
     default=[],
 )
 
-CT_INSTALL_TAG_KW: KwargInfo[T.List[T.Union[str, bool]]] = KwargInfo(
+CT_INSTALL_TAG_KW   = KwargInfo(
     'install_tag',
     ContainerTypeInfo(list, (str, bool)),
     listify=True,
@@ -293,31 +293,31 @@ CT_INSTALL_TAG_KW: KwargInfo[T.List[T.Union[str, bool]]] = KwargInfo(
     convertor=lambda x: [y if isinstance(y, str) else None for y in x],
 )
 
-INSTALL_TAG_KW: KwargInfo[T.Optional[str]] = KwargInfo('install_tag', (str, NoneType))
+INSTALL_TAG_KW  = KwargInfo('install_tag', (str, NoneType))
 
 INSTALL_KW = KwargInfo('install', bool, default=False)
 
-CT_INSTALL_DIR_KW: KwargInfo[T.List[T.Union[str, bool]]] = KwargInfo(
+CT_INSTALL_DIR_KW   = KwargInfo(
     'install_dir',
     ContainerTypeInfo(list, (str, bool)),
     listify=True,
     default=[],
 )
 
-CT_BUILD_BY_DEFAULT: KwargInfo[T.Optional[bool]] = KwargInfo('build_by_default', (bool, type(None)), since='0.40.0')
+CT_BUILD_BY_DEFAULT  = KwargInfo('build_by_default', (bool, type(None)), since='0.40.0')
 
-CT_BUILD_ALWAYS: KwargInfo[T.Optional[bool]] = KwargInfo(
+CT_BUILD_ALWAYS  = KwargInfo(
     'build_always', (bool, NoneType),
     deprecated='0.47.0',
     deprecated_message='combine build_by_default and build_always_stale instead.',
 )
 
-CT_BUILD_ALWAYS_STALE: KwargInfo[T.Optional[bool]] = KwargInfo(
+CT_BUILD_ALWAYS_STALE  = KwargInfo(
     'build_always_stale', (bool, NoneType),
     since='0.47.0',
 )
 
-INCLUDE_DIRECTORIES: KwargInfo[T.List[T.Union[str, IncludeDirs]]] = KwargInfo(
+INCLUDE_DIRECTORIES   = KwargInfo(
     'include_dirs',
     ContainerTypeInfo(list, (str, IncludeDirs)),
     listify=True,
@@ -325,7 +325,7 @@ INCLUDE_DIRECTORIES: KwargInfo[T.List[T.Union[str, IncludeDirs]]] = KwargInfo(
 )
 
 # for cases like default_options and override_options
-DEFAULT_OPTIONS: KwargInfo[T.List[str]] = KwargInfo(
+DEFAULT_OPTIONS  = KwargInfo(
     'default_options',
     ContainerTypeInfo(list, (str, IncludeDirs)),
     listify=True,

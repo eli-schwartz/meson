@@ -35,7 +35,7 @@ jar('{executable}',
 '''
 
 
-def create_meson_build(options: argparse.Namespace) -> None:
+def create_meson_build(options )  :
     if options.type != 'executable':
         raise SystemExit('\nGenerating a meson.build file from existing sources is\n'
                          'supported only for project type "executable".\n'

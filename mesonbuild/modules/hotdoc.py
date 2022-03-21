@@ -331,8 +331,8 @@ class HotdocTargetBuilder:
             self.cmd.append('--fatal-warning')
         self.generate_hotdoc_config()
 
-        target_cmd = self.build_command + ["--internal", "hotdoc"] + \
-            self.hotdoc.get_command() + ['run', '--conf-file', hotdoc_config_name] + \
+        target_cmd = self.build_command + ["--internal", "hotdoc"] +\
+            self.hotdoc.get_command() + ['run', '--conf-file', hotdoc_config_name] +\
             ['--builddir', os.path.join(self.builddir, self.subdir)]
 
         target = HotdocTarget(fullname,

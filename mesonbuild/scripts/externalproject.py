@@ -22,7 +22,7 @@ import typing as T
 from ..mesonlib import Popen_safe, split_args
 
 class ExternalProject:
-    def __init__(self, options: argparse.Namespace):
+    def __init__(self, options ):
         self.name = options.name
         self.src_dir = options.srcdir
         self.build_dir = options.builddir
@@ -33,7 +33,7 @@ class ExternalProject:
         self.depfile = options.depfile
         self.make = split_args(options.make)
 
-    def write_depfile(self) -> None:
+    def write_depfile(self)  :
         with open(self.depfile, 'w', encoding='utf-8') as f:
             f.write('{}: \\\n'.format((self.stampfile)))
             for dirpath, dirnames, filenames in os.walk(self.src_dir):
@@ -44,17 +44,17 @@ class ExternalProject:
                     path = Path(dirpath, fname)
                     f.write('  {} \\\n'.format(path.as_posix().replace(' ', '\\ ')))
 
-    def write_stampfile(self) -> None:
+    def write_stampfile(self)  :
         with open(self.stampfile, 'w', encoding='utf-8'):
             pass
 
-    def gnu_make(self) -> bool:
+    def gnu_make(self)  :
         p, o, e = Popen_safe(self.make + ['--version'])
         if p.returncode == 0 and 'GNU Make' in o:
             return True
         return False
 
-    def build(self) -> int:
+    def build(self)  :
         is_make = self.make[0] == 'make'
         make_cmd = self.make.copy()
         if is_make and self.gnu_make():
@@ -79,7 +79,7 @@ class ExternalProject:
 
         return 0
 
-    def _run(self, step: str, command: T.List[str], env: T.Optional[T.Dict[str, str]] = None) -> int:
+    def _run(self, step , command , env   = None)  :
         m = 'Running command ' + str(command) + ' in directory ' + str(self.build_dir) + '\n'
         log_filename = Path(self.log_dir, '{}-{}.log'.format((self.name), (step)))
         output = None
@@ -102,7 +102,7 @@ class ExternalProject:
             print(m)
         return p.returncode
 
-def run(args: T.List[str]) -> int:
+def run(args )  :
     parser = argparse.ArgumentParser()
     parser.add_argument('--name')
     parser.add_argument('--srcdir')

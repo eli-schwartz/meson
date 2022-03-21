@@ -32,7 +32,7 @@ from ..mesonlib import (
 from ..environment import Environment, build_filename
 
 
-def autodetect_vs_version(build: T.Optional[build.Build], interpreter: T.Optional[Interpreter]) -> backends.Backend:
+def autodetect_vs_version(build , interpreter )  :
     vs_version = os.getenv('VisualStudioVersion', None)
     vs_install_dir = os.getenv('VSINSTALLDIR', None)
     if not vs_install_dir:
@@ -49,15 +49,15 @@ def autodetect_vs_version(build: T.Optional[build.Build], interpreter: T.Optiona
     if vs_version == '14.0' or 'Visual Studio 14' in vs_install_dir:
         from mesonbuild.backend.vs2015backend import Vs2015Backend
         return Vs2015Backend(build, interpreter)
-    if vs_version == '15.0' or 'Visual Studio 17' in vs_install_dir or \
+    if vs_version == '15.0' or 'Visual Studio 17' in vs_install_dir or\
        'Visual Studio\\2017' in vs_install_dir:
         from mesonbuild.backend.vs2017backend import Vs2017Backend
         return Vs2017Backend(build, interpreter)
-    if vs_version == '16.0' or 'Visual Studio 19' in vs_install_dir or \
+    if vs_version == '16.0' or 'Visual Studio 19' in vs_install_dir or\
        'Visual Studio\\2019' in vs_install_dir:
         from mesonbuild.backend.vs2019backend import Vs2019Backend
         return Vs2019Backend(build, interpreter)
-    if vs_version == '17.0' or 'Visual Studio 22' in vs_install_dir or \
+    if vs_version == '17.0' or 'Visual Studio 22' in vs_install_dir or\
        'Visual Studio\\2022' in vs_install_dir:
         from mesonbuild.backend.vs2022backend import Vs2022Backend
         return Vs2022Backend(build, interpreter)
@@ -94,7 +94,7 @@ def generate_guid_from_path(path, path_type):
 
 
 class Vs2010Backend(backends.Backend):
-    def __init__(self, build: T.Optional[build.Build], interpreter: T.Optional[Interpreter]):
+    def __init__(self, build , interpreter ):
         super().__init__(build, interpreter)
         self.name = 'vs2010'
         self.project_file_version = '10.0.30319.1'
@@ -228,11 +228,11 @@ class Vs2010Backend(backends.Backend):
         Vs2010Backend.touch_regen_timestamp(self.environment.get_build_dir())
 
     @staticmethod
-    def get_regen_stampfile(build_dir: str) -> None:
+    def get_regen_stampfile(build_dir )  :
         return os.path.join(os.path.join(build_dir, Environment.private_dir), 'regen.stamp')
 
     @staticmethod
-    def touch_regen_timestamp(build_dir: str) -> None:
+    def touch_regen_timestamp(build_dir )  :
         with open(Vs2010Backend.get_regen_stampfile(build_dir), 'w', encoding='utf-8'):
             pass
 
@@ -241,7 +241,7 @@ class Vs2010Backend(backends.Backend):
 
         # Use vcvarsall.bat if we found it.
         if 'VCINSTALLDIR' in os.environ:
-            vs_version = os.environ['VisualStudioVersion'] \
+            vs_version = os.environ['VisualStudioVersion']\
                 if 'VisualStudioVersion' in os.environ else None
             relative_path = 'Auxiliary\\Build\\' if vs_version is not None and vs_version >= '15.0' else ''
             script_path = os.environ['VCINSTALLDIR'] + relative_path + 'vcvarsall.bat'
@@ -259,7 +259,7 @@ class Vs2010Backend(backends.Backend):
         if 'VS150COMNTOOLS' in os.environ and has_arch_values:
             script_path = os.environ['VS150COMNTOOLS'] + 'VsDevCmd.bat'
             if os.path.exists(script_path):
-                return '"%s" -arch=%s -host_arch=%s' % \
+                return '"%s" -arch=%s -host_arch=%s' %\
                     (script_path, os.environ['VSCMD_ARG_TGT_ARCH'], os.environ['VSCMD_ARG_HOST_ARCH'])
         return ''
 
@@ -338,7 +338,7 @@ class Vs2010Backend(backends.Backend):
                 identifier = generate_guid_from_path(path, 'subdir')
                 # top-level directories have None as their parent_dir
                 parent_dir = path.parent
-                parent_identifier = self.subdirs[parent_dir][0] \
+                parent_identifier = self.subdirs[parent_dir][0]\
                     if parent_dir != PurePath('.') else None
                 self.subdirs[path] = (identifier, parent_identifier)
                 prj_line = prj_templ % (
@@ -419,7 +419,7 @@ class Vs2010Backend(backends.Backend):
                 ofile.write('\t\t{%s}.%s|%s.ActiveCfg = %s|%s\n' %
                             (p[2], self.buildtype, self.platform,
                              self.buildtype, config_platform))
-                if p[0] in default_projlist and \
+                if p[0] in default_projlist and\
                    not isinstance(self.build.targets[p[0]], build.RunTarget):
                     # Add to the list of projects to be built
                     ofile.write('\t\t{%s}.%s|%s.Build.0 = %s|%s\n' %
@@ -1367,7 +1367,7 @@ class Vs2010Backend(backends.Backend):
                     self.add_additional_options(lang, inc_cl, file_args)
                     self.add_preprocessor_defines(lang, inc_cl, file_defines)
                     self.add_include_dirs(lang, inc_cl, file_inc_dirs)
-                    ET.SubElement(inc_cl, 'ObjectFileName').text = "$(IntDir)" + \
+                    ET.SubElement(inc_cl, 'ObjectFileName').text = "$(IntDir)" +\
                         self.object_filename_from_source(target, s)
             for s in gen_src:
                 if path_normalize_add(s, previous_sources):
@@ -1378,7 +1378,7 @@ class Vs2010Backend(backends.Backend):
                     self.add_preprocessor_defines(lang, inc_cl, file_defines)
                     self.add_include_dirs(lang, inc_cl, file_inc_dirs)
                     s = File.from_built_file(target.get_subdir(), s)
-                    ET.SubElement(inc_cl, 'ObjectFileName').text = "$(IntDir)" + \
+                    ET.SubElement(inc_cl, 'ObjectFileName').text = "$(IntDir)" +\
                         self.object_filename_from_source(target, s)
             for lang in pch_sources:
                 impl = pch_sources[lang][1]
@@ -1430,7 +1430,7 @@ class Vs2010Backend(backends.Backend):
         regen_command = self.environment.get_build_command() + ['--internal', 'regencheck']
         cmd_templ = '''call %s > NUL
 "%s" "%s"'''
-        regen_command = cmd_templ % \
+        regen_command = cmd_templ %\
             (self.get_vcvars_command(), '" "'.join(regen_command), self.environment.get_scratch_dir())
         self.add_custom_build(root, 'regen', regen_command, deps=self.get_regen_filelist(),
                               outputs=[Vs2010Backend.get_regen_stampfile(self.environment.get_build_dir())],

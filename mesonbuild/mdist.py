@@ -74,7 +74,7 @@ def copy_git(src, distdir, revision='HEAD', prefix=None, subdir=None):
 
 msg_uncommitted_changes = 'Repository has uncommitted changes that will not be included in the dist tarball'
 
-def handle_dirty_opt(msg, allow_dirty: bool):
+def handle_dirty_opt(msg, allow_dirty ):
     if allow_dirty:
         mlog.warning(msg)
     else:

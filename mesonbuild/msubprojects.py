@@ -17,7 +17,7 @@ from .wrap import wraptool
 
 ALL_TYPES_STRING = ', '.join(ALL_TYPES)
 
-def read_archive_files(path: Path, base_path: Path) -> T.Set[Path]:
+def read_archive_files(path , base_path )  :
     if path.suffix == '.zip':
         with zipfile.ZipFile(path, 'r') as zip_archive:
             archive_files = set(base_path / i.filename for i in zip_archive.infolist())
@@ -27,19 +27,19 @@ def read_archive_files(path: Path, base_path: Path) -> T.Set[Path]:
     return archive_files
 
 class Logger:
-    def __init__(self, total_tasks: int) -> None:
+    def __init__(self, total_tasks )  :
         self.lock = threading.Lock()
         self.total_tasks = total_tasks
         self.completed_tasks = 0
-        self.running_tasks: T.Set[str] = set()
+        self.running_tasks  = set()
         self.should_erase_line = ''
 
-    def flush(self) -> None:
+    def flush(self)  :
         if self.should_erase_line:
             print(self.should_erase_line, end='\r')
             self.should_erase_line = ''
 
-    def print_progress(self) -> None:
+    def print_progress(self)  :
         line = 'Progress: {} / {}'.format((self.completed_tasks), (self.total_tasks))
         max_len = shutil.get_terminal_size().columns - len(line)
         running = ', '.join(self.running_tasks)
@@ -49,12 +49,12 @@ class Logger:
         print(self.should_erase_line, line, sep='', end='\r')
         self.should_erase_line = '\x1b[K'
 
-    def start(self, wrap_name: str) -> None:
+    def start(self, wrap_name )  :
         with self.lock:
             self.running_tasks.add(wrap_name)
             self.print_progress()
 
-    def done(self, wrap_name: str, log_queue: T.List[T.Tuple[mlog.TV_LoggableList, T.Any]]) -> None:
+    def done(self, wrap_name , log_queue  )  :
         with self.lock:
             self.flush()
             for args, kwargs in log_queue:
@@ -65,7 +65,7 @@ class Logger:
 
 
 class Runner:
-    def __init__(self, logger: Logger, r: Resolver, wrap: PackageDefinition, repo_dir: str, options: 'Arguments') -> None:
+    def __init__(self, logger , r , wrap , repo_dir , options )  :
         # FIXME: Do a copy because Resolver.resolve() is stateful method that
         # cannot be called from multiple threads.
         self.wrap_resolver = copy.copy(r)
@@ -73,14 +73,14 @@ class Runner:
         self.wrap = self.wrap_resolver.wrap = wrap
         self.repo_dir = repo_dir
         self.options = options
-        self.run_method: T.Callable[[], bool] = options.subprojects_func.__get__(self) # type: ignore
-        self.log_queue: T.List[T.Tuple[mlog.TV_LoggableList, T.Any]] = []
+        self.run_method   = options.subprojects_func.__get__(self) # type: ignore
+        self.log_queue   = []
         self.logger = logger
 
-    def log(self, *args: mlog.TV_Loggable, **kwargs: T.Any) -> None:
+    def log(self, *args , **kwargs )  :
         self.log_queue.append((list(args), kwargs))
 
-    def run(self) -> bool:
+    def run(self)  :
         self.logger.start(self.wrap.name)
         try:
             result = self.run_method()
@@ -90,7 +90,7 @@ class Runner:
         self.logger.done(self.wrap.name, self.log_queue)
         return result
 
-    def update_wrapdb_file(self) -> None:
+    def update_wrapdb_file(self)  :
         try:
             patch_url = self.wrap.get('patch_url')
             branch, revision = wraptool.parse_patch_url(patch_url)
@@ -101,7 +101,7 @@ class Runner:
             wraptool.update_wrap_file(self.wrap.filename, self.wrap.name, new_branch, new_revision)
             self.log('  -> New wrap file downloaded.')
 
-    def update_file(self) -> bool:
+    def update_file(self)  :
         options = T.cast('UpdateArguments', self.options)
 
         self.update_wrapdb_file()
@@ -132,13 +132,13 @@ class Runner:
             self.log('     Pass --reset option to delete directory and redownload.')
             return False
 
-    def git_output(self, cmd: T.List[str]) -> str:
+    def git_output(self, cmd )  :
         return quiet_git(cmd, self.repo_dir, check=True)[1]
 
-    def git_verbose(self, cmd: T.List[str]) -> None:
+    def git_verbose(self, cmd )  :
         self.log(self.git_output(cmd))
 
-    def git_stash(self) -> None:
+    def git_stash(self)  :
         # That git command return 1 (failure) when there is something to stash.
         # We don't want to stash when there is nothing to stash because that would
         # print spurious "No local changes to save".
@@ -147,12 +147,12 @@ class Runner:
             # been saved.
             self.git_verbose(['stash'])
 
-    def git_show(self) -> None:
+    def git_show(self)  :
         commit_message = self.git_output(['show', '--quiet', '--pretty=format:%h%n%d%n%s%n[%an]'])
         parts = [s.strip() for s in commit_message.split('\n')]
         self.log('  ->', mlog.yellow(parts[0]), mlog.red(parts[1]), parts[2], mlog.blue(parts[3]))
 
-    def git_rebase(self, revision: str) -> bool:
+    def git_rebase(self, revision )  :
         try:
             self.git_output(['-c', 'rebase.autoStash=true', 'rebase', 'FETCH_HEAD'])
         except GitException as e:
@@ -162,7 +162,7 @@ class Runner:
             return False
         return True
 
-    def git_reset(self, revision: str) -> bool:
+    def git_reset(self, revision )  :
         try:
             # Stash local changes, commits can always be found back in reflog, to
             # avoid any data lost by mistake.
@@ -176,7 +176,7 @@ class Runner:
             return False
         return True
 
-    def git_checkout(self, revision: str, create: bool = False) -> bool:
+    def git_checkout(self, revision , create  = False)  :
         cmd = ['checkout', '--ignore-other-worktrees', revision, '--']
         if create:
             cmd.insert(1, '-b')
@@ -192,7 +192,7 @@ class Runner:
             return False
         return True
 
-    def git_checkout_and_reset(self, revision: str) -> bool:
+    def git_checkout_and_reset(self, revision )  :
         # revision could be a branch that already exists but is outdated, so we still
         # have to reset after the checkout.
         success = self.git_checkout(revision)
@@ -200,7 +200,7 @@ class Runner:
             success = self.git_reset(revision)
         return success
 
-    def git_checkout_and_rebase(self, revision: str) -> bool:
+    def git_checkout_and_rebase(self, revision )  :
         # revision could be a branch that already exists but is outdated, so we still
         # have to rebase after the checkout.
         success = self.git_checkout(revision)
@@ -208,7 +208,7 @@ class Runner:
             success = self.git_rebase(revision)
         return success
 
-    def update_git(self) -> bool:
+    def update_git(self)  :
         options = T.cast('UpdateArguments', self.options)
 
         if not os.path.isdir(self.repo_dir):
@@ -265,7 +265,7 @@ class Runner:
             self.log(mlog.red(e.output))
             self.log(mlog.red(str(e)))
             return False
-        if self.wrap_resolver.is_git_full_commit_id(revision) and \
+        if self.wrap_resolver.is_git_full_commit_id(revision) and\
                 quiet_git(['rev-parse', '--verify', revision + '^{commit}'], self.repo_dir)[0]:
             # The revision we need is both a commit and available. So we do not
             # need to fetch it because it cannot be updated.  Instead, trick
@@ -313,11 +313,11 @@ class Runner:
             self.update_git_done()
         return success
 
-    def update_git_done(self) -> None:
+    def update_git_done(self)  :
         self.git_output(['submodule', 'update', '--checkout', '--recursive'])
         self.git_show()
 
-    def update_hg(self) -> bool:
+    def update_hg(self)  :
         if not os.path.isdir(self.repo_dir):
             self.log('  -> Not used.')
             return True
@@ -333,7 +333,7 @@ class Runner:
                 subprocess.check_call(['hg', 'checkout', revno], cwd=self.repo_dir)
         return True
 
-    def update_svn(self) -> bool:
+    def update_svn(self)  :
         if not os.path.isdir(self.repo_dir):
             self.log('  -> Not used.')
             return True
@@ -351,7 +351,7 @@ class Runner:
             subprocess.check_call(['svn', 'update', '-r', revno], cwd=self.repo_dir)
         return True
 
-    def update(self) -> bool:
+    def update(self)  :
         self.log('Updating {}...'.format((self.wrap.name)))
         if self.wrap.type == 'file':
             return self.update_file()
@@ -367,7 +367,7 @@ class Runner:
             self.log('  -> Cannot update', self.wrap.type, 'subproject')
         return True
 
-    def checkout(self) -> bool:
+    def checkout(self)  :
         options = T.cast('CheckoutArguments', self.options)
 
         if self.wrap.type != 'git' or not os.path.isdir(self.repo_dir):
@@ -382,7 +382,7 @@ class Runner:
             return True
         return False
 
-    def download(self) -> bool:
+    def download(self)  :
         self.log('Download {}...'.format((self.wrap.name)))
         if os.path.isdir(self.repo_dir):
             self.log('  -> Already downloaded')
@@ -395,7 +395,7 @@ class Runner:
             return False
         return True
 
-    def foreach(self) -> bool:
+    def foreach(self)  :
         options = T.cast('ForeachArguments', self.options)
 
         self.log('Executing command in {}'.format((self.repo_dir)))
@@ -413,7 +413,7 @@ class Runner:
         self.log(out, end='')
         return True
 
-    def purge(self) -> bool:
+    def purge(self)  :
         options = T.cast('PurgeArguments', self.options)
 
         # if subproject is not wrap-based, then don't remove it
@@ -486,12 +486,12 @@ class Runner:
         return True
 
     @staticmethod
-    def post_purge(options: 'PurgeArguments') -> None:
+    def post_purge(options )  :
         if not options.confirm:
             mlog.log('')
             mlog.log('Nothing has been deleted, run again with --confirm to apply.')
 
-    def packagefiles(self) -> bool:
+    def packagefiles(self)  :
         options = T.cast('PackagefilesArguments', self.options)
 
         if options.apply and options.save:
@@ -533,7 +533,7 @@ class Runner:
         return True
 
 
-def add_common_arguments(p: argparse.ArgumentParser) -> None:
+def add_common_arguments(p )  :
     p.add_argument('--sourcedir', default='.',
                    help='Path to source directory')
     p.add_argument('--types', default='',
@@ -541,11 +541,11 @@ def add_common_arguments(p: argparse.ArgumentParser) -> None:
     p.add_argument('--num-processes', default=None, type=int,
                    help='How many parallel processes to use (Since 0.59.0).')
 
-def add_subprojects_argument(p: argparse.ArgumentParser) -> None:
+def add_subprojects_argument(p )  :
     p.add_argument('subprojects', nargs='*',
                    help='List of subprojects (default: all)')
 
-def add_arguments(parser: argparse.ArgumentParser) -> None:
+def add_arguments(parser )  :
     subparsers = parser.add_subparsers(title='Commands', dest='command')
     subparsers.required = True
 
@@ -599,7 +599,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     p.add_argument('--save', action='store_true', default=False, help='Save packagefiles from the subproject')
     p.set_defaults(subprojects_func=Runner.packagefiles)
 
-def run(options: 'Arguments') -> int:
+def run(options )  :
     src_dir = os.path.relpath(os.path.realpath(options.sourcedir))
     if not os.path.isfile(os.path.join(src_dir, 'meson.build')):
         mlog.error('Directory', mlog.bold(src_dir), 'does not seem to be a Meson source directory.')
@@ -617,8 +617,8 @@ def run(options: 'Arguments') -> int:
     for t in types:
         if t not in ALL_TYPES:
             raise MesonException('Unknown subproject type {!r}, supported types are: {}'.format((t), (ALL_TYPES_STRING)))
-    tasks: T.List[T.Awaitable[bool]] = []
-    task_names: T.List[str] = []
+    tasks  = []
+    task_names  = []
     loop = asyncio.get_event_loop()
     executor = ThreadPoolExecutor(options.num_processes)
     if types:

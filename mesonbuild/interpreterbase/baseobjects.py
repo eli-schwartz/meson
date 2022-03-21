@@ -31,7 +31,7 @@ if T.TYPE_CHECKING:
     __T = T.TypeVar('__T', bound=TYPE_var, contravariant=True)
 
     class OperatorCall(Protocol[__T]):
-        def __call__(self, other: __T) -> TYPE_var: ...
+        def __call__(self, other )  : ...
 
 TV_fw_var = T.Union[str, int, bool, list, dict, 'InterpreterObject']
 TV_fw_args = T.List[T.Union[mparser.BaseNode, TV_fw_var]]
@@ -49,22 +49,22 @@ TYPE_key_resolver = T.Callable[[mparser.BaseNode], str]
 SubProject = T.NewType('SubProject', str)
 
 class InterpreterObject:
-    def __init__(self, *, subproject: T.Optional['SubProject'] = None) -> None:
-        self.methods: T.Dict[
-            str,
-            T.Callable[[T.List[TYPE_var], TYPE_kwargs], TYPE_var]
-        ] = {}
-        self.operators: T.Dict[MesonOperator, 'OperatorCall'] = {}
-        self.trivial_operators: T.Dict[
-            MesonOperator,
-            T.Tuple[
-                T.Union[T.Type, T.Tuple[T.Type, ...]],
-                'OperatorCall'
-            ]
-        ] = {}
+    def __init__(self, *, subproject  = None)  :
+        self.methods                                    = {}
+
+
+
+        self.operators   = {}
+        self.trivial_operators                                                                                = {}
+
+
+
+
+
+
         # Current node set during a method call. This can be used as location
         # when printing a warning message during a method call.
-        self.current_node:  mparser.BaseNode = None
+        self.current_node   = None
         self.subproject = subproject or SubProject('')
 
         # Some default operators supported by all objects
@@ -74,15 +74,15 @@ class InterpreterObject:
         })
 
     # The type of the object that can be printed to the user
-    def display_name(self) -> str:
+    def display_name(self)  :
         return type(self).__name__
 
     def method_call(
                 self,
-                method_name: str,
-                args: T.List[TYPE_var],
-                kwargs: TYPE_kwargs
-            ) -> TYPE_var:
+                method_name ,
+                args ,
+                kwargs 
+            )  :
         if method_name in self.methods:
             method = self.methods[method_name]
             if not getattr(method, 'no-args-flattening', False):
@@ -92,7 +92,7 @@ class InterpreterObject:
             return method(args, kwargs)
         raise InvalidCode('Unknown method "{}" in object {} of type {}.'.format((method_name), (self), (type(self).__name__)))
 
-    def operator_call(self, operator: MesonOperator, other: TYPE_var) -> TYPE_var:
+    def operator_call(self, operator , other )  :
         if operator in self.trivial_operators:
             op = self.trivial_operators[operator]
             if op[0] is None and other is not None:
@@ -105,7 +105,7 @@ class InterpreterObject:
         raise InvalidCode('Object {} of type {} does not support the `{}` operator.'.format((self), (self.display_name()), (operator.value)))
 
     # Default comparison operator support
-    def _throw_comp_exception(self, other: TYPE_var, opt_type: str) -> T.NoReturn:
+    def _throw_comp_exception(self, other , opt_type )  :
         raise InvalidArguments(textwrap.dedent(
             '''
                 Trying to compare values of different types ({}, {}) using {}.
@@ -113,7 +113,7 @@ class InterpreterObject:
             '''.format((self.display_name()), (type(other).__name__), (opt_type))
         ))
 
-    def op_equals(self, other: TYPE_var) -> bool:
+    def op_equals(self, other )  :
         # We use `type(...) == type(...)` here to enforce an *exact* match for comparison. We
         # don't want comparisons to be possible where `isinstance(derived_obj, type(base_obj))`
         # would pass because this comparison must never be true: `derived_obj == base_obj`
@@ -121,7 +121,7 @@ class InterpreterObject:
             self._throw_comp_exception(other, '==')
         return self == other
 
-    def op_not_equals(self, other: TYPE_var) -> bool:
+    def op_not_equals(self, other )  :
         if type(self) != type(other):
             self._throw_comp_exception(other, '!=')
         return self != other
@@ -137,7 +137,7 @@ TYPE_HoldableTypes = T.Union[TYPE_elementary, HoldableObject]
 InterpreterObjectTypeVar = T.TypeVar('InterpreterObjectTypeVar', bound=TYPE_HoldableTypes)
 
 class ObjectHolder(InterpreterObject, T.Generic[InterpreterObjectTypeVar]):
-    def __init__(self, obj: InterpreterObjectTypeVar, interpreter: 'Interpreter') -> None:
+    def __init__(self, obj , interpreter )  :
         super().__init__(subproject=interpreter.subproject)
         # This causes some type checkers to assume that obj is a base
         # HoldableObject, not the specialized type, so only do this assert in
@@ -149,33 +149,33 @@ class ObjectHolder(InterpreterObject, T.Generic[InterpreterObjectTypeVar]):
         self.env = self.interpreter.environment
 
     # Hide the object holder abstraction from the user
-    def display_name(self) -> str:
+    def display_name(self)  :
         return type(self.held_object).__name__
 
     # Override default comparison operators for the held object
-    def op_equals(self, other: TYPE_var) -> bool:
+    def op_equals(self, other )  :
         # See the comment from InterpreterObject why we are using `type()` here.
         if type(self.held_object) != type(other):
             self._throw_comp_exception(other, '==')
         return self.held_object == other
 
-    def op_not_equals(self, other: TYPE_var) -> bool:
+    def op_not_equals(self, other )  :
         if type(self.held_object) != type(other):
             self._throw_comp_exception(other, '!=')
         return self.held_object != other
 
-    def __repr__(self) -> str:
+    def __repr__(self)  :
         return '<[{}] holds [{}]: {!r}>'.format((type(self).__name__), (type(self.held_object).__name__), (self.held_object))
 
 class IterableObject(metaclass=ABCMeta):
     '''Base class for all objects that can be iterated over in a foreach loop'''
 
-    def iter_tuple_size(self) -> T.Optional[int]:
+    def iter_tuple_size(self)  :
         '''Return the size of the tuple for each iteration. Returns None if only a single value is returned.'''
         raise MesonBugException('iter_tuple_size not implemented for {}'.format((self.__class__.__name__)))
 
-    def iter_self(self) -> T.Iterator[T.Union[TYPE_var, T.Tuple[TYPE_var, ...]]]:
+    def iter_self(self)    :
         raise MesonBugException('iter not implemented for {}'.format((self.__class__.__name__)))
 
-    def size(self) -> int:
+    def size(self)  :
         raise MesonBugException('size not implemented for {}'.format((self.__class__.__name__)))

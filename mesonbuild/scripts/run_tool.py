@@ -22,7 +22,7 @@ from ..compilers import lang_suffixes
 from ..mesonlib import Popen_safe
 import typing as T
 
-def parse_pattern_file(fname: Path) -> T.List[str]:
+def parse_pattern_file(fname )  :
     patterns = []
     try:
         with fname.open(encoding='utf-8') as f:
@@ -34,9 +34,9 @@ def parse_pattern_file(fname: Path) -> T.List[str]:
         pass
     return patterns
 
-def run_tool(name: str, srcdir: Path, builddir: Path, fn: T.Callable[..., subprocess.CompletedProcess], *args: T.Any) -> int:
+def run_tool(name , srcdir , builddir , fn  , *args )  :
     patterns = parse_pattern_file(srcdir / '.{}-include'.format((name)))
-    globs: T.Union[T.List[T.List[Path]], T.List[T.Generator[Path, None, None]]]
+    #globs: T.Union[T.List[T.List[Path]], T.List[T.Generator[Path, None, None]]]
     if patterns:
         globs = [srcdir.glob(p) for p in patterns]
     else:
@@ -56,7 +56,7 @@ def run_tool(name: str, srcdir: Path, builddir: Path, fn: T.Callable[..., subpro
     with ThreadPoolExecutor() as e:
         for f in itertools.chain(*globs):
             strf = str(f)
-            if f.is_dir() or f.suffix not in suffixes or \
+            if f.is_dir() or f.suffix not in suffixes or\
                 any(fnmatch.fnmatch(strf, i) for i in ignore):
                 continue
             futures.append(e.submit(fn, f, *args))

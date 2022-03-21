@@ -75,7 +75,7 @@ endmacro()
 '''
 
 class CMakeSubproject(ModuleObject):
-    def __init__(self, subp: SubprojectHolder):
+    def __init__(self, subp ):
         assert isinstance(subp, SubprojectHolder)
         assert subp.cm_interpreter is not None
         super().__init__()
@@ -156,7 +156,7 @@ class CMakeSubproject(ModuleObject):
 
 
 class CMakeSubprojectOptions(ModuleObject):
-    def __init__(self) -> None:
+    def __init__(self)  :
         super().__init__()
         self.cmake_options = []  # type: T.List[str]
         self.target_options = TargetOptions()
@@ -172,45 +172,45 @@ class CMakeSubprojectOptions(ModuleObject):
             }
         )
 
-    def _get_opts(self, kwargs: dict) -> SingleTargetOptions:
+    def _get_opts(self, kwargs )  :
         if 'target' in kwargs:
             return self.target_options[kwargs['target']]
         return self.target_options.global_options
 
     @noKwargs
-    def add_cmake_defines(self, state, args, kwargs) -> None:
+    def add_cmake_defines(self, state, args, kwargs)  :
         self.cmake_options += cmake_defines_to_args(args)
 
     @stringArgs
     @permittedKwargs({'target'})
-    def set_override_option(self, state, args, kwargs) -> None:
+    def set_override_option(self, state, args, kwargs)  :
         if len(args) != 2:
             raise InvalidArguments('set_override_option takes exactly 2 positional arguments')
         self._get_opts(kwargs).set_opt(args[0], args[1])
 
     @permittedKwargs({'target'})
-    def set_install(self, state, args, kwargs) -> None:
+    def set_install(self, state, args, kwargs)  :
         if len(args) != 1 or not isinstance(args[0], bool):
             raise InvalidArguments('set_install takes exactly 1 boolean argument')
         self._get_opts(kwargs).set_install(args[0])
 
     @stringArgs
     @permittedKwargs({'target'})
-    def append_compile_args(self, state, args, kwargs) -> None:
+    def append_compile_args(self, state, args, kwargs)  :
         if len(args) < 2:
             raise InvalidArguments('append_compile_args takes at least 2 positional arguments')
         self._get_opts(kwargs).append_args(args[0], args[1:])
 
     @stringArgs
     @permittedKwargs({'target'})
-    def append_link_args(self, state, args, kwargs) -> None:
+    def append_link_args(self, state, args, kwargs)  :
         if not args:
             raise InvalidArguments('append_link_args takes at least 1 positional argument')
         self._get_opts(kwargs).append_link_args(args)
 
     @noPosargs
     @noKwargs
-    def clear(self, state, args, kwargs) -> None:
+    def clear(self, state, args, kwargs)  :
         self.cmake_options.clear()
         self.target_options = TargetOptions()
 
@@ -272,7 +272,7 @@ class CmakeModule(ExtensionModule):
         KwargInfo('name', str, required=True),
         KwargInfo('version', str, required=True),
     )
-    def write_basic_package_version_file(self, state, args, kwargs: 'WriteBasicPackageVersionFile'):
+    def write_basic_package_version_file(self, state, args, kwargs ):
         arch_independent = kwargs['arch_independent']
         compatibility = kwargs['compatibility']
         name = kwargs['name']
@@ -340,7 +340,7 @@ class CmakeModule(ExtensionModule):
         KwargInfo('install_dir', (str, NoneType), default=None),
         KwargInfo('name', str, required=True),
     )
-    def configure_package_config_file(self, state, args, kwargs: 'ConfigurePackageConfigFile'):
+    def configure_package_config_file(self, state, args, kwargs ):
         inputfile = kwargs['input']
         if isinstance(inputfile, str):
             inputfile = mesonlib.File.from_source_file(state.environment.source_dir, state.subdir, inputfile)
@@ -398,11 +398,11 @@ class CmakeModule(ExtensionModule):
             deprecated_message='Use options instead',
         ),
     )
-    def subproject(self, state: ModuleState, args: T.Tuple[str], kwargs_: Subproject) -> T.Union[SubprojectHolder, CMakeSubproject]:
+    def subproject(self, state , args , kwargs_ )   :
         if kwargs_['cmake_options'] and kwargs_['options'] is not None:
             raise InterpreterException('"options" cannot be used together with "cmake_options"')
         dirname = args[0]
-        kw: kwargs.DoSubproject = {
+        kw  = {
             'required': kwargs_['required'],
             'options': kwargs_['options'],
             'cmake_options': kwargs_['cmake_options'],
@@ -417,7 +417,7 @@ class CmakeModule(ExtensionModule):
     @FeatureNew('subproject_options', '0.55.0')
     @noKwargs
     @noPosargs
-    def subproject_options(self, state, args, kwargs) -> CMakeSubprojectOptions:
+    def subproject_options(self, state, args, kwargs)  :
         return CMakeSubprojectOptions()
 
 def initialize(*args, **kwargs):

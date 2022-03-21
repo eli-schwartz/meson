@@ -107,7 +107,7 @@ class DependenciesHelper:
     def add_cflags(self, cflags):
         self.cflags += mesonlib.stringlistify(cflags)
 
-    def _process_libs(self, libs, public: bool):
+    def _process_libs(self, libs, public ):
         libs = mesonlib.listify(libs)
         processed_libs = []
         processed_reqs = []
@@ -255,8 +255,8 @@ class DependenciesHelper:
                 # Don't de-dup unknown strings to avoid messing up arguments like:
                 # ['-framework', 'CoreAudio', '-framework', 'CoreMedia']
                 known_flags = ['-pthread']
-                cannot_dedup = libs and isinstance(x, str) and \
-                    not x.startswith(('-l', '-L')) and \
+                cannot_dedup = libs and isinstance(x, str) and\
+                    not x.startswith(('-l', '-L')) and\
                     x not in known_flags
                 if not cannot_dedup and _add_exclude(x):
                     continue
@@ -408,8 +408,8 @@ class PkgConfigModule(ExtensionModule):
                 ofile.write('Conflicts: {}\n'.format(' '.join(conflicts)))
 
             def generate_libs_flags(libs):
-                msg = 'Library target {0!r} has {1!r} set. Compilers ' \
-                      'may not find it from its \'-l{2}\' linker flag in the ' \
+                msg = 'Library target {0!r} has {1!r} set. Compilers '\
+                      'may not find it from its \'-l{2}\' linker flag in the '\
                       '{3!r} pkg-config file.'
                 Lflags = []
                 for l in libs:
@@ -494,7 +494,7 @@ class PkgConfigModule(ExtensionModule):
                       'install_dir', 'extra_cflags', 'variables', 'url', 'd_module_versions',
                       'dataonly', 'conflicts', 'uninstalled_variables',
                       'unescaped_variables', 'unescaped_uninstalled_variables'})
-    def generate(self, state: 'ModuleState', args, kwargs):
+    def generate(self, state , args, kwargs):
         default_version = state.project_version
         default_install_dir = None
         default_description = None

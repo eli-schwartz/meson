@@ -40,7 +40,7 @@ syntax: glob
 '''
 
 
-def add_arguments(parser: argparse.ArgumentParser) -> None:
+def add_arguments(parser )  :
     coredata.register_builtin_arguments(parser)
     parser.add_argument('--native-file',
                         default=[],
@@ -72,7 +72,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('sourcedir', nargs='?', default=None)
 
 class MesonApp:
-    def __init__(self, options: argparse.Namespace) -> None:
+    def __init__(self, options )  :
         (self.source_dir, self.build_dir) = self.validate_dirs(options.builddir,
                                                                options.sourcedir,
                                                                options.reconfigure,
@@ -111,11 +111,11 @@ class MesonApp:
 
         self.options = options
 
-    def has_build_file(self, dirname: str) -> bool:
+    def has_build_file(self, dirname )  :
         fname = os.path.join(dirname, environment.build_filename)
         return os.path.exists(fname)
 
-    def validate_core_dirs(self, dir1: str, dir2: str) -> T.Tuple[str, str]:
+    def validate_core_dirs(self, dir1 , dir2 )   :
         if dir1 is None:
             if dir2 is None:
                 if not os.path.exists('meson.build') and os.path.exists('../meson.build'):
@@ -148,7 +148,7 @@ class MesonApp:
             return ndir2, ndir1
         raise MesonException('Neither directory contains a build file {}.'.format((environment.build_filename)))
 
-    def add_vcs_ignore_files(self, build_dir: str) -> None:
+    def add_vcs_ignore_files(self, build_dir )  :
         if os.listdir(build_dir):
             return
         with open(os.path.join(build_dir, '.gitignore'), 'w', encoding='utf-8') as ofile:
@@ -156,7 +156,7 @@ class MesonApp:
         with open(os.path.join(build_dir, '.hgignore'), 'w', encoding='utf-8') as ofile:
             ofile.write(hg_ignore_file)
 
-    def validate_dirs(self, dir1: str, dir2: str, reconfigure: bool, wipe: bool) -> T.Tuple[str, str]:
+    def validate_dirs(self, dir1 , dir2 , reconfigure , wipe )   :
         (src_dir, build_dir) = self.validate_core_dirs(dir1, dir2)
         self.add_vcs_ignore_files(build_dir)
         priv_dir = os.path.join(build_dir, 'meson-private/coredata.dat')
@@ -176,7 +176,7 @@ class MesonApp:
                 raise SystemExit('Directory does not contain a valid build tree:\n{}'.format((build_dir)))
         return src_dir, build_dir
 
-    def generate(self) -> None:
+    def generate(self)  :
         env = environment.Environment(self.source_dir, self.build_dir, self.options)
         mlog.initialize(env.get_log_dir(), self.options.fatal_warnings)
         if self.options.profile:
@@ -184,7 +184,7 @@ class MesonApp:
         with mesonlib.BuildDirLock(self.build_dir):
             self._generate(env)
 
-    def _generate(self, env: environment.Environment) -> None:
+    def _generate(self, env )  :
         # Get all user defined options, including options that have been defined
         # during a previous invocation or using meson configure.
         user_defined_options = argparse.Namespace(**vars(self.options))
@@ -288,14 +288,14 @@ class MesonApp:
                     os.unlink(cdf)
             raise
 
-    def _finalize_devenv(self, b: build.Build, intr: interpreter.Interpreter) -> None:
+    def _finalize_devenv(self, b , intr )  :
         b.devenv.append(intr.backend.get_devenv())
         for mod in intr.modules.values():
             devenv = mod.get_devenv()
             if devenv:
                 b.devenv.append(devenv)
 
-def run(options: argparse.Namespace) -> int:
+def run(options )  :
     coredata.parse_cmd_line_options(options)
     app = MesonApp(options)
     app.generate()

@@ -20,11 +20,11 @@ if T.TYPE_CHECKING:
     from .traceparser import CMakeTraceParser, CMakeTarget
 
 def parse_generator_expressions(
-            raw: str,
-            trace: 'CMakeTraceParser',
+            raw ,
+            trace ,
             *,
-            context_tgt: T.Optional['CMakeTarget'] = None,
-        ) -> str:
+            context_tgt  = None,
+        )  :
     '''Parse CMake generator expressions
 
     Most generator expressions are simply ignored for
@@ -39,21 +39,21 @@ def parse_generator_expressions(
     out = ''  # type: str
     i = 0     # type: int
 
-    def equal(arg: str) -> str:
+    def equal(arg )  :
         col_pos = arg.find(',')
         if col_pos < 0:
             return '0'
         else:
             return '1' if arg[:col_pos] == arg[col_pos + 1:] else '0'
 
-    def vers_comp(op: str, arg: str) -> str:
+    def vers_comp(op , arg )  :
         col_pos = arg.find(',')
         if col_pos < 0:
             return '0'
         else:
             return '1' if mesonlib.version_compare(arg[:col_pos], '{}{}'.format(op, arg[col_pos + 1:])) else '0'
 
-    def target_property(arg: str) -> str:
+    def target_property(arg )  :
         # We can't really support this since we don't have any context
         if ',' not in arg:
             if context_tgt is None:
@@ -64,7 +64,7 @@ def parse_generator_expressions(
         props = trace.targets[args[0]].properties.get(args[1], []) if args[0] in trace.targets else []
         return ';'.join(props)
 
-    def target_file(arg: str) -> str:
+    def target_file(arg )  :
         if arg not in trace.targets:
             return ''
         tgt = trace.targets[arg]
@@ -140,7 +140,7 @@ def parse_generator_expressions(
     }  # type: T.Dict[str, T.Callable[[str], str]]
 
     # Recursively evaluate generator expressions
-    def eval_generator_expressions() -> str:
+    def eval_generator_expressions()  :
         nonlocal i
         i += 2
 

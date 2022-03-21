@@ -50,7 +50,7 @@ if platform.system().lower() in {'windows'}:
     # Can not directly inherit from pathlib.Path because the __new__
     # operator of pathlib.Path() returns a {Posix,Windows}Path object.
     class Path(type(pathlib.Path())):
-        def resolve(self, strict: bool = False) -> 'Path':
+        def resolve(self, strict  = False)  :
             '''
                 Work around a resolve bug on certain Windows systems:
 

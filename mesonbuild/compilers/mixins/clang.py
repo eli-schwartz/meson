@@ -47,7 +47,7 @@ class ClangCompiler(GnuLikeCompiler):
 
     id = 'clang'
 
-    def __init__(self, defines: T.Optional[T.Dict[str, str]]):
+    def __init__(self, defines  ):
         super().__init__()
         self.defines = defines or {}
         self.base_options.update(
@@ -60,42 +60,42 @@ class ClangCompiler(GnuLikeCompiler):
         # All Clang backends can also do LLVM IR
         self.can_compile_suffixes.add('ll')
 
-    def get_colorout_args(self, colortype: str) -> T.List[str]:
+    def get_colorout_args(self, colortype )  :
         return clang_color_args[colortype][:]
 
-    def has_builtin_define(self, define: str) -> bool:
+    def has_builtin_define(self, define )  :
         return define in self.defines
 
-    def get_builtin_define(self, define: str) -> T.Optional[str]:
+    def get_builtin_define(self, define )  :
         return self.defines.get(define)
 
-    def get_optimization_args(self, optimization_level: str) -> T.List[str]:
+    def get_optimization_args(self, optimization_level )  :
         return clang_optimization_args[optimization_level]
 
-    def get_pch_suffix(self) -> str:
+    def get_pch_suffix(self)  :
         return 'pch'
 
-    def get_pch_use_args(self, pch_dir: str, header: str) -> T.List[str]:
+    def get_pch_use_args(self, pch_dir , header )  :
         # Workaround for Clang bug http://llvm.org/bugs/show_bug.cgi?id=15136
         # This flag is internal to Clang (or at least not documented on the man page)
         # so it might change semantics at any time.
         return ['-include-pch', os.path.join(pch_dir, self.get_pch_name(header))]
 
-    def get_compiler_check_args(self, mode: CompileCheckMode) -> T.List[str]:
+    def get_compiler_check_args(self, mode )  :
         # Clang is different than GCC, it will return True when a symbol isn't
         # defined in a header. Specifically this seems to have something to do
         # with functions that may be in a header on some systems, but not all of
         # them. `strlcat` specifically with can trigger this.
-        myargs: T.List[str] = ['-Werror=implicit-function-declaration']
+        myargs  = ['-Werror=implicit-function-declaration']
         if mode is CompileCheckMode.COMPILE:
             myargs.extend(['-Werror=unknown-warning-option', '-Werror=unused-command-line-argument'])
             if mesonlib.version_compare(self.version, '>=3.6.0'):
                 myargs.append('-Werror=ignored-optimization-argument')
         return super().get_compiler_check_args(mode) + myargs
 
-    def has_function(self, funcname: str, prefix: str, env: 'Environment', *,
-                     extra_args: T.Optional[T.List[str]] = None,
-                     dependencies: T.Optional[T.List['Dependency']] = None) -> T.Tuple[bool, bool]:
+    def has_function(self, funcname , prefix , env , *,
+                     extra_args  = None,
+                     dependencies  = None)   :
         if extra_args is None:
             extra_args = []
         # Starting with XCode 8, we need to pass this to force linker
@@ -108,7 +108,7 @@ class ClangCompiler(GnuLikeCompiler):
         return super().has_function(funcname, prefix, env, extra_args=extra_args,
                                     dependencies=dependencies)
 
-    def openmp_flags(self) -> T.List[str]:
+    def openmp_flags(self)  :
         if mesonlib.version_compare(self.version, '>=3.8.0'):
             return ['-fopenmp']
         elif mesonlib.version_compare(self.version, '>=3.7.0'):
@@ -118,7 +118,7 @@ class ClangCompiler(GnuLikeCompiler):
             return []
 
     @classmethod
-    def use_linker_args(cls, linker: str) -> T.List[str]:
+    def use_linker_args(cls, linker )  :
         # Clang additionally can use a linker specified as a path, which GCC
         # (and other gcc-like compilers) cannot. This is because clang (being
         # llvm based) is retargetable, while GCC is not.
@@ -135,16 +135,16 @@ class ClangCompiler(GnuLikeCompiler):
             return ['-fuse-ld={}'.format((linker))]
         return super().use_linker_args(linker)
 
-    def get_has_func_attribute_extra_args(self, name: str) -> T.List[str]:
+    def get_has_func_attribute_extra_args(self, name )  :
         # Clang only warns about unknown or ignored attributes, so force an
         # error.
         return ['-Werror=attributes']
 
-    def get_coverage_link_args(self) -> T.List[str]:
+    def get_coverage_link_args(self)  :
         return ['--coverage']
 
-    def get_lto_compile_args(self, *, threads: int = 0, mode: str = 'default') -> T.List[str]:
-        args: T.List[str] = []
+    def get_lto_compile_args(self, *, threads  = 0, mode  = 'default')  :
+        args  = []
         if mode == 'thin':
             # Thin LTO requires the use of gold, lld, ld64, or lld-link
             if not isinstance(self.linker, (AppleDynamicLinker, ClangClDynamicLinker, LLVMDynamicLinker, GnuGoldDynamicLinker)):
@@ -155,7 +155,7 @@ class ClangCompiler(GnuLikeCompiler):
             args.extend(super().get_lto_compile_args(threads=threads))
         return args
 
-    def get_lto_link_args(self, *, threads: int = 0, mode: str = 'default') -> T.List[str]:
+    def get_lto_link_args(self, *, threads  = 0, mode  = 'default')  :
         args = self.get_lto_compile_args(threads=threads, mode=mode)
         # In clang -flto-jobs=0 means auto, and is the default if unspecified, just like in meson
         if threads > 0:

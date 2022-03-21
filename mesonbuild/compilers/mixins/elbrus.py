@@ -34,7 +34,7 @@ class ElbrusCompiler(GnuLikeCompiler):
 
     id = 'lcc'
 
-    def __init__(self) -> None:
+    def __init__(self)  :
         super().__init__()
         self.base_options = {OptionKey(o) for o in ['b_pgo', 'b_coverage', 'b_ndebug', 'b_staticpic', 'b_lundef', 'b_asneeded']}
         default_warn_args = ['-Wall']
@@ -45,7 +45,7 @@ class ElbrusCompiler(GnuLikeCompiler):
 
     # FIXME: use _build_wrapper to call this so that linker flags from the env
     # get applied
-    def get_library_dirs(self, env: 'Environment', elf_class: T.Optional[int] = None) -> T.List[str]:
+    def get_library_dirs(self, env , elf_class  = None)  :
         os_env = os.environ.copy()
         os_env['LC_ALL'] = 'C'
         stdo = Popen_safe(self.exelist + ['--print-search-dirs'], env=os_env)[1]
@@ -56,7 +56,7 @@ class ElbrusCompiler(GnuLikeCompiler):
                 return [os.path.realpath(p) for p in libstr.split(':') if os.path.exists(p)]
         return []
 
-    def get_program_dirs(self, env: 'Environment') -> T.List[str]:
+    def get_program_dirs(self, env )  :
         os_env = os.environ.copy()
         os_env['LC_ALL'] = 'C'
         stdo = Popen_safe(self.exelist + ['--print-search-dirs'], env=os_env)[1]
@@ -67,7 +67,7 @@ class ElbrusCompiler(GnuLikeCompiler):
                 return [os.path.realpath(p) for p in libstr.split(':')]
         return []
 
-    def get_default_include_dirs(self) -> T.List[str]:
+    def get_default_include_dirs(self)  :
         os_env = os.environ.copy()
         os_env['LC_ALL'] = 'C'
         p = subprocess.Popen(self.exelist + ['-xc', '-E', '-v', '-'], env=os_env, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -78,22 +78,22 @@ class ElbrusCompiler(GnuLikeCompiler):
                 includes.append(re.sub(r'\s*\\$', '', re.sub(r'^\s*--sys_include\s*', '', line)))
         return includes
 
-    def get_optimization_args(self, optimization_level: str) -> T.List[str]:
+    def get_optimization_args(self, optimization_level )  :
         return gnu_optimization_args[optimization_level]
 
-    def get_prelink_args(self, prelink_name: str, obj_list: T.List[str]) -> T.List[str]:
+    def get_prelink_args(self, prelink_name , obj_list )  :
         return ['-r', '-nodefaultlibs', '-nostartfiles', '-o', prelink_name] + obj_list
 
-    def get_pch_suffix(self) -> str:
+    def get_pch_suffix(self)  :
         # Actually it's not supported for now, but probably will be supported in future
         return 'pch'
 
-    def get_option_compile_args(self, options: 'KeyedOptionDictType') -> T.List[str]:
+    def get_option_compile_args(self, options )  :
         args = []
         std = options[OptionKey('std', lang=self.language, machine=self.for_machine)]
         if std.value != 'none':
             args.append('-std=' + std.value)
         return args
 
-    def openmp_flags(self) -> T.List[str]:
+    def openmp_flags(self)  :
         return ['-fopenmp']

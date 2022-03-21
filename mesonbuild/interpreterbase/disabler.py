@@ -21,12 +21,12 @@ if T.TYPE_CHECKING:
     from .baseobjects import TYPE_var, TYPE_kwargs
 
 class Disabler(MesonInterpreterObject):
-    def method_call(self, method_name: str, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> TYPE_var:
+    def method_call(self, method_name , args , kwargs )  :
         if method_name == 'found':
             return False
         return Disabler()
 
-def _is_arg_disabled(arg: T.Any) -> bool:
+def _is_arg_disabled(arg )  :
     if isinstance(arg, Disabler):
         return True
     if isinstance(arg, list):
@@ -35,7 +35,7 @@ def _is_arg_disabled(arg: T.Any) -> bool:
                 return True
     return False
 
-def is_disabled(args: T.Sequence[T.Any], kwargs: T.Dict[str, T.Any]) -> bool:
+def is_disabled(args , kwargs  )  :
     for i in args:
         if _is_arg_disabled(i):
             return True

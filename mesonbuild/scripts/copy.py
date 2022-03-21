@@ -10,7 +10,7 @@ import shutil
 import typing as T
 
 
-def run(args: T.List[str]) -> int:
+def run(args )  :
     try:
         shutil.copy2(args[0], args[1])
     except Exception:

@@ -107,8 +107,8 @@ class CompilerArgs(collections.abc.MutableSequence):
     # TODO: these should probably move too
     always_dedup_args = tuple('-l' + lib for lib in UNIXY_COMPILER_INTERNAL_LIBS)  # type : T.Tuple[str, ...]
 
-    def __init__(self, compiler: T.Union['Compiler', 'StaticLinker'],
-                 iterable: T.Optional[T.Iterable[str]] = None):
+    def __init__(self, compiler  ,
+                 iterable  = None):
         self.compiler = compiler
         self._container = list(iterable) if iterable is not None else []  # type: T.List[str]
         self.pre = collections.deque()    # type: T.Deque[str]
@@ -118,7 +118,7 @@ class CompilerArgs(collections.abc.MutableSequence):
     #
     # This correctly deduplicates the entries after _can_dedup definition
     # Note: This function is designed to work without delete operations, as deletions are worsening the performance a lot.
-    def flush_pre_post(self) -> None:
+    def flush_pre_post(self)  :
         new = list()                      # type: T.List[str]
         pre_flush_set = set()             # type: T.Set[str]
         post_flush = collections.deque()  # type: T.Deque[str]
@@ -152,52 +152,52 @@ class CompilerArgs(collections.abc.MutableSequence):
         self.pre.clear()
         self.post.clear()
 
-    def __iter__(self) -> T.Iterator[str]:
+    def __iter__(self)  :
         self.flush_pre_post()
         return iter(self._container)
 
     @T.overload                                # noqa: F811
-    def __getitem__(self, index: int) -> str:  # noqa: F811
+    def __getitem__(self, index )  :  # noqa: F811
         pass
 
     @T.overload                                                     # noqa: F811
-    def __getitem__(self, index: slice) -> T.MutableSequence[str]:  # noqa: F811
+    def __getitem__(self, index )  :  # noqa: F811
         pass
 
-    def __getitem__(self, index: T.Union[int, slice]) -> T.Union[str, T.MutableSequence[str]]:  # noqa: F811
+    def __getitem__(self, index  )   :  # noqa: F811
         self.flush_pre_post()
         return self._container[index]
 
     @T.overload                                             # noqa: F811
-    def __setitem__(self, index: int, value: str) -> None:  # noqa: F811
+    def __setitem__(self, index , value )  :  # noqa: F811
         pass
 
     @T.overload                                                       # noqa: F811
-    def __setitem__(self, index: slice, value: T.Iterable[str]) -> None:  # noqa: F811
+    def __setitem__(self, index , value )  :  # noqa: F811
         pass
 
-    def __setitem__(self, index: T.Union[int, slice], value: T.Union[str, T.Iterable[str]]) -> None:  # noqa: F811
+    def __setitem__(self, index  , value  )  :  # noqa: F811
         self.flush_pre_post()
         self._container[index] = value  # type: ignore  # TODO: fix 'Invalid index type' and 'Incompatible types in assignment' errors
 
-    def __delitem__(self, index: T.Union[int, slice]) -> None:
+    def __delitem__(self, index  )  :
         self.flush_pre_post()
         del self._container[index]
 
-    def __len__(self) -> int:
+    def __len__(self)  :
         return len(self._container) + len(self.pre) + len(self.post)
 
-    def insert(self, index: int, value: str) -> None:
+    def insert(self, index , value )  :
         self.flush_pre_post()
         self._container.insert(index, value)
 
-    def copy(self) -> 'CompilerArgs':
+    def copy(self)  :
         self.flush_pre_post()
         return type(self)(self.compiler, self._container.copy())
 
     @classmethod
     @lru_cache(maxsize=None)
-    def _can_dedup(cls, arg: str) -> Dedup:
+    def _can_dedup(cls, arg )  :
         """Returns whether the argument can be safely de-duped.
 
         In addition to these, we handle library arguments specially.
@@ -216,23 +216,23 @@ class CompilerArgs(collections.abc.MutableSequence):
         # both of which are invalid.
         if arg in cls.dedup2_prefixes:
             return Dedup.NO_DEDUP
-        if arg in cls.dedup2_args or \
-           arg.startswith(cls.dedup2_prefixes) or \
+        if arg in cls.dedup2_args or\
+           arg.startswith(cls.dedup2_prefixes) or\
            arg.endswith(cls.dedup2_suffixes):
             return Dedup.OVERRIDDEN
-        if arg in cls.dedup1_args or \
-           arg.startswith(cls.dedup1_prefixes) or \
-           arg.endswith(cls.dedup1_suffixes) or \
+        if arg in cls.dedup1_args or\
+           arg.startswith(cls.dedup1_prefixes) or\
+           arg.endswith(cls.dedup1_suffixes) or\
            re.search(cls.dedup1_regex, arg):
             return Dedup.UNIQUE
         return Dedup.NO_DEDUP
 
     @classmethod
     @lru_cache(maxsize=None)
-    def _should_prepend(cls, arg: str) -> bool:
+    def _should_prepend(cls, arg )  :
         return arg.startswith(cls.prepend_prefixes)
 
-    def to_native(self, copy: bool = False) -> T.List[str]:
+    def to_native(self, copy  = False)  :
         # Check if we need to add --start/end-group for circular dependencies
         # between static libraries, and for recursively searching for symbols
         # needed by static libraries that are provided by object files or
@@ -244,7 +244,7 @@ class CompilerArgs(collections.abc.MutableSequence):
             new = self
         return self.compiler.unix_args_to_native(new._container)
 
-    def append_direct(self, arg: str) -> None:
+    def append_direct(self, arg )  :
         '''
         Append the specified argument without any reordering or de-dup except
         for absolute paths to libraries, etc, which can always be de-duped
@@ -256,7 +256,7 @@ class CompilerArgs(collections.abc.MutableSequence):
         else:
             self._container.append(arg)
 
-    def extend_direct(self, iterable: T.Iterable[str]) -> None:
+    def extend_direct(self, iterable )  :
         '''
         Extend using the elements in the specified iterable without any
         reordering or de-dup except for absolute paths where the order of
@@ -266,7 +266,7 @@ class CompilerArgs(collections.abc.MutableSequence):
         for elem in iterable:
             self.append_direct(elem)
 
-    def extend_preserving_lflags(self, iterable: T.Iterable[str]) -> None:
+    def extend_preserving_lflags(self, iterable )  :
         normal_flags = []
         lflags = []
         for i in iterable:
@@ -277,13 +277,13 @@ class CompilerArgs(collections.abc.MutableSequence):
         self.extend(normal_flags)
         self.extend_direct(lflags)
 
-    def __add__(self, args: T.Iterable[str]) -> 'CompilerArgs':
+    def __add__(self, args )  :
         self.flush_pre_post()
         new = self.copy()
         new += args
         return new
 
-    def __iadd__(self, args: T.Iterable[str]) -> 'CompilerArgs':
+    def __iadd__(self, args )  :
         '''
         Add two CompilerArgs while taking into account overriding of arguments
         and while preserving the order of arguments as much as possible
@@ -308,13 +308,13 @@ class CompilerArgs(collections.abc.MutableSequence):
         #pre and post is going to be merged later before a iter call
         return self
 
-    def __radd__(self, args: T.Iterable[str]) -> 'CompilerArgs':
+    def __radd__(self, args )  :
         self.flush_pre_post()
         new = type(self)(self.compiler, args)
         new += self
         return new
 
-    def __eq__(self, other: object) -> T.Union[bool]:
+    def __eq__(self, other )  :
         self.flush_pre_post()
         # Only allow equality checks against other CompilerArgs and lists instances
         if isinstance(other, CompilerArgs):
@@ -323,12 +323,12 @@ class CompilerArgs(collections.abc.MutableSequence):
             return self._container == other
         return NotImplemented
 
-    def append(self, arg: str) -> None:
+    def append(self, arg )  :
         self.__iadd__([arg])
 
-    def extend(self, args: T.Iterable[str]) -> None:
+    def extend(self, args )  :
         self.__iadd__(args)
 
-    def __repr__(self) -> str:
+    def __repr__(self)  :
         self.flush_pre_post()
         return 'CompilerArgs({!r}, {!r})'.format((self.compiler), (self._container))

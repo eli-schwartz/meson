@@ -37,7 +37,7 @@ from .factory import DependencyFactory
 from .misc import threads_factory
 from .pkgconfig import PkgConfigDependency
 
-def get_shared_library_suffix(environment: 'Environment', for_machine: MachineChoice) -> str:
+def get_shared_library_suffix(environment , for_machine )  :
     """This is only guaranteed to work for languages that compile to machine
     code, not for languages like C# that use a bytecode and always end in .dll
     """
@@ -50,7 +50,7 @@ def get_shared_library_suffix(environment: 'Environment', for_machine: MachineCh
 
 
 class GTestDependencySystem(SystemDependency):
-    def __init__(self, name: str, environment: 'Environment', kwargs: T.Dict[str, T.Any]) -> None:
+    def __init__(self, name , environment , kwargs  )  :
         super().__init__(name, environment, kwargs, language='cpp')
         self.main = kwargs.get('main', False)
         self.src_dirs = ['/usr/src/gtest/src', '/usr/src/googletest/googletest/src']
@@ -59,7 +59,7 @@ class GTestDependencySystem(SystemDependency):
             return
         self.detect()
 
-    def detect(self) -> None:
+    def detect(self)  :
         gtest_detect = self.clib_compiler.find_library("gtest", self.env, [])
         gtest_main_detect = self.clib_compiler.find_library("gtest_main", self.env, [])
         if gtest_detect and (not self.main or gtest_main_detect):
@@ -82,7 +82,7 @@ class GTestDependencySystem(SystemDependency):
         else:
             self.is_found = False
 
-    def detect_srcdir(self) -> bool:
+    def detect_srcdir(self)  :
         for s in self.src_dirs:
             if os.path.exists(s):
                 self.src_dir = s
@@ -96,19 +96,19 @@ class GTestDependencySystem(SystemDependency):
                 return True
         return False
 
-    def log_info(self) -> str:
+    def log_info(self)  :
         if self.prebuilt:
             return 'prebuilt'
         else:
             return 'building self'
 
-    def log_tried(self) -> str:
+    def log_tried(self)  :
         return 'system'
 
 
 class GTestDependencyPC(PkgConfigDependency):
 
-    def __init__(self, name: str, environment: 'Environment', kwargs: T.Dict[str, T.Any]):
+    def __init__(self, name , environment , kwargs  ):
         assert name == 'gtest'
         if kwargs.get('main'):
             name = 'gtest_main'
@@ -116,7 +116,7 @@ class GTestDependencyPC(PkgConfigDependency):
 
 
 class GMockDependencySystem(SystemDependency):
-    def __init__(self, name: str, environment: 'Environment', kwargs: T.Dict[str, T.Any]) -> None:
+    def __init__(self, name , environment , kwargs  )  :
         super().__init__(name, environment, kwargs, language='cpp')
         self.main = kwargs.get('main', False)
         if not self._add_sub_dependency(threads_factory(environment, self.for_machine, {})):
@@ -167,19 +167,19 @@ class GMockDependencySystem(SystemDependency):
 
         self.is_found = False
 
-    def log_info(self) -> str:
+    def log_info(self)  :
         if self.prebuilt:
             return 'prebuilt'
         else:
             return 'building self'
 
-    def log_tried(self) -> str:
+    def log_tried(self)  :
         return 'system'
 
 
 class GMockDependencyPC(PkgConfigDependency):
 
-    def __init__(self, name: str, environment: 'Environment', kwargs: T.Dict[str, T.Any]):
+    def __init__(self, name , environment , kwargs  ):
         assert name == 'gmock'
         if kwargs.get('main'):
             name = 'gmock_main'
@@ -194,7 +194,7 @@ class LLVMDependencyConfigTool(ConfigToolDependency):
     tool_name = 'llvm-config'
     __cpp_blacklist = {'-DNDEBUG'}
 
-    def __init__(self, name: str, environment: 'Environment', kwargs: T.Dict[str, T.Any]):
+    def __init__(self, name , environment , kwargs  ):
         self.tools = get_llvm_tool_names('llvm-config')
 
         # Fedora starting with Fedora 30 adds a suffix of the number
@@ -209,9 +209,9 @@ class LLVMDependencyConfigTool(ConfigToolDependency):
         # It's necessary for LLVM <= 3.8 to use the C++ linker. For 3.9 and 4.0
         # the C linker works fine if only using the C API.
         super().__init__(name, environment, kwargs, language='cpp')
-        self.provided_modules: T.List[str] = []
-        self.required_modules: mesonlib.OrderedSet[str] = mesonlib.OrderedSet()
-        self.module_details:   T.List[str] = []
+        self.provided_modules  = []
+        self.required_modules  = mesonlib.OrderedSet()
+        self.module_details    = []
         if not self.is_found:
             return
 
@@ -234,7 +234,7 @@ class LLVMDependencyConfigTool(ConfigToolDependency):
             self.is_found = False
             return
 
-    def __fix_bogus_link_args(self, args: T.List[str]) -> T.List[str]:
+    def __fix_bogus_link_args(self, args )  :
         """This function attempts to fix bogus link arguments that llvm-config
         generates.
 
@@ -257,7 +257,7 @@ class LLVMDependencyConfigTool(ConfigToolDependency):
                 new_args.append(arg)
         return new_args
 
-    def __check_libfiles(self, shared: bool) -> None:
+    def __check_libfiles(self, shared )  :
         """Use llvm-config's --libfiles to check if libraries exist."""
         mode = '--link-shared' if shared else '--link-static'
 
@@ -273,7 +273,7 @@ class LLVMDependencyConfigTool(ConfigToolDependency):
         finally:
             self.required = restore
 
-    def _set_new_link_args(self, environment: 'Environment') -> None:
+    def _set_new_link_args(self, environment )  :
         """How to set linker args for LLVM versions >= 3.9"""
         try:
             mode = self.get_config_value(['--shared-mode'], 'link_args')[0]
@@ -328,7 +328,7 @@ class LLVMDependencyConfigTool(ConfigToolDependency):
             ['--libs', '--ldflags'] + link_args + list(self.required_modules),
             'link_args')
 
-    def _set_old_link_args(self) -> None:
+    def _set_old_link_args(self)  :
         """Setting linker args for older versions of llvm.
 
         Old versions of LLVM bring an extra level of insanity with them.
@@ -359,7 +359,7 @@ class LLVMDependencyConfigTool(ConfigToolDependency):
                 raise DependencyException(
                     'Could not find a dynamically linkable library for LLVM.')
 
-    def check_components(self, modules: T.List[str], required: bool = True) -> None:
+    def check_components(self, modules , required  = True)  :
         """Check for llvm components (modules in meson terms).
 
         The required option is whether the module is required, not whether LLVM
@@ -382,13 +382,13 @@ class LLVMDependencyConfigTool(ConfigToolDependency):
 
             self.module_details.append(mod + status)
 
-    def log_details(self) -> str:
+    def log_details(self)  :
         if self.module_details:
             return 'modules: ' + ', '.join(self.module_details)
         return ''
 
 class LLVMDependencyCMake(CMakeDependency):
-    def __init__(self, name: str, env: 'Environment', kwargs: T.Dict[str, T.Any]) -> None:
+    def __init__(self, name , env , kwargs  )  :
         self.llvm_modules = stringlistify(extract_as_list(kwargs, 'modules'))
         self.llvm_opt_modules = stringlistify(extract_as_list(kwargs, 'optional_modules'))
         super().__init__(name, env, kwargs, language='cpp')
@@ -415,14 +415,14 @@ class LLVMDependencyCMake(CMakeDependency):
             self.is_found = False
             return
 
-    def _main_cmake_file(self) -> str:
+    def _main_cmake_file(self)  :
         # Use a custom CMakeLists.txt for LLVM
         return 'CMakeListsLLVM.txt'
 
-    def _extra_cmake_opts(self) -> T.List[str]:
+    def _extra_cmake_opts(self)  :
         return ['-DLLVM_MESON_MODULES={}'.format(';'.join(self.llvm_modules + self.llvm_opt_modules))]
 
-    def _map_module_list(self, modules: T.List[T.Tuple[str, bool]], components: T.List[T.Tuple[str, bool]]) -> T.List[T.Tuple[str, bool]]:
+    def _map_module_list(self, modules  , components  )   :
         res = []
         for mod, required in modules:
             cm_targets = self.traceparser.get_cmake_var('MESON_LLVM_TARGETS_{}'.format((mod)))
@@ -436,7 +436,7 @@ class LLVMDependencyCMake(CMakeDependency):
                 res += [(i, required)]
         return res
 
-    def _original_module_name(self, module: str) -> str:
+    def _original_module_name(self, module )  :
         orig_name = self.traceparser.get_cmake_var('MESON_TARGET_TO_LLVM_{}'.format((module)))
         if orig_name:
             return orig_name[0]
@@ -448,16 +448,16 @@ class ValgrindDependency(PkgConfigDependency):
     Consumers of Valgrind usually only need the compile args and do not want to
     link to its (static) libraries.
     '''
-    def __init__(self, env: 'Environment', kwargs: T.Dict[str, T.Any]):
+    def __init__(self, env , kwargs  ):
         super().__init__('valgrind', env, kwargs)
 
-    def get_link_args(self, language: T.Optional[str] = None, raw: bool = False) -> T.List[str]:
+    def get_link_args(self, language  = None, raw  = False)  :
         return []
 
 
 class ZlibSystemDependency(SystemDependency):
 
-    def __init__(self, name: str, environment: 'Environment', kwargs: T.Dict[str, T.Any]):
+    def __init__(self, name , environment , kwargs  ):
         super().__init__(name, environment, kwargs)
 
         m = self.env.machines[self.for_machine]
@@ -497,7 +497,7 @@ class ZlibSystemDependency(SystemDependency):
 
 
 class JNISystemDependency(SystemDependency):
-    def __init__(self, environment: 'Environment', kwargs: JNISystemDependencyKW):
+    def __init__(self, environment , kwargs ):
         super().__init__('jni', environment, T.cast(T.Dict[str, T.Any], kwargs))
 
         self.feature_since = ('0.62.0', '')
@@ -509,7 +509,7 @@ class JNISystemDependency(SystemDependency):
         self.javac = environment.coredata.compilers[self.for_machine]['java']
         self.version = self.javac.version
 
-        modules: T.List[str] = mesonlib.listify(kwargs.get('modules', []))
+        modules  = mesonlib.listify(kwargs.get('modules', []))
         for module in modules:
             if module not in {'jvm', 'awt'}:
                 log = mlog.error if self.required else mlog.debug
@@ -545,7 +545,7 @@ class JNISystemDependency(SystemDependency):
                     # The JDK and Meson have a disagreement here, so translate it
                     # over. In the event more translation needs to be done, add to
                     # following dict.
-                    def cpu_translate(cpu: str) -> str:
+                    def cpu_translate(cpu )  :
                         java_cpus = {
                             'x86_64': 'amd64',
                         }
@@ -576,7 +576,7 @@ class JNISystemDependency(SystemDependency):
         self.is_found = True
 
     @staticmethod
-    def __machine_info_to_platform_include_dir(m: 'MachineInfo') -> T.Optional[str]:
+    def __machine_info_to_platform_include_dir(m )  :
         """Translates the machine information to the platform-dependent include directory
 
         When inspecting a JDK release tarball or $JAVA_HOME, inside the `include/` directory is a
@@ -596,7 +596,7 @@ class JNISystemDependency(SystemDependency):
 
 
 class JDKSystemDependency(JNISystemDependency):
-    def __init__(self, environment: 'Environment', kwargs: JNISystemDependencyKW):
+    def __init__(self, environment , kwargs ):
         super().__init__(environment, kwargs)
 
         self.feature_since = ('0.59.0', '')

@@ -29,7 +29,7 @@ parser.add_argument('--msgmerge', default='msgmerge')
 parser.add_argument('--msginit', default='msginit')
 parser.add_argument('--extra-args', default='')
 
-def read_linguas(src_sub: str) -> T.List[str]:
+def read_linguas(src_sub )  :
     # Syntax of this file is documented here:
     # https://www.gnu.org/software/gettext/manual/html_node/po_002fLINGUAS.html
     linguas = os.path.join(src_sub, 'LINGUAS')
@@ -45,7 +45,7 @@ def read_linguas(src_sub: str) -> T.List[str]:
         print('Could not find file LINGUAS in {}'.format((src_sub)))
         return []
 
-def run_potgen(src_sub: str, xgettext: str, pkgname: str, datadirs: str, args: T.List[str]) -> int:
+def run_potgen(src_sub , xgettext , pkgname , datadirs , args )  :
     listfile = os.path.join(src_sub, 'POTFILES.in')
     if not os.path.exists(listfile):
         listfile = os.path.join(src_sub, 'POTFILES')
@@ -62,7 +62,7 @@ def run_potgen(src_sub: str, xgettext: str, pkgname: str, datadirs: str, args: T
                             '-D', os.environ['MESON_SOURCE_ROOT'], '-k_', '-o', ofile] + args,
                            env=child_env)
 
-def update_po(src_sub: str, msgmerge: str, msginit: str, pkgname: str, langs: T.List[str]) -> int:
+def update_po(src_sub , msgmerge , msginit , pkgname , langs )  :
     potfile = os.path.join(src_sub, pkgname + '.pot')
     for l in langs:
         pofile = os.path.join(src_sub, l + '.po')
@@ -72,7 +72,7 @@ def update_po(src_sub: str, msgmerge: str, msginit: str, pkgname: str, langs: T.
             subprocess.check_call([msginit, '--input', potfile, '--output-file', pofile, '--locale', l, '--no-translator'])
     return 0
 
-def run(args: T.List[str]) -> int:
+def run(args )  :
     options = parser.parse_args(args)
     subcmd = options.command
     langs = options.langs.split('@@') if options.langs else None

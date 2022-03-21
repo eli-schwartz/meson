@@ -22,14 +22,14 @@ if T.TYPE_CHECKING:
     from ..environment import Environment
 
 class ExtraFrameworkDependency(ExternalDependency):
-    system_framework_paths: T.Optional[T.List[str]] = None
+    system_framework_paths  = None
 
-    def __init__(self, name: str, env: 'Environment', kwargs: T.Dict[str, T.Any], language: T.Optional[str] = None) -> None:
+    def __init__(self, name , env , kwargs  , language  = None)  :
         paths = stringlistify(kwargs.get('paths', []))
         super().__init__(DependencyTypeName('extraframeworks'), env, kwargs, language=language)
         self.name = name
         # Full path to framework directory
-        self.framework_path: T.Optional[str] = None
+        self.framework_path  = None
         if not self.clib_compiler:
             raise DependencyException('No C-like compilers are available')
         if self.system_framework_paths is None:
@@ -44,7 +44,7 @@ class ExtraFrameworkDependency(ExternalDependency):
                 raise
         self.detect(name, paths)
 
-    def detect(self, name: str, paths: T.List[str]) -> None:
+    def detect(self, name , paths )  :
         if not paths:
             paths = self.system_framework_paths
         for p in paths:
@@ -79,7 +79,7 @@ class ExtraFrameworkDependency(ExternalDependency):
             self.is_found = True
             return
 
-    def _get_framework_path(self, path: str, name: str) -> T.Optional[Path]:
+    def _get_framework_path(self, path , name )  :
         p = Path(path)
         lname = name.lower()
         for d in p.glob('*.framework/'):
@@ -87,7 +87,7 @@ class ExtraFrameworkDependency(ExternalDependency):
                 return d
         return None
 
-    def _get_framework_latest_version(self, path: Path) -> str:
+    def _get_framework_latest_version(self, path )  :
         versions = []
         for each in path.glob('Versions/*'):
             # macOS filesystems are usually case-insensitive
@@ -99,7 +99,7 @@ class ExtraFrameworkDependency(ExternalDependency):
             return 'Headers'
         return 'Versions/{}/Headers'.format(sorted(versions)[-1]._s)
 
-    def _get_framework_include_path(self, path: Path) -> T.Optional[str]:
+    def _get_framework_include_path(self, path )  :
         # According to the spec, 'Headers' must always be a symlink to the
         # Headers directory inside the currently-selected version of the
         # framework, but sometimes frameworks are broken. Look in 'Versions'
@@ -112,8 +112,8 @@ class ExtraFrameworkDependency(ExternalDependency):
                 return trial.as_posix()
         return None
 
-    def log_info(self) -> str:
+    def log_info(self)  :
         return self.framework_path or ''
 
-    def log_tried(self) -> str:
+    def log_tried(self)  :
         return 'framework'

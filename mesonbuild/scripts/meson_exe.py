@@ -25,14 +25,14 @@ from ..backend.backends import ExecutableSerialisation
 
 options = None
 
-def buildparser() -> argparse.ArgumentParser:
+def buildparser()  :
     parser = argparse.ArgumentParser(description='Custom executable wrapper for Meson. Do not run on your own, mmm\'kay?')
     parser.add_argument('--unpickle')
     parser.add_argument('--capture')
     parser.add_argument('--feed')
     return parser
 
-def run_exe(exe: ExecutableSerialisation, extra_env: T.Optional[T.Dict[str, str]] = None) -> int:
+def run_exe(exe , extra_env   = None)  :
     if exe.exe_wrapper:
         if not exe.exe_wrapper.found():
             raise AssertionError('BUG: Can\'t run cross-compiled exe {!r} with not-found '
@@ -100,7 +100,7 @@ def run_exe(exe: ExecutableSerialisation, extra_env: T.Optional[T.Dict[str, str]
 
     return 0
 
-def run(args: T.List[str]) -> int:
+def run(args )  :
     global options
     parser = buildparser()
     options, cmd_args = parser.parse_known_args(args)

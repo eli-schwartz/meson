@@ -74,17 +74,17 @@ FunctionType = T.Dict[
 ]
 
 class InterpreterBase:
-    def __init__(self, source_root: str, subdir: str, subproject: 'SubProject'):
+    def __init__(self, source_root , subdir , subproject ):
         self.source_root = source_root
-        self.funcs: FunctionType = {}
-        self.builtin: T.Dict[str, InterpreterObject] = {}
+        self.funcs  = {}
+        self.builtin   = {}
         # Holder maps store a mapping from an HoldableObject to a class ObjectHolder
-        self.holder_map: HolderMapType = {}
-        self.bound_holder_map: HolderMapType = {}
+        self.holder_map  = {}
+        self.bound_holder_map  = {}
         self.subdir = subdir
         self.root_subdir = subdir
         self.subproject = subproject
-        self.variables: T.Dict[str, InterpreterObject] = {}
+        self.variables   = {}
         self.argument_depth = 0
         self.current_lineno = -1
         # Current node set during a function call. This can be used as location
@@ -96,7 +96,7 @@ class InterpreterBase:
         # current meson version target within that if-block.
         self.tmp_meson_version = None # type: T.Optional[str]
 
-    def load_root_meson_file(self) -> None:
+    def load_root_meson_file(self)  :
         mesonfile = os.path.join(self.source_root, self.subdir, environment.build_filename)
         if not os.path.isfile(mesonfile):
             raise InvalidArguments('Missing Meson file in {}'.format((mesonfile)))
@@ -111,14 +111,14 @@ class InterpreterBase:
             me.file = mesonfile
             raise me
 
-    def parse_project(self) -> None:
+    def parse_project(self)  :
         """
         Parses project() and initializes languages, compilers etc. Do this
         early because we need this before we parse the rest of the AST.
         """
         self.evaluate_codeblock(self.ast, end=1)
 
-    def sanity_check_ast(self) -> None:
+    def sanity_check_ast(self)  :
         if not isinstance(self.ast, mparser.CodeBlockNode):
             raise InvalidCode('AST is of invalid type. Possibly a bug in the parser.')
         if not self.ast.lines:
@@ -142,7 +142,7 @@ class InterpreterBase:
             else:
                 raise InvalidCode('Invalid source tree: {}'.format((error)))
 
-    def run(self) -> None:
+    def run(self)  :
         # Evaluate everything after the first line, which is project() because
         # we already parsed that in self.parse_project()
         try:
@@ -150,7 +150,7 @@ class InterpreterBase:
         except SubdirDoneRequest:
             pass
 
-    def evaluate_codeblock(self, node: mparser.CodeBlockNode, start: int = 0, end: T.Optional[int] = None) -> None:
+    def evaluate_codeblock(self, node , start  = 0, end  = None)  :
         if node is None:
             return
         if not isinstance(node, mparser.CodeBlockNode):
@@ -174,7 +174,7 @@ class InterpreterBase:
                 raise e
             i += 1 # In THE FUTURE jump over blocks and stuff.
 
-    def evaluate_statement(self, cur: mparser.BaseNode) -> T.Optional[InterpreterObject]:
+    def evaluate_statement(self, cur )  :
         self.current_node = cur
         if isinstance(cur, mparser.FunctionNode):
             return self.function_call(cur)
@@ -226,15 +226,15 @@ class InterpreterBase:
             raise InvalidCode("Unknown statement.")
         return None
 
-    def evaluate_arraystatement(self, cur: mparser.ArrayNode) -> InterpreterObject:
+    def evaluate_arraystatement(self, cur )  :
         (arguments, kwargs) = self.reduce_arguments(cur.args)
         if len(kwargs) > 0:
             raise InvalidCode('Keyword arguments are invalid in array construction.')
         return self._holderify([_unholder(x) for x in arguments])
 
     @FeatureNew('dict', '0.47.0')
-    def evaluate_dictstatement(self, cur: mparser.DictNode) -> InterpreterObject:
-        def resolve_key(key: mparser.BaseNode) -> str:
+    def evaluate_dictstatement(self, cur )  :
+        def resolve_key(key )  :
             if not isinstance(key, mparser.StringNode):
                 FeatureNew.single_use('Dictionary entry using non literal key', '0.53.0', self.subproject)
             str_key = _unholder(self.evaluate_statement(key))
@@ -245,13 +245,13 @@ class InterpreterBase:
         assert not arguments
         return self._holderify({k: _unholder(v) for k, v in kwargs.items()})
 
-    def evaluate_notstatement(self, cur: mparser.NotNode) -> InterpreterObject:
+    def evaluate_notstatement(self, cur )  :
         v = self.evaluate_statement(cur.value)
         if isinstance(v, Disabler):
             return v
         return self._holderify(v.operator_call(MesonOperator.NOT, None))
 
-    def evaluate_if(self, node: mparser.IfClauseNode) -> T.Optional[Disabler]:
+    def evaluate_if(self, node )  :
         assert isinstance(node, mparser.IfClauseNode)
         for i in node.ifs:
             # Reset self.tmp_meson_version to know if it gets set during this
@@ -278,7 +278,7 @@ class InterpreterBase:
             self.evaluate_codeblock(node.elseblock)
         return None
 
-    def evaluate_comparison(self, node: mparser.ComparisonNode) -> InterpreterObject:
+    def evaluate_comparison(self, node )  :
         val1 = self.evaluate_statement(node.left)
         if isinstance(val1, Disabler):
             return val1
@@ -305,7 +305,7 @@ class InterpreterBase:
         val1.current_node = node
         return self._holderify(val1.operator_call(operator, _unholder(val2)))
 
-    def evaluate_andstatement(self, cur: mparser.AndNode) -> InterpreterObject:
+    def evaluate_andstatement(self, cur )  :
         l = self.evaluate_statement(cur.left)
         if isinstance(l, Disabler):
             return l
@@ -317,7 +317,7 @@ class InterpreterBase:
             return r
         return self._holderify(r.operator_call(MesonOperator.BOOL, None))
 
-    def evaluate_orstatement(self, cur: mparser.OrNode) -> InterpreterObject:
+    def evaluate_orstatement(self, cur )  :
         l = self.evaluate_statement(cur.left)
         if isinstance(l, Disabler):
             return l
@@ -329,14 +329,14 @@ class InterpreterBase:
             return r
         return self._holderify(r.operator_call(MesonOperator.BOOL, None))
 
-    def evaluate_uminusstatement(self, cur: mparser.UMinusNode) -> InterpreterObject:
+    def evaluate_uminusstatement(self, cur )  :
         v = self.evaluate_statement(cur.value)
         if isinstance(v, Disabler):
             return v
         v.current_node = cur
         return self._holderify(v.operator_call(MesonOperator.UMINUS, None))
 
-    def evaluate_arithmeticstatement(self, cur: mparser.ArithmeticNode) -> InterpreterObject:
+    def evaluate_arithmeticstatement(self, cur )  :
         l = self.evaluate_statement(cur.left)
         if isinstance(l, Disabler):
             return l
@@ -344,7 +344,7 @@ class InterpreterBase:
         if isinstance(r, Disabler):
             return r
 
-        mapping: T.Dict[str, MesonOperator] = {
+        mapping   = {
             'add': MesonOperator.PLUS,
             'sub': MesonOperator.MINUS,
             'mul': MesonOperator.TIMES,
@@ -355,7 +355,7 @@ class InterpreterBase:
         res = l.operator_call(mapping[cur.operation], _unholder(r))
         return self._holderify(res)
 
-    def evaluate_ternary(self, node: mparser.TernaryNode) -> T.Optional[InterpreterObject]:
+    def evaluate_ternary(self, node )  :
         assert isinstance(node, mparser.TernaryNode)
         result = self.evaluate_statement(node.condition)
         if isinstance(result, Disabler):
@@ -368,10 +368,10 @@ class InterpreterBase:
             return self.evaluate_statement(node.falseblock)
 
     @FeatureNew('format strings', '0.58.0')
-    def evaluate_fstring(self, node: mparser.FormatStringNode) -> InterpreterObject:
+    def evaluate_fstring(self, node )  :
         assert isinstance(node, mparser.FormatStringNode)
 
-        def replace(match: T.Match[str]) -> str:
+        def replace(match )  :
             var = str(match.group(1))
             try:
                 val = _unholder(self.variables[var])
@@ -386,7 +386,7 @@ class InterpreterBase:
         res = re.sub(r'@([_a-zA-Z][_0-9a-zA-Z]*)@', replace, node.value)
         return self._holderify(res)
 
-    def evaluate_foreach(self, node: mparser.ForeachClauseNode) -> None:
+    def evaluate_foreach(self, node )  :
         assert isinstance(node, mparser.ForeachClauseNode)
         items = self.evaluate_statement(node.items)
         if not isinstance(items, IterableObject):
@@ -415,7 +415,7 @@ class InterpreterBase:
             except BreakRequest:
                 break
 
-    def evaluate_plusassign(self, node: mparser.PlusAssignmentNode) -> None:
+    def evaluate_plusassign(self, node )  :
         assert isinstance(node, mparser.PlusAssignmentNode)
         varname = node.var_name
         addition = self.evaluate_statement(node.value)
@@ -427,7 +427,7 @@ class InterpreterBase:
         new_value = self._holderify(old_variable.operator_call(MesonOperator.PLUS, _unholder(addition)))
         self.set_variable(varname, new_value)
 
-    def evaluate_indexing(self, node: mparser.IndexNode) -> InterpreterObject:
+    def evaluate_indexing(self, node )  :
         assert isinstance(node, mparser.IndexNode)
         iobject = self.evaluate_statement(node.iobject)
         if isinstance(iobject, Disabler):
@@ -439,7 +439,7 @@ class InterpreterBase:
         iobject.current_node = node
         return self._holderify(iobject.operator_call(MesonOperator.INDEX, index))
 
-    def function_call(self, node: mparser.FunctionNode) -> T.Optional[InterpreterObject]:
+    def function_call(self, node )  :
         func_name = node.func_name
         (h_posargs, h_kwargs) = self.reduce_arguments(node.args)
         (posargs, kwargs) = self._unholder_args(h_posargs, h_kwargs)
@@ -458,9 +458,9 @@ class InterpreterBase:
             self.unknown_function_called(func_name)
             return None
 
-    def method_call(self, node: mparser.MethodNode) -> T.Optional[InterpreterObject]:
+    def method_call(self, node )  :
         invokable = node.source_object
-        obj: T.Optional[InterpreterObject]
+        #obj: T.Optional[InterpreterObject]
         if isinstance(invokable, mparser.IdNode):
             object_name = invokable.value
             obj = self.get_variable(object_name)
@@ -483,7 +483,7 @@ class InterpreterBase:
         res = obj.method_call(method_name, args, kwargs)
         return self._holderify(res) if res is not None else None
 
-    def _holderify(self, res: T.Union[TYPE_var, InterpreterObject]) -> InterpreterObject:
+    def _holderify(self, res  )  :
         if isinstance(res, HoldableTypes):
             # Always check for an exact match first.
             cls = self.holder_map.get(type(res), None)
@@ -503,22 +503,22 @@ class InterpreterBase:
         raise mesonlib.MesonBugException('Unknown returned object {} of type {} in the parameters.'.format((res), (type(res).__name__)))
 
     def _unholder_args(self,
-                       args: T.List[InterpreterObject],
-                       kwargs: T.Dict[str, InterpreterObject]) -> T.Tuple[T.List[TYPE_var], TYPE_kwargs]:
+                       args ,
+                       kwargs  )   :
         return [_unholder(x) for x in args], {k: _unholder(v) for k, v in kwargs.items()}
 
-    def unknown_function_called(self, func_name: str) -> None:
+    def unknown_function_called(self, func_name )  :
         raise InvalidCode('Unknown function "{}".'.format((func_name)))
 
     def reduce_arguments(
                 self,
-                args: mparser.ArgumentNode,
-                key_resolver: T.Callable[[mparser.BaseNode], str] = default_resolve_key,
-                duplicate_key_error: T.Optional[str] = None,
-            ) -> T.Tuple[
-                T.List[InterpreterObject],
-                T.Dict[str, InterpreterObject]
-            ]:
+                args ,
+                key_resolver   = default_resolve_key,
+                duplicate_key_error  = None,
+            ):  
+                
+                 
+            
         assert isinstance(args, mparser.ArgumentNode)
         if args.incorrect_order():
             raise InvalidArguments('All keyword arguments must be after positional arguments.')
@@ -526,7 +526,7 @@ class InterpreterBase:
         reduced_pos = [self.evaluate_statement(arg) for arg in args.arguments]
         if any(x is None for x in reduced_pos):
             raise InvalidArguments('At least one value in the arguments is void.')
-        reduced_kw: T.Dict[str, InterpreterObject] = {}
+        reduced_kw   = {}
         for key, val in args.kwargs.items():
             reduced_key = key_resolver(key)
             assert isinstance(val, mparser.BaseNode)
@@ -540,7 +540,7 @@ class InterpreterBase:
         final_kw = self.expand_default_kwargs(reduced_kw)
         return reduced_pos, final_kw
 
-    def expand_default_kwargs(self, kwargs: T.Dict[str, T.Optional[InterpreterObject]]) -> T.Dict[str, T.Optional[InterpreterObject]]:
+    def expand_default_kwargs(self, kwargs  )   :
         if 'kwargs' not in kwargs:
             return kwargs
         to_expand = _unholder(kwargs.pop('kwargs'))
@@ -554,7 +554,7 @@ class InterpreterBase:
             kwargs[k] = self._holderify(v)
         return kwargs
 
-    def assignment(self, node: mparser.AssignmentNode) -> None:
+    def assignment(self, node )  :
         assert isinstance(node, mparser.AssignmentNode)
         if self.argument_depth != 0:
             raise InvalidArguments(textwrap.dedent('''\
@@ -571,7 +571,7 @@ class InterpreterBase:
         self.set_variable(var_name, value)
         return None
 
-    def set_variable(self, varname: str, variable: T.Union[TYPE_var, InterpreterObject], *, holderify: bool = False) -> None:
+    def set_variable(self, varname , variable  , *, holderify  = False)  :
         if variable is None:
             raise InvalidCode('Can not assign None to variable.')
         if holderify:
@@ -588,12 +588,12 @@ class InterpreterBase:
             raise InvalidCode('Tried to overwrite internal variable "{}"'.format((varname)))
         self.variables[varname] = variable
 
-    def get_variable(self, varname: str) -> InterpreterObject:
+    def get_variable(self, varname )  :
         if varname in self.builtin:
             return self.builtin[varname]
         if varname in self.variables:
             return self.variables[varname]
         raise InvalidCode('Unknown variable "{}".'.format((varname)))
 
-    def validate_extraction(self, buildtarget: mesonlib.HoldableObject) -> None:
+    def validate_extraction(self, buildtarget )  :
         raise InterpreterException('validate_extraction is not implemented in this context (please file a bug)')

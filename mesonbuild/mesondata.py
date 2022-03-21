@@ -21,10 +21,10 @@ if T.TYPE_CHECKING:
     from .environment import Environment
 
 class DataFile:
-    def __init__(self, path: str) -> None:
+    def __init__(self, path )  :
         self.path = PurePosixPath(path)
 
-    def write_once(self, path: Path) -> None:
+    def write_once(self, path )  :
         if not path.exists():
             data = importlib.resources.read_text( # [ignore encoding] it's on the next lines, Mr. Lint
                     ('mesonbuild' / self.path.parent).as_posix().replace('/', '.'),
@@ -32,7 +32,7 @@ class DataFile:
                     encoding='utf-8')
             path.write_text(data, encoding='utf-8')
 
-    def write_to_private(self, env: 'Environment') -> Path:
+    def write_to_private(self, env )  :
         try:
             resource = importlib.resources.files('mesonbuild') / self.path
             if isinstance(resource, Path):

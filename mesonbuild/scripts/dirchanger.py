@@ -18,7 +18,7 @@ the command given in the rest of the arguments.'''
 import os, subprocess, sys
 import typing as T
 
-def run(args: T.List[str]) -> int:
+def run(args )  :
     dirname = args[0]
     command = args[1:]
 

@@ -29,7 +29,7 @@ class _TestMode(enum.Enum):
 
 
 class TryRunResultHolder(ObjectHolder['RunResult']):
-    def __init__(self, res: 'RunResult', interpreter: 'Interpreter'):
+    def __init__(self, res , interpreter ):
         super().__init__(res, interpreter)
         self.methods.update({'returncode': self.returncode_method,
                              'compiled': self.compiled_method,
@@ -39,38 +39,38 @@ class TryRunResultHolder(ObjectHolder['RunResult']):
 
     @noPosargs
     @noKwargs
-    def returncode_method(self, args: T.List['TYPE_var'], kwargs: 'TYPE_kwargs') -> int:
+    def returncode_method(self, args , kwargs )  :
         return self.held_object.returncode
 
     @noPosargs
     @noKwargs
-    def compiled_method(self, args: T.List['TYPE_var'], kwargs: 'TYPE_kwargs') -> bool:
+    def compiled_method(self, args , kwargs )  :
         return self.held_object.compiled
 
     @noPosargs
     @noKwargs
-    def stdout_method(self, args: T.List['TYPE_var'], kwargs: 'TYPE_kwargs') -> str:
+    def stdout_method(self, args , kwargs )  :
         return self.held_object.stdout
 
     @noPosargs
     @noKwargs
-    def stderr_method(self, args: T.List['TYPE_var'], kwargs: 'TYPE_kwargs') -> str:
+    def stderr_method(self, args , kwargs )  :
         return self.held_object.stderr
 
 
-_ARGS_KW: KwargInfo[T.List[str]] = KwargInfo(
+_ARGS_KW  = KwargInfo(
     'args',
     ContainerTypeInfo(list, str),
     listify=True,
     default=[],
 )
-_DEPENDENCIES_KW: KwargInfo[T.List['dependencies.Dependency']] = KwargInfo(
+_DEPENDENCIES_KW  = KwargInfo(
     'dependencies',
     ContainerTypeInfo(list, dependencies.Dependency),
     listify=True,
     default=[],
 )
-_INCLUDE_DIRS_KW: KwargInfo[T.List[build.IncludeDirs]] = KwargInfo(
+_INCLUDE_DIRS_KW  = KwargInfo(
     'include_directories',
     ContainerTypeInfo(list, build.IncludeDirs),
     default=[],
@@ -82,15 +82,15 @@ _NAME_KW = KwargInfo('name', str, default='')
 
 # Many of the compiler methods take this kwarg signature exactly, this allows
 # simplifying the `typed_kwargs` calls
-_COMMON_KWS: T.List[KwargInfo] = [_ARGS_KW, _DEPENDENCIES_KW, _INCLUDE_DIRS_KW, _PREFIX_KW, _NO_BUILTIN_ARGS_KW]
+_COMMON_KWS  = [_ARGS_KW, _DEPENDENCIES_KW, _INCLUDE_DIRS_KW, _PREFIX_KW, _NO_BUILTIN_ARGS_KW]
 
 # Common methods of compiles, links, runs, and similar
-_COMPILES_KWS: T.List[KwargInfo] = [_NAME_KW, _ARGS_KW, _DEPENDENCIES_KW, _INCLUDE_DIRS_KW, _NO_BUILTIN_ARGS_KW]
+_COMPILES_KWS  = [_NAME_KW, _ARGS_KW, _DEPENDENCIES_KW, _INCLUDE_DIRS_KW, _NO_BUILTIN_ARGS_KW]
 
-_HEADER_KWS: T.List[KwargInfo] = [REQUIRED_KW.evolve(since='0.50.0', default=False), *_COMMON_KWS]
+_HEADER_KWS  = [REQUIRED_KW.evolve(since='0.50.0', default=False), *_COMMON_KWS]
 
 class CompilerHolder(ObjectHolder['Compiler']):
-    def __init__(self, compiler: 'Compiler', interpreter: 'Interpreter'):
+    def __init__(self, compiler , interpreter ):
         super().__init__(compiler, interpreter)
         self.environment = self.env
         self.methods.update({'compiles': self.compiles_method,
@@ -127,10 +127,10 @@ class CompilerHolder(ObjectHolder['Compiler']):
                              })
 
     @property
-    def compiler(self) -> 'Compiler':
+    def compiler(self)  :
         return self.held_object
 
-    def _dep_msg(self, deps: T.List['dependencies.Dependency'], endl: str) -> str:
+    def _dep_msg(self, deps , endl )  :
         msg_single = 'with dependency {}'
         msg_many = 'with dependencies {}'
         if not deps:
@@ -155,19 +155,19 @@ class CompilerHolder(ObjectHolder['Compiler']):
 
     @noPosargs
     @noKwargs
-    def version_method(self, args: T.List['TYPE_var'], kwargs: 'TYPE_kwargs') -> str:
+    def version_method(self, args , kwargs )  :
         return self.compiler.version
 
     @noPosargs
     @noKwargs
-    def cmd_array_method(self, args: T.List['TYPE_var'], kwargs: 'TYPE_kwargs') -> T.List[str]:
+    def cmd_array_method(self, args , kwargs )  :
         return self.compiler.exelist
 
-    def _determine_args(self, nobuiltins: bool,
-                        incdirs: T.List[build.IncludeDirs],
-                        extra_args: T.List[str],
-                        mode: CompileCheckMode = CompileCheckMode.LINK) -> T.List[str]:
-        args: T.List[str] = []
+    def _determine_args(self, nobuiltins ,
+                        incdirs ,
+                        extra_args ,
+                        mode  = CompileCheckMode.LINK)  :
+        args  = []
         for i in incdirs:
             for idir in i.to_string_list(self.environment.get_source_dir()):
                 args.extend(self.compiler.get_include_args(idir, False))
@@ -179,7 +179,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
         args.extend(extra_args)
         return args
 
-    def _determine_dependencies(self, deps: T.List['dependencies.Dependency'], endl: str = ':') -> T.Tuple[T.List['dependencies.Dependency'], str]:
+    def _determine_dependencies(self, deps , endl  = ':')   :
         if deps:
             final_deps = []
             while deps:
@@ -203,7 +203,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
         _ARGS_KW,
         _DEPENDENCIES_KW,
     )
-    def alignment_method(self, args: T.Tuple[str], kwargs: 'AlignmentKw') -> int:
+    def alignment_method(self, args , kwargs )  :
         typename = args[0]
         deps, msg = self._determine_dependencies(kwargs['dependencies'])
         result = self.compiler.alignment(typename, kwargs['prefix'], self.environment,
@@ -214,7 +214,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
 
     @typed_pos_args('compiler.run', (str, mesonlib.File))
     @typed_kwargs('compiler.run', *_COMPILES_KWS)
-    def run_method(self, args: T.Tuple['mesonlib.FileOrString'], kwargs: 'CompileKW') -> 'RunResult':
+    def run_method(self, args , kwargs )  :
         code = args[0]
         if isinstance(code, mesonlib.File):
             self.interpreter.add_build_def_file(code)
@@ -237,18 +237,18 @@ class CompilerHolder(ObjectHolder['Compiler']):
 
     @noPosargs
     @noKwargs
-    def get_id_method(self, args: T.List['TYPE_var'], kwargs: 'TYPE_kwargs') -> str:
+    def get_id_method(self, args , kwargs )  :
         return self.compiler.get_id()
 
     @noPosargs
     @noKwargs
     @FeatureNew('compiler.get_linker_id', '0.53.0')
-    def get_linker_id_method(self, args: T.List['TYPE_var'], kwargs: 'TYPE_kwargs') -> str:
+    def get_linker_id_method(self, args , kwargs )  :
         return self.compiler.get_linker_id()
 
     @noPosargs
     @noKwargs
-    def symbols_have_underscore_prefix_method(self, args: T.List['TYPE_var'], kwargs: 'TYPE_kwargs') -> bool:
+    def symbols_have_underscore_prefix_method(self, args , kwargs )  :
         '''
         Check if the compiler prefixes _ (underscore) to global C symbols
         See: https://en.wikipedia.org/wiki/Name_mangling#C
@@ -257,7 +257,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
 
     @typed_pos_args('compiler.has_member', str, str)
     @typed_kwargs('compiler.has_member', *_COMMON_KWS)
-    def has_member_method(self, args: T.Tuple[str, str], kwargs: 'CommonKW') -> bool:
+    def has_member_method(self, args  , kwargs )  :
         typename, membername = args
         extra_args = functools.partial(self._determine_args, kwargs['no_builtin_args'], kwargs['include_directories'], kwargs['args'])
         deps, msg = self._determine_dependencies(kwargs['dependencies'])
@@ -276,7 +276,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
 
     @typed_pos_args('compiler.has_members', str, varargs=str, min_varargs=1)
     @typed_kwargs('compiler.has_members', *_COMMON_KWS)
-    def has_members_method(self, args: T.Tuple[str, T.List[str]], kwargs: 'CommonKW') -> bool:
+    def has_members_method(self, args  , kwargs )  :
         typename, membernames = args
         extra_args = functools.partial(self._determine_args, kwargs['no_builtin_args'], kwargs['include_directories'], kwargs['args'])
         deps, msg = self._determine_dependencies(kwargs['dependencies'])
@@ -296,7 +296,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
 
     @typed_pos_args('compiler.has_function', str)
     @typed_kwargs('compiler.has_function', *_COMMON_KWS)
-    def has_function_method(self, args: T.Tuple[str], kwargs: 'CommonKW') -> bool:
+    def has_function_method(self, args , kwargs )  :
         funcname = args[0]
         extra_args = self._determine_args(kwargs['no_builtin_args'], kwargs['include_directories'], kwargs['args'])
         deps, msg = self._determine_dependencies(kwargs['dependencies'])
@@ -313,7 +313,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
 
     @typed_pos_args('compiler.has_type', str)
     @typed_kwargs('compiler.has_type', *_COMMON_KWS)
-    def has_type_method(self, args: T.Tuple[str], kwargs: 'CommonKW') -> bool:
+    def has_type_method(self, args , kwargs )  :
         typename = args[0]
         extra_args = functools.partial(self._determine_args, kwargs['no_builtin_args'], kwargs['include_directories'], kwargs['args'])
         deps, msg = self._determine_dependencies(kwargs['dependencies'])
@@ -336,7 +336,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
         KwargInfo('guess', (int, NoneType)),
         *_COMMON_KWS,
     )
-    def compute_int_method(self, args: T.Tuple[str], kwargs: 'CompupteIntKW') -> int:
+    def compute_int_method(self, args , kwargs )  :
         expression = args[0]
         extra_args = functools.partial(self._determine_args, kwargs['no_builtin_args'], kwargs['include_directories'], kwargs['args'])
         deps, msg = self._determine_dependencies(kwargs['dependencies'])
@@ -349,7 +349,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
 
     @typed_pos_args('compiler.sizeof', str)
     @typed_kwargs('compiler.sizeof', *_COMMON_KWS)
-    def sizeof_method(self, args: T.Tuple[str], kwargs: 'CommonKW') -> int:
+    def sizeof_method(self, args , kwargs )  :
         element = args[0]
         extra_args = functools.partial(self._determine_args, kwargs['no_builtin_args'], kwargs['include_directories'], kwargs['args'])
         deps, msg = self._determine_dependencies(kwargs['dependencies'])
@@ -361,7 +361,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
     @FeatureNew('compiler.get_define', '0.40.0')
     @typed_pos_args('compiler.get_define', str)
     @typed_kwargs('compiler.get_define', *_COMMON_KWS)
-    def get_define_method(self, args: T.Tuple[str], kwargs: 'CommonKW') -> str:
+    def get_define_method(self, args , kwargs )  :
         element = args[0]
         extra_args = functools.partial(self._determine_args, kwargs['no_builtin_args'], kwargs['include_directories'], kwargs['args'])
         deps, msg = self._determine_dependencies(kwargs['dependencies'])
@@ -374,7 +374,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
 
     @typed_pos_args('compiler.compiles', (str, mesonlib.File))
     @typed_kwargs('compiler.compiles', *_COMPILES_KWS)
-    def compiles_method(self, args: T.Tuple['mesonlib.FileOrString'], kwargs: 'CompileKW') -> bool:
+    def compiles_method(self, args , kwargs )  :
         code = args[0]
         if isinstance(code, mesonlib.File):
             self.interpreter.add_build_def_file(code)
@@ -397,7 +397,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
 
     @typed_pos_args('compiler.links', (str, mesonlib.File))
     @typed_kwargs('compiler.links', *_COMPILES_KWS)
-    def links_method(self, args: T.Tuple['mesonlib.FileOrString'], kwargs: 'CompileKW') -> bool:
+    def links_method(self, args , kwargs )  :
         code = args[0]
         compiler = None
         if isinstance(code, mesonlib.File):
@@ -435,7 +435,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
     @FeatureNew('compiler.check_header', '0.47.0')
     @typed_pos_args('compiler.check_header', str)
     @typed_kwargs('compiler.check_header', *_HEADER_KWS)
-    def check_header_method(self, args: T.Tuple[str], kwargs: 'HeaderKW') -> bool:
+    def check_header_method(self, args , kwargs )  :
         hname = args[0]
         disabled, required, feature = extract_required_kwarg(kwargs, self.subproject, default=False)
         if disabled:
@@ -456,7 +456,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
         mlog.log('Check usable header', mlog.bold(hname, True), msg, h, cached_msg)
         return haz
 
-    def _has_header_impl(self, hname: str, kwargs: 'HeaderKW') -> bool:
+    def _has_header_impl(self, hname , kwargs )  :
         disabled, required, feature = extract_required_kwarg(kwargs, self.subproject, default=False)
         if disabled:
             mlog.log('Has header', mlog.bold(hname, True), 'skipped: feature', mlog.bold(feature), 'disabled')
@@ -477,12 +477,12 @@ class CompilerHolder(ObjectHolder['Compiler']):
 
     @typed_pos_args('compiler.has_header', str)
     @typed_kwargs('compiler.has_header', *_HEADER_KWS)
-    def has_header_method(self, args: T.Tuple[str], kwargs: 'HeaderKW') -> bool:
+    def has_header_method(self, args , kwargs )  :
         return self._has_header_impl(args[0], kwargs)
 
     @typed_pos_args('compiler.has_header_symbol', str, str)
     @typed_kwargs('compiler.has_header_symbol', *_HEADER_KWS)
-    def has_header_symbol_method(self, args: T.Tuple[str, str], kwargs: 'HeaderKW') -> bool:
+    def has_header_symbol_method(self, args  , kwargs )  :
         hname, symbol = args
         disabled, required, feature = extract_required_kwarg(kwargs, self.subproject, default=False)
         if disabled:
@@ -503,7 +503,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
         mlog.log('Header <{}> has symbol'.format((hname)), mlog.bold(symbol, True), msg, h, cached_msg)
         return haz
 
-    def notfound_library(self, libname: str) -> 'dependencies.ExternalLibrary':
+    def notfound_library(self, libname )  :
         lib = dependencies.ExternalLibrary(libname, None,
                                            self.environment,
                                            self.compiler.language,
@@ -521,7 +521,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
         KwargInfo('dirs', ContainerTypeInfo(list, str), listify=True, default=[]),
         *(k.evolve(name='header_{}'.format((k.name))) for k in _HEADER_KWS)
     )
-    def find_library_method(self, args: T.Tuple[str], kwargs: 'FindLibraryKW') -> 'dependencies.ExternalLibrary':
+    def find_library_method(self, args , kwargs )  :
         # TODO add dependencies support?
         libname = args[0]
 
@@ -532,7 +532,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
 
         # This could be done with a comprehension, but that confuses the type
         # checker, and having it check this seems valuable
-        has_header_kwargs: 'HeaderKW' = {
+        has_header_kwargs  = {
             'required': required,
             'args': kwargs['header_args'],
             'dependencies': kwargs['header_dependencies'],
@@ -565,8 +565,8 @@ class CompilerHolder(ObjectHolder['Compiler']):
                                            self.compiler.language)
         return lib
 
-    def _has_argument_impl(self, arguments: T.Union[str, T.List[str]],
-                           mode: _TestMode = _TestMode.COMPILER) -> bool:
+    def _has_argument_impl(self, arguments  ,
+                           mode  = _TestMode.COMPILER)  :
         """Shared implementation for methods checking compiler and linker arguments."""
         # This simplifies the callers
         if isinstance(arguments, str):
@@ -585,13 +585,13 @@ class CompilerHolder(ObjectHolder['Compiler']):
 
     @noKwargs
     @typed_pos_args('compiler.has_argument', str)
-    def has_argument_method(self, args: T.Tuple[str], kwargs: 'TYPE_kwargs') -> bool:
+    def has_argument_method(self, args , kwargs )  :
         return self._has_argument_impl([args[0]])
 
     @noKwargs
     @typed_pos_args('compiler.has_multi_arguments', varargs=str)
     @FeatureNew('compiler.has_multi_arguments', '0.37.0')
-    def has_multi_arguments_method(self, args: T.Tuple[T.List[str]], kwargs: 'TYPE_kwargs') -> bool:
+    def has_multi_arguments_method(self, args , kwargs )  :
         return self._has_argument_impl(args[0])
 
     @FeatureNew('compiler.get_supported_arguments', '0.43.0')
@@ -601,8 +601,8 @@ class CompilerHolder(ObjectHolder['Compiler']):
         KwargInfo('checked', str, default='off', since='0.59.0',
                   validator=in_set_validator({'warn', 'require', 'off'})),
     )
-    def get_supported_arguments_method(self, args: T.Tuple[T.List[str]], kwargs: 'GetSupportedArgumentKw') -> T.List[str]:
-        supported_args: T.List[str] = []
+    def get_supported_arguments_method(self, args , kwargs )  :
+        supported_args  = []
         checked = kwargs['checked']
 
         for arg in args[0]:
@@ -618,7 +618,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
 
     @noKwargs
     @typed_pos_args('compiler.first_supported_argument', varargs=str)
-    def first_supported_argument_method(self, args: T.Tuple[T.List[str]], kwargs: 'TYPE_kwargs') -> T.List[str]:
+    def first_supported_argument_method(self, args , kwargs )  :
         for arg in args[0]:
             if self._has_argument_impl([arg]):
                 mlog.log('First supported argument:', mlog.bold(arg))
@@ -629,20 +629,20 @@ class CompilerHolder(ObjectHolder['Compiler']):
     @FeatureNew('compiler.has_link_argument', '0.46.0')
     @noKwargs
     @typed_pos_args('compiler.has_link_argument', str)
-    def has_link_argument_method(self, args: T.Tuple[str], kwargs: 'TYPE_kwargs') -> bool:
+    def has_link_argument_method(self, args , kwargs )  :
         return self._has_argument_impl([args[0]], mode=_TestMode.LINKER)
 
     @FeatureNew('compiler.has_multi_link_argument', '0.46.0')
     @noKwargs
     @typed_pos_args('compiler.has_multi_link_argument', varargs=str)
-    def has_multi_link_arguments_method(self, args: T.Tuple[T.List[str]], kwargs: 'TYPE_kwargs') -> bool:
+    def has_multi_link_arguments_method(self, args , kwargs )  :
         return self._has_argument_impl(args[0], mode=_TestMode.LINKER)
 
     @FeatureNew('compiler.get_supported_link_arguments', '0.46.0')
     @noKwargs
     @typed_pos_args('compiler.get_supported_link_arguments', varargs=str)
-    def get_supported_link_arguments_method(self, args: T.Tuple[T.List[str]], kwargs: 'TYPE_kwargs') -> T.List[str]:
-        supported_args: T.List[str] = []
+    def get_supported_link_arguments_method(self, args , kwargs )  :
+        supported_args  = []
         for arg in args[0]:
             if self._has_argument_impl([arg], mode=_TestMode.LINKER):
                 supported_args.append(arg)
@@ -651,7 +651,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
     @FeatureNew('compiler.first_supported_link_argument_method', '0.46.0')
     @noKwargs
     @typed_pos_args('compiler.first_supported_link_argument', varargs=str)
-    def first_supported_link_argument_method(self, args: T.Tuple[T.List[str]], kwargs: 'TYPE_kwargs') -> T.List[str]:
+    def first_supported_link_argument_method(self, args , kwargs )  :
         for arg in args[0]:
             if self._has_argument_impl([arg], mode=_TestMode.LINKER):
                 mlog.log('First supported link argument:', mlog.bold(arg))
@@ -659,7 +659,7 @@ class CompilerHolder(ObjectHolder['Compiler']):
         mlog.log('First supported link argument:', mlog.red('None'))
         return []
 
-    def _has_function_attribute_impl(self, attr: str) -> bool:
+    def _has_function_attribute_impl(self, attr )  :
         """Common helper for function attribute testing."""
         result, cached = self.compiler.has_func_attribute(attr, self.environment)
         cached_msg = mlog.blue('(cached)') if cached else ''
@@ -670,17 +670,17 @@ class CompilerHolder(ObjectHolder['Compiler']):
     @FeatureNew('compiler.has_function_attribute', '0.48.0')
     @noKwargs
     @typed_pos_args('compiler.has_function_attribute', str)
-    def has_func_attribute_method(self, args: T.Tuple[str], kwargs: 'TYPE_kwargs') -> bool:
+    def has_func_attribute_method(self, args , kwargs )  :
         return self._has_function_attribute_impl(args[0])
 
     @FeatureNew('compiler.get_supported_function_attributes', '0.48.0')
     @noKwargs
     @typed_pos_args('compiler.get_supported_function_attributes', varargs=str)
-    def get_supported_function_attributes_method(self, args: T.Tuple[T.List[str]], kwargs: 'TYPE_kwargs') -> T.List[str]:
+    def get_supported_function_attributes_method(self, args , kwargs )  :
         return [a for a in args[0] if self._has_function_attribute_impl(a)]
 
     @FeatureNew('compiler.get_argument_syntax_method', '0.49.0')
     @noPosargs
     @noKwargs
-    def get_argument_syntax_method(self, args: T.List['TYPE_var'], kwargs: 'TYPE_kwargs') -> str:
+    def get_argument_syntax_method(self, args , kwargs )  :
         return self.compiler.get_argument_syntax()

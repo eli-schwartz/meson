@@ -187,7 +187,7 @@ class PbxDict:
             ofile.write(';\n')
 
 class XCodeBackend(backends.Backend):
-    def __init__(self, build: T.Optional[build.Build], interpreter: T.Optional[Interpreter]):
+    def __init__(self, build , interpreter ):
         super().__init__(build, interpreter)
         self.name = 'xcode'
         self.project_uid = self.environment.coredata.lang_guids['default'].replace('-', '')[:24]
@@ -256,7 +256,7 @@ class XCodeBackend(backends.Backend):
         obj_path = '{}.build/{}/{}.build/Objects-normal/{}/{}.o'.format((project), (buildtype), (tname), (arch), (stem))
         return obj_path
 
-    def get_extracted_obj_paths(self, target: build.BuildTarget, outputs: T.List[str]) -> T.List[str]:
+    def get_extracted_obj_paths(self, target , outputs )  :
         return outputs
 
     def generate(self):

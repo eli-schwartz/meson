@@ -25,7 +25,7 @@ if T.TYPE_CHECKING:
     from ...interpreterbase import TYPE_kwargs
 
 class DictHolder(ObjectHolder[T.Dict[str, TYPE_var]], IterableObject):
-    def __init__(self, obj: T.Dict[str, TYPE_var], interpreter: 'Interpreter') -> None:
+    def __init__(self, obj  , interpreter )  :
         super().__init__(obj, interpreter)
         self.methods.update({
             'has_key': self.has_key_method,
@@ -49,32 +49,32 @@ class DictHolder(ObjectHolder[T.Dict[str, TYPE_var]], IterableObject):
             MesonOperator.INDEX: self.op_index,
         })
 
-    def display_name(self) -> str:
+    def display_name(self)  :
         return 'dict'
 
-    def iter_tuple_size(self) -> int:
+    def iter_tuple_size(self)  :
         return 2
 
-    def iter_self(self) -> T.Iterator[T.Tuple[str, TYPE_var]]:
+    def iter_self(self)   :
         return iter(self.held_object.items())
 
-    def size(self) -> int:
+    def size(self)  :
         return len(self.held_object)
 
     @noKwargs
     @typed_pos_args('dict.has_key', str)
-    def has_key_method(self, args: T.Tuple[str], kwargs: TYPE_kwargs) -> bool:
+    def has_key_method(self, args , kwargs )  :
         return args[0] in self.held_object
 
     @noKwargs
     @noPosargs
-    def keys_method(self, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> T.List[str]:
+    def keys_method(self, args , kwargs )  :
         return sorted(self.held_object)
 
     @noArgsFlattening
     @noKwargs
     @typed_pos_args('dict.get', str, optargs=[object])
-    def get_method(self, args: T.Tuple[str, T.Optional[TYPE_var]], kwargs: TYPE_kwargs) -> TYPE_var:
+    def get_method(self, args  , kwargs )  :
         if args[0] in self.held_object:
             return self.held_object[args[0]]
         if args[1] is not None:
@@ -82,7 +82,7 @@ class DictHolder(ObjectHolder[T.Dict[str, TYPE_var]], IterableObject):
         raise InvalidArguments('Key {!r} is not in the dictionary.'.format((args[0])))
 
     @typed_operator(MesonOperator.INDEX, str)
-    def op_index(self, other: str) -> TYPE_var:
+    def op_index(self, other )  :
         if other not in self.held_object:
             raise InvalidArguments('Key {} is not in the dictionary.'.format((other)))
         return self.held_object[other]

@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 import typing as T
 
-def run(argsv: T.List[str]) -> int:
+def run(argsv )  :
     commands = [[]]  # type: T.List[T.List[str]]
     SEPARATOR = ';;;'
 

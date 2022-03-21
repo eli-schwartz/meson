@@ -21,7 +21,7 @@ if T.TYPE_CHECKING:
     from ...interpreter import Interpreter
 
 class BooleanHolder(ObjectHolder[bool]):
-    def __init__(self, obj: bool, interpreter: 'Interpreter') -> None:
+    def __init__(self, obj , interpreter )  :
         super().__init__(obj, interpreter)
         self.methods.update({
             'to_int': self.to_int_method,
@@ -35,17 +35,17 @@ class BooleanHolder(ObjectHolder[bool]):
             MesonOperator.NOT_EQUALS: (bool, lambda x: self.held_object != x),
         })
 
-    def display_name(self) -> str:
+    def display_name(self)  :
         return 'bool'
 
     @noKwargs
     @noPosargs
-    def to_int_method(self, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> int:
+    def to_int_method(self, args , kwargs )  :
         return 1 if self.held_object else 0
 
     @noKwargs
     @typed_pos_args('bool.to_string', optargs=[str, str])
-    def to_string_method(self, args: T.Tuple[T.Optional[str], T.Optional[str]], kwargs: TYPE_kwargs) -> str:
+    def to_string_method(self, args  , kwargs )  :
         true_str = args[0] or 'true'
         false_str = args[1] or 'false'
         if any(x is not None for x in args) and not all(x is not None for x in args):

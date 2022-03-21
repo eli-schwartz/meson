@@ -45,84 +45,84 @@ class BasicLinkerIsCompilerMixin(Compiler):
     functionality itself.
     """
 
-    def sanitizer_link_args(self, value: str) -> T.List[str]:
+    def sanitizer_link_args(self, value )  :
         return []
 
-    def get_lto_link_args(self, *, threads: int = 0, mode: str = 'default') -> T.List[str]:
+    def get_lto_link_args(self, *, threads  = 0, mode  = 'default')  :
         return []
 
-    def can_linker_accept_rsp(self) -> bool:
+    def can_linker_accept_rsp(self)  :
         return is_windows()
 
-    def get_linker_exelist(self) -> T.List[str]:
+    def get_linker_exelist(self)  :
         return self.exelist.copy()
 
-    def get_linker_output_args(self, output: str) -> T.List[str]:
+    def get_linker_output_args(self, output )  :
         return []
 
-    def get_linker_always_args(self) -> T.List[str]:
+    def get_linker_always_args(self)  :
         return []
 
-    def get_linker_lib_prefix(self) -> str:
+    def get_linker_lib_prefix(self)  :
         return ''
 
-    def get_option_link_args(self, options: 'KeyedOptionDictType') -> T.List[str]:
+    def get_option_link_args(self, options )  :
         return []
 
-    def has_multi_link_args(self, args: T.List[str], env: 'Environment') -> T.Tuple[bool, bool]:
+    def has_multi_link_args(self, args , env )   :
         return False, False
 
-    def get_link_debugfile_args(self, targetfile: str) -> T.List[str]:
+    def get_link_debugfile_args(self, targetfile )  :
         return []
 
-    def get_std_shared_lib_link_args(self) -> T.List[str]:
+    def get_std_shared_lib_link_args(self)  :
         return []
 
-    def get_std_shared_module_args(self, options: 'KeyedOptionDictType') -> T.List[str]:
+    def get_std_shared_module_args(self, options )  :
         return self.get_std_shared_lib_link_args()
 
-    def get_link_whole_for(self, args: T.List[str]) -> T.List[str]:
+    def get_link_whole_for(self, args )  :
         raise EnvironmentException('Linker {} does not support link_whole'.format((self.id)))
 
-    def get_allow_undefined_link_args(self) -> T.List[str]:
+    def get_allow_undefined_link_args(self)  :
         raise EnvironmentException('Linker {} does not support allow undefined'.format((self.id)))
 
-    def get_pie_link_args(self) -> T.List[str]:
+    def get_pie_link_args(self)  :
         raise EnvironmentException('Linker {} does not support position-independent executable'.format((self.id)))
 
-    def get_undefined_link_args(self) -> T.List[str]:
+    def get_undefined_link_args(self)  :
         return []
 
-    def get_coverage_link_args(self) -> T.List[str]:
+    def get_coverage_link_args(self)  :
         return []
 
-    def no_undefined_link_args(self) -> T.List[str]:
+    def no_undefined_link_args(self)  :
         return []
 
-    def bitcode_args(self) -> T.List[str]:
+    def bitcode_args(self)  :
         raise MesonException("This linker doesn't support bitcode bundles")
 
-    def get_soname_args(self, env: 'Environment', prefix: str, shlib_name: str,
-                        suffix: str, soversion: str,
-                        darwin_versions: T.Tuple[str, str]) -> T.List[str]:
+    def get_soname_args(self, env , prefix , shlib_name ,
+                        suffix , soversion ,
+                        darwin_versions  )  :
         raise MesonException("This linker doesn't support soname args")
 
-    def build_rpath_args(self, env: 'Environment', build_dir: str, from_dir: str,
-                         rpath_paths: T.Tuple[str, ...], build_rpath: str,
-                         install_rpath: str) -> T.Tuple[T.List[str], T.Set[bytes]]:
+    def build_rpath_args(self, env , build_dir , from_dir ,
+                         rpath_paths  , build_rpath ,
+                         install_rpath )   :
         return ([], set())
 
-    def get_asneeded_args(self) -> T.List[str]:
+    def get_asneeded_args(self)  :
         return []
 
-    def get_buildtype_linker_args(self, buildtype: str) -> T.List[str]:
+    def get_buildtype_linker_args(self, buildtype )  :
         return []
 
-    def get_link_debugfile_name(self, target: str) -> str:
+    def get_link_debugfile_name(self, target )  :
         return ''
 
-    def thread_flags(self, env: 'Environment') -> T.List[str]:
+    def thread_flags(self, env )  :
         return []
 
-    def thread_link_flags(self, env: 'Environment') -> T.List[str]:
+    def thread_link_flags(self, env )  :
         return []

@@ -35,7 +35,7 @@ class ModuleState:
     needed so modules does not touch any other part of Meson internal APIs.
     """
 
-    def __init__(self, interpreter: 'Interpreter') -> None:
+    def __init__(self, interpreter )  :
         # Keep it private, it should be accessed only through methods.
         self._interpreter = interpreter
 
@@ -62,14 +62,14 @@ class ModuleState:
         self.target_machine = T.cast('MachineHolder', interpreter.builtin['target_machine']).held_object
         self.current_node = interpreter.current_node
 
-    def get_include_args(self, include_dirs: T.Iterable[T.Union[str, build.IncludeDirs]], prefix: str = '-I') -> T.List[str]:
+    def get_include_args(self, include_dirs  , prefix  = '-I')  :
         if not include_dirs:
             return []
 
         srcdir = self.environment.get_source_dir()
         builddir = self.environment.get_build_dir()
 
-        dirs_str: T.List[str] = []
+        dirs_str  = []
         for dirs in include_dirs:
             if isinstance(dirs, str):
                 dirs_str += ['{}{}'.format((prefix), (dirs))]
@@ -79,17 +79,17 @@ class ModuleState:
 
         return dirs_str
 
-    def find_program(self, prog: T.Union[str, T.List[str]], required: bool = True,
-                     version_func: T.Optional[T.Callable[['ExternalProgram'], str]] = None,
-                     wanted: T.Optional[str] = None, silent: bool = False,
-                     for_machine: MachineChoice = MachineChoice.HOST) -> 'ExternalProgram':
+    def find_program(self, prog  , required  = True,
+                     version_func   = None,
+                     wanted  = None, silent  = False,
+                     for_machine  = MachineChoice.HOST)  :
         return self._interpreter.find_program_impl(prog, required=required, version_func=version_func,
                                                    wanted=wanted, silent=silent, for_machine=for_machine)
 
-    def test(self, args: T.Tuple[str, T.Union[build.Executable, build.Jar, 'ExternalProgram', mesonlib.File]],
-             workdir: T.Optional[str] = None,
-             env: T.Union[T.List[str], T.Dict[str, str], str] = None,
-             depends: T.List[T.Union[build.CustomTarget, build.BuildTarget]] = None) -> None:
+    def test(self, args     ,
+             workdir  = None,
+             env     = None,
+             depends   = None)  :
         kwargs = {'workdir': workdir,
                   'env': env,
                   'depends': depends,
@@ -100,16 +100,16 @@ class ModuleState:
         # TODO: Use interpreter internal API, but we need to go through @typed_kwargs
         self._interpreter.func_test(self.current_node, real_args, kwargs)
 
-    def get_option(self, name: str, subproject: str = '',
-                   machine: MachineChoice = MachineChoice.HOST,
-                   lang: T.Optional[str] = None,
-                   module: T.Optional[str] = None) -> T.Union[str, int, bool, 'WrapMode']:
+    def get_option(self, name , subproject  = '',
+                   machine  = MachineChoice.HOST,
+                   lang  = None,
+                   module  = None)     :
         return self.environment.coredata.get_option(mesonlib.OptionKey(name, subproject, machine, lang, module))
 
-    def is_user_defined_option(self, name: str, subproject: str = '',
-                               machine: MachineChoice = MachineChoice.HOST,
-                               lang: T.Optional[str] = None,
-                               module: T.Optional[str] = None) -> bool:
+    def is_user_defined_option(self, name , subproject  = '',
+                               machine  = MachineChoice.HOST,
+                               lang  = None,
+                               module  = None)  :
         key = mesonlib.OptionKey(name, subproject, machine, lang, module)
         return key in self._interpreter.user_defined_options.cmd_line_options
 
@@ -117,11 +117,11 @@ class ModuleState:
 class ModuleObject(HoldableObject):
     """Base class for all objects returned by modules
     """
-    def __init__(self) -> None:
-        self.methods: T.Dict[
-            str,
-            T.Callable[[ModuleState, T.List['TYPE_var'], 'TYPE_kwargs'], T.Union[ModuleReturnValue, 'TYPE_var']]
-        ] = {}
+    def __init__(self)  :
+        self.methods                                      = {}
+
+
+
 
 
 class MutableModuleObject(ModuleObject):
@@ -134,7 +134,7 @@ class NewExtensionModule(ModuleObject):
     provides the found method.
     """
 
-    def __init__(self) -> None:
+    def __init__(self)  :
         super().__init__()
         self.methods.update({
             'found': self.found_method,
@@ -142,21 +142,21 @@ class NewExtensionModule(ModuleObject):
 
     @noPosargs
     @noKwargs
-    def found_method(self, state: 'ModuleState', args: T.List['TYPE_var'], kwargs: 'TYPE_kwargs') -> bool:
+    def found_method(self, state , args , kwargs )  :
         return self.found()
 
     @staticmethod
-    def found() -> bool:
+    def found()  :
         return True
 
-    def get_devenv(self) -> T.Optional['EnvironmentVariables']:
+    def get_devenv(self)  :
         return None
 
 # FIXME: Port all modules to stop using self.interpreter and use API on
 # ModuleState instead. Modules should stop using this class and instead use
 # ModuleObject base class.
 class ExtensionModule(NewExtensionModule):
-    def __init__(self, interpreter: 'Interpreter') -> None:
+    def __init__(self, interpreter )  :
         super().__init__()
         self.interpreter = interpreter
 
@@ -168,7 +168,7 @@ class NotFoundExtensionModule(NewExtensionModule):
     """
 
     @staticmethod
-    def found() -> bool:
+    def found()  :
         return False
 
 
@@ -184,11 +184,11 @@ def is_module_library(fname):
 
 
 class ModuleReturnValue:
-    def __init__(self, return_value: T.Optional['TYPE_var'],
-                 new_objects: T.Sequence[T.Union['TYPE_var', 'build.ExecutableSerialisation']]) -> None:
+    def __init__(self, return_value ,
+                 new_objects  )  :
         self.return_value = return_value
         assert isinstance(new_objects, list)
-        self.new_objects: T.List[T.Union['TYPE_var', 'build.ExecutableSerialisation']] = new_objects
+        self.new_objects   = new_objects
 
 class GResourceTarget(build.CustomTarget):
     pass

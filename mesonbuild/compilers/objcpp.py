@@ -32,32 +32,32 @@ class ObjCPPCompiler(CLikeCompiler, Compiler):
 
     language = 'objcpp'
 
-    def __init__(self, exelist: T.List[str], version: str, for_machine: MachineChoice,
-                 is_cross: bool, info: 'MachineInfo',
-                 exe_wrap: T.Optional['ExternalProgram'],
-                 linker: T.Optional['DynamicLinker'] = None,
-                 full_version: T.Optional[str] = None):
+    def __init__(self, exelist , version , for_machine ,
+                 is_cross , info ,
+                 exe_wrap ,
+                 linker  = None,
+                 full_version  = None):
         Compiler.__init__(self, exelist, version, for_machine, info,
                           is_cross=is_cross, full_version=full_version,
                           linker=linker)
         CLikeCompiler.__init__(self, exe_wrap)
 
     @staticmethod
-    def get_display_language() -> str:
+    def get_display_language()  :
         return 'Objective-C++'
 
-    def sanity_check(self, work_dir: str, environment: 'Environment') -> None:
+    def sanity_check(self, work_dir , environment )  :
         code = '#import<stdio.h>\nclass MyClass;int main(void) { return 0; }\n'
         return self._sanity_check_impl(work_dir, environment, 'sanitycheckobjcpp.mm', code)
 
 
 class GnuObjCPPCompiler(GnuCompiler, ObjCPPCompiler):
-    def __init__(self, exelist: T.List[str], version: str, for_machine: MachineChoice,
-                 is_cross: bool, info: 'MachineInfo',
-                 exe_wrapper: T.Optional['ExternalProgram'] = None,
-                 defines: T.Optional[T.Dict[str, str]] = None,
-                 linker: T.Optional['DynamicLinker'] = None,
-                 full_version: T.Optional[str] = None):
+    def __init__(self, exelist , version , for_machine ,
+                 is_cross , info ,
+                 exe_wrapper  = None,
+                 defines   = None,
+                 linker  = None,
+                 full_version  = None):
         ObjCPPCompiler.__init__(self, exelist, version, for_machine, is_cross,
                                 info, exe_wrapper, linker=linker, full_version=full_version)
         GnuCompiler.__init__(self, defines)
@@ -70,12 +70,12 @@ class GnuObjCPPCompiler(GnuCompiler, ObjCPPCompiler):
 
 class ClangObjCPPCompiler(ClangCompiler, ObjCPPCompiler):
 
-    def __init__(self, exelist: T.List[str], version: str, for_machine: MachineChoice,
-                 is_cross: bool, info: 'MachineInfo',
-                 exe_wrapper: T.Optional['ExternalProgram'] = None,
-                 defines: T.Optional[T.Dict[str, str]] = None,
-                 linker: T.Optional['DynamicLinker'] = None,
-                 full_version: T.Optional[str] = None):
+    def __init__(self, exelist , version , for_machine ,
+                 is_cross , info ,
+                 exe_wrapper  = None,
+                 defines   = None,
+                 linker  = None,
+                 full_version  = None):
         ObjCPPCompiler.__init__(self, exelist, version, for_machine, is_cross,
                                 info, exe_wrapper, linker=linker, full_version=full_version)
         ClangCompiler.__init__(self, defines)
@@ -85,7 +85,7 @@ class ClangObjCPPCompiler(ClangCompiler, ObjCPPCompiler):
                           '2': default_warn_args + ['-Wextra'],
                           '3': default_warn_args + ['-Wextra', '-Wpedantic']}
 
-    def get_options(self) -> 'coredata.KeyedOptionDictType':
+    def get_options(self)  :
         opts = super().get_options()
         opts.update({
             OptionKey('std', machine=self.for_machine, lang='cpp'): coredata.UserComboOption(
@@ -96,7 +96,7 @@ class ClangObjCPPCompiler(ClangCompiler, ObjCPPCompiler):
         })
         return opts
 
-    def get_option_compile_args(self, options: 'coredata.KeyedOptionDictType') -> T.List[str]:
+    def get_option_compile_args(self, options )  :
         args = []
         std = options[OptionKey('std', machine=self.for_machine, lang='cpp')]
         if std.value != 'none':

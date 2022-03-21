@@ -34,17 +34,17 @@ from mesonbuild import build
 if T.TYPE_CHECKING:
     import argparse
 
-def array_arg(value: str) -> T.List[str]:
+def array_arg(value )  :
     return UserArrayOption(None, value, allow_dups=True, user_input=True).value
 
-def validate_builddir(builddir: Path) -> None:
+def validate_builddir(builddir )  :
     if not (builddir / 'meson-private' / 'coredata.dat').is_file():
         raise MesonException('Current directory is not a meson build directory: `{}`.\n'
                              'Please specify a valid build dir or change the working directory to it.\n'
                              'It is also possible that the build directory was generated with an old\n'
                              'meson version. Please regenerate it in this case.'.format((builddir)))
 
-def parse_introspect_data(builddir: Path) -> T.Dict[str, T.List[dict]]:
+def parse_introspect_data(builddir )   :
     """
     Converts a List of name-to-dict to a dict of name-to-dicts (since names are not unique)
     """
@@ -65,7 +65,7 @@ class ParsedTargetName:
     type = ''
     path = ''
 
-    def __init__(self, target: str):
+    def __init__(self, target ):
         self.full_name = target
         split = target.rsplit(':', 1)
         if len(split) > 1:
@@ -81,7 +81,7 @@ class ParsedTargetName:
             self.name = split[0]
 
     @staticmethod
-    def _is_valid_type(type: str) -> bool:
+    def _is_valid_type(type )  :
         # Amend docs in Commands.md when editing this list
         allowed_types = {
             'executable',
@@ -94,7 +94,7 @@ class ParsedTargetName:
         }
         return type in allowed_types
 
-def get_target_from_intro_data(target: ParsedTargetName, builddir: Path, introspect_data: T.Dict[str, T.Any]) -> T.Dict[str, T.Any]:
+def get_target_from_intro_data(target , builddir , introspect_data  )   :
     if target.name not in introspect_data:
         raise MesonException('Can\'t invoke target `{}`: target not found'.format((target.full_name)))
 
@@ -122,7 +122,7 @@ def get_target_from_intro_data(target: ParsedTargetName, builddir: Path, introsp
 
     return found_targets[0]
 
-def generate_target_names_ninja(target: ParsedTargetName, builddir: Path, introspect_data: dict) -> T.List[str]:
+def generate_target_names_ninja(target , builddir , introspect_data )  :
     intro_target = get_target_from_intro_data(target, builddir, introspect_data)
 
     if intro_target['type'] == 'run':
@@ -130,7 +130,7 @@ def generate_target_names_ninja(target: ParsedTargetName, builddir: Path, intros
     else:
         return [str(Path(out_file).relative_to(builddir.resolve())) for out_file in intro_target['filename']]
 
-def get_parsed_args_ninja(options: 'argparse.Namespace', builddir: Path) -> T.Tuple[T.List[str], T.Optional[T.Dict[str, str]]]:
+def get_parsed_args_ninja(options , builddir )    :
     runner = detect_ninja()
     if runner is None:
         raise MesonException('Cannot find ninja.')
@@ -161,7 +161,7 @@ def get_parsed_args_ninja(options: 'argparse.Namespace', builddir: Path) -> T.Tu
 
     return cmd, None
 
-def generate_target_name_vs(target: ParsedTargetName, builddir: Path, introspect_data: dict) -> str:
+def generate_target_name_vs(target , builddir , introspect_data )  :
     intro_target = get_target_from_intro_data(target, builddir, introspect_data)
 
     assert intro_target['type'] != 'run', 'Should not reach here: `run` targets must be handle above'
@@ -174,7 +174,7 @@ def generate_target_name_vs(target: ParsedTargetName, builddir: Path, introspect
         target_name = str(rel_path / target_name)
     return target_name
 
-def get_parsed_args_vs(options: 'argparse.Namespace', builddir: Path) -> T.Tuple[T.List[str], T.Optional[T.Dict[str, str]]]:
+def get_parsed_args_vs(options , builddir )    :
     slns = list(builddir.glob('*.sln'))
     assert len(slns) == 1, 'More than one solution in a project?'
     sln = slns[0]
@@ -231,7 +231,7 @@ def get_parsed_args_vs(options: 'argparse.Namespace', builddir: Path) -> T.Tuple
 
     return cmd, env
 
-def get_parsed_args_xcode(options: 'argparse.Namespace', builddir: Path) -> T.Tuple[T.List[str], T.Optional[T.Dict[str, str]]]:
+def get_parsed_args_xcode(options , builddir )    :
     runner = 'xcodebuild'
     if not shutil.which(runner):
         raise MesonException('Cannot find xcodebuild, did you install XCode?')
@@ -267,7 +267,7 @@ def get_parsed_args_xcode(options: 'argparse.Namespace', builddir: Path) -> T.Tu
     cmd += options.xcode_args
     return cmd, None
 
-def add_arguments(parser: 'argparse.ArgumentParser') -> None:
+def add_arguments(parser )  :
     """Add compile specific arguments."""
     parser.add_argument(
         'targets',
@@ -321,7 +321,7 @@ def add_arguments(parser: 'argparse.ArgumentParser') -> None:
         help='Arguments to pass to `xcodebuild` (applied only on `xcode` backend).'
     )
 
-def run(options: 'argparse.Namespace') -> int:
+def run(options )  :
     bdir = Path(options.wd)
     validate_builddir(bdir)
     if options.targets and options.clean:

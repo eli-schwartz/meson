@@ -35,7 +35,7 @@ class CMakeExecScope(Enum):
     DEPENDENCY = 'dependency'
 
 class CMakeToolchain:
-    def __init__(self, cmakebin: 'CMakeExecutor', env: 'Environment', for_machine: MachineChoice, exec_scope: CMakeExecScope, build_dir: Path, preload_file: T.Optional[Path] = None) -> None:
+    def __init__(self, cmakebin , env , for_machine , exec_scope , build_dir , preload_file  = None)  :
         self.env            = env
         self.cmakebin       = cmakebin
         self.for_machine    = for_machine
@@ -64,7 +64,7 @@ class CMakeToolchain:
 
         assert self.toolchain_file.is_absolute()
 
-    def write(self) -> Path:
+    def write(self)  :
         if not self.toolchain_file.parent.exists():
             self.toolchain_file.parent.mkdir(parents=True)
         self.toolchain_file.write_text(self.generate(), encoding='utf-8')
@@ -72,14 +72,14 @@ class CMakeToolchain:
         mlog.cmd_ci_include(self.toolchain_file.as_posix())
         return self.toolchain_file
 
-    def get_cmake_args(self) -> T.List[str]:
+    def get_cmake_args(self)  :
         args = ['-DCMAKE_TOOLCHAIN_FILE=' + self.toolchain_file.as_posix()]
         if self.preload_file is not None:
             args += ['-DMESON_PRELOAD_FILE=' + self.preload_file.as_posix()]
         return args
 
     @staticmethod
-    def _print_vars(vars: T.Dict[str, T.List[str]]) -> str:
+    def _print_vars(vars  )  :
         res = ''
         for key, value in vars.items():
             res += 'set(' + key
@@ -88,7 +88,7 @@ class CMakeToolchain:
             res += ')\n'
         return res
 
-    def generate(self) -> str:
+    def generate(self)  :
         res = dedent('''\
             ######################################
             ###  AUTOMATICALLY GENERATED FILE  ###
@@ -134,7 +134,7 @@ class CMakeToolchain:
 
         return res
 
-    def generate_cache(self) -> str:
+    def generate_cache(self)  :
         if not self.skip_check:
             return ''
 
@@ -143,7 +143,7 @@ class CMakeToolchain:
             res += '{}:{}={}\n'.format((name), (v.type), (";".join(v.value)))
         return res
 
-    def get_defaults(self) -> T.Dict[str, T.List[str]]:
+    def get_defaults(self)   :
         defaults = {}  # type: T.Dict[str, T.List[str]]
 
         # Do nothing if the user does not want automatic defaults
@@ -173,7 +173,7 @@ class CMakeToolchain:
         if sys_root:
             defaults['CMAKE_SYSROOT'] = [sys_root]
 
-        def make_abs(exe: str) -> str:
+        def make_abs(exe )  :
             if Path(exe).is_absolute():
                 return exe
 
@@ -202,13 +202,13 @@ class CMakeToolchain:
         return defaults
 
     @staticmethod
-    def is_cmdline_option(compiler: 'Compiler', arg: str) -> bool:
+    def is_cmdline_option(compiler , arg )  :
         if isinstance(compiler, VisualStudioLikeCompiler):
             return arg.startswith('/')
         else:
             return arg.startswith('-')
 
-    def update_cmake_compiler_state(self) -> None:
+    def update_cmake_compiler_state(self)  :
         # Check if all variables are already cached
         if self.cmakestate.languages.issuperset(self.compilers.keys()):
             return

@@ -21,7 +21,7 @@ SET
 # If on Windows and VS is installed but not set up in the environment,
 # set it to be runnable. In this way Meson can be directly invoked
 # from any shell, VS Code etc.
-def _setup_vsenv(force: bool) -> bool:
+def _setup_vsenv(force )  :
     if not is_windows():
         return False
     if os.environ.get('OSTYPE') == 'cygwin':
@@ -100,7 +100,7 @@ def _setup_vsenv(force: bool) -> bool:
         os.environ[k] = v
     return True
 
-def setup_vsenv(force: bool = False) -> bool:
+def setup_vsenv(force  = False)  :
     try:
         return _setup_vsenv(force)
     except MesonException as e:

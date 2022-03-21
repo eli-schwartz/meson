@@ -28,7 +28,7 @@ from .. import mesonlib
 if T.TYPE_CHECKING:
     import argparse
 
-def add_arguments(parser: 'argparse.ArgumentParser') -> None:
+def add_arguments(parser )  :
     subparsers = parser.add_subparsers(title='Commands', dest='command')
     subparsers.required = True
 
@@ -58,16 +58,16 @@ def add_arguments(parser: 'argparse.ArgumentParser') -> None:
     p.add_argument('project_path')
     p.set_defaults(wrap_func=promote)
 
-def get_releases() -> T.Dict[str, T.Any]:
+def get_releases()   :
     url = urlopen('https://wrapdb.mesonbuild.com/v2/releases.json')
     return T.cast('T.Dict[str, T.Any]', json.loads(url.read().decode()))
 
-def list_projects(options: 'argparse.Namespace') -> None:
+def list_projects(options )  :
     releases = get_releases()
     for p in releases.keys():
         print(p)
 
-def search(options: 'argparse.Namespace') -> None:
+def search(options )  :
     name = options.name
     releases = get_releases()
     for p, info in releases.items():
@@ -78,7 +78,7 @@ def search(options: 'argparse.Namespace') -> None:
                 if dep.find(name) != -1:
                     print('Dependency {} found in wrap {}'.format((dep), (p)))
 
-def get_latest_version(name: str) -> T.Tuple[str, str]:
+def get_latest_version(name )   :
     releases = get_releases()
     info = releases.get(name)
     if not info:
@@ -87,7 +87,7 @@ def get_latest_version(name: str) -> T.Tuple[str, str]:
     version, revision = latest_version.rsplit('-', 1)
     return version, revision
 
-def install(options: 'argparse.Namespace') -> None:
+def install(options )  :
     name = options.name
     if not os.path.isdir('subprojects'):
         raise SystemExit('Subprojects dir not found. Run this script in your source root directory.')
@@ -102,7 +102,7 @@ def install(options: 'argparse.Namespace') -> None:
         f.write(url.read())
     print('Installed {} version {} revision {}'.format((name), (version), (revision)))
 
-def parse_patch_url(patch_url: str) -> T.Tuple[str, str]:
+def parse_patch_url(patch_url )   :
     u = urlparse(patch_url)
     if u.netloc != 'wrapdb.mesonbuild.com':
         raise WrapException('URL {} does not seems to be a wrapdb patch'.format((patch_url)))
@@ -119,7 +119,7 @@ def parse_patch_url(patch_url: str) -> T.Tuple[str, str]:
     else:
         raise WrapException('Invalid wrapdb URL {}'.format((patch_url)))
 
-def get_current_version(wrapfile: str) -> T.Tuple[str, str, str, str, T.Optional[str]]:
+def get_current_version(wrapfile )      :
     cp = configparser.ConfigParser(interpolation=None)
     cp.read(wrapfile)
     try:
@@ -139,12 +139,12 @@ def get_current_version(wrapfile: str) -> T.Tuple[str, str, str, str, T.Optional
         patch_filename = wrap_data['patch_filename']
     return branch, revision, wrap_data['directory'], wrap_data['source_filename'], patch_filename
 
-def update_wrap_file(wrapfile: str, name: str, new_version: str, new_revision: str) -> None:
+def update_wrap_file(wrapfile , name , new_version , new_revision )  :
     url = urlopen('https://wrapdb.mesonbuild.com/v2/{}_{}-{}/{}.wrap'.format((name), (new_version), (new_revision), (name)))
     with open(wrapfile, 'wb') as f:
         f.write(url.read())
 
-def update(options: 'argparse.Namespace') -> None:
+def update(options )  :
     name = options.name
     if not os.path.isdir('subprojects'):
         raise SystemExit('Subprojects dir not found. Run this command in your source root directory.')
@@ -169,7 +169,7 @@ def update(options: 'argparse.Namespace') -> None:
             pass
     print('Updated {} version {} revision {}'.format((name), (new_branch), (new_revision)))
 
-def info(options: 'argparse.Namespace') -> None:
+def info(options )  :
     name = options.name
     releases = get_releases()
     info = releases.get(name)
@@ -179,7 +179,7 @@ def info(options: 'argparse.Namespace') -> None:
     for v in info['versions']:
         print(' ', v)
 
-def do_promotion(from_path: str, spdir_name: str) -> None:
+def do_promotion(from_path , spdir_name )  :
     if os.path.isfile(from_path):
         assert from_path.endswith('.wrap')
         shutil.copy(from_path, spdir_name)
@@ -190,7 +190,7 @@ def do_promotion(from_path: str, spdir_name: str) -> None:
             raise SystemExit('Output dir {} already exists. Will not overwrite.'.format((outputdir)))
         shutil.copytree(from_path, outputdir, ignore=shutil.ignore_patterns('subprojects'))
 
-def promote(options: 'argparse.Namespace') -> None:
+def promote(options )  :
     argument = options.project_path
     spdir_name = 'subprojects'
     sprojs = mesonlib.detect_subprojects(spdir_name)
@@ -213,7 +213,7 @@ def promote(options: 'argparse.Namespace') -> None:
         raise SystemExit(1)
     do_promotion(matches[0], spdir_name)
 
-def status(options: 'argparse.Namespace') -> None:
+def status(options )  :
     print('Subproject status')
     for w in glob('subprojects/*.wrap'):
         name = os.path.basename(w)[:-5]
@@ -232,6 +232,6 @@ def status(options: 'argparse.Namespace') -> None:
         else:
             print('', name, 'not up to date. Have {} {}, but {} {} is available.'.format((current_branch), (current_revision), (latest_branch), (latest_revision)))
 
-def run(options: 'argparse.Namespace') -> int:
+def run(options )  :
     options.wrap_func(options)
     return 0

@@ -23,7 +23,7 @@ if T.TYPE_CHECKING:
     from ..environment import Environment
 
 class AppleFrameworks(ExternalDependency):
-    def __init__(self, env: 'Environment', kwargs: T.Dict[str, T.Any]) -> None:
+    def __init__(self, env , kwargs  )  :
         super().__init__(DependencyTypeName('appleframeworks'), env, kwargs)
         modules = kwargs.get('modules', [])
         if isinstance(modules, str):
@@ -51,8 +51,8 @@ class AppleFrameworks(ExternalDependency):
             else:
                 self.is_found = False
 
-    def log_info(self) -> str:
+    def log_info(self)  :
         return ', '.join(self.frameworks)
 
-    def log_tried(self) -> str:
+    def log_tried(self)  :
         return 'framework'

@@ -39,12 +39,12 @@ class ExternalProgram(mesonlib.HoldableObject):
     windows_exts = ('exe', 'msc', 'com', 'bat', 'cmd')
     for_machine = MachineChoice.BUILD
 
-    def __init__(self, name: str, command: T.Optional[T.List[str]] = None,
-                 silent: bool = False, search_dir: T.Optional[str] = None,
-                 extra_search_dirs: T.Optional[T.List[str]] = None):
+    def __init__(self, name , command  = None,
+                 silent  = False, search_dir  = None,
+                 extra_search_dirs  = None):
         self.name = name
-        self.path: T.Optional[str] = None
-        self.cached_version: T.Optional[str] = None
+        self.path  = None
+        self.cached_version  = None
         if command is not None:
             self.command = mesonlib.listify(command)
             if mesonlib.is_windows():
@@ -87,20 +87,20 @@ class ExternalProgram(mesonlib.HoldableObject):
             else:
                 mlog.log('Program', mlog.bold(name), 'found:', mlog.red('NO'))
 
-    def summary_value(self) -> T.Union[str, mlog.AnsiDecorator]:
+    def summary_value(self)   :
         if not self.found():
             return mlog.red('NO')
         return self.path
 
-    def __repr__(self) -> str:
+    def __repr__(self)  :
         r = '<{} {!r} -> {!r}>'
         return r.format(self.__class__.__name__, self.name, self.command)
 
-    def description(self) -> str:
+    def description(self)  :
         '''Human friendly description of the command'''
         return ' '.join(self.command)
 
-    def get_version(self, interpreter: 'Interpreter') -> str:
+    def get_version(self, interpreter )  :
         if not self.cached_version:
             from . import build
             raw_cmd = self.get_command() + ['--version']
@@ -117,7 +117,7 @@ class ExternalProgram(mesonlib.HoldableObject):
         return self.cached_version
 
     @classmethod
-    def from_bin_list(cls, env: 'Environment', for_machine: MachineChoice, name: str) -> 'ExternalProgram':
+    def from_bin_list(cls, env , for_machine , name )  :
         # There is a static `for_machine` for this class because the binary
         # always runs on the build platform. (It's host platform is our build
         # platform.) But some external programs have a target platform, so this
@@ -129,7 +129,7 @@ class ExternalProgram(mesonlib.HoldableObject):
 
     @staticmethod
     @functools.lru_cache(maxsize=None)
-    def _windows_sanitize_path(path: str) -> str:
+    def _windows_sanitize_path(path )  :
         # Ensure that we use USERPROFILE even when inside MSYS, MSYS2, Cygwin, etc.
         if 'USERPROFILE' not in os.environ:
             return path
@@ -152,7 +152,7 @@ class ExternalProgram(mesonlib.HoldableObject):
         return os.pathsep.join(paths)
 
     @staticmethod
-    def from_entry(name: str, command: T.Union[str, T.List[str]]) -> 'ExternalProgram':
+    def from_entry(name , command  )  :
         if isinstance(command, list):
             if len(command) == 1:
                 command = command[0]
@@ -167,7 +167,7 @@ class ExternalProgram(mesonlib.HoldableObject):
         return ExternalProgram(command, silent=True)
 
     @staticmethod
-    def _shebang_to_cmd(script: str) -> T.Optional[T.List[str]]:
+    def _shebang_to_cmd(script )  :
         """
         Check if the file has a shebang and manually parse it to figure out
         the interpreter to use. This is useful if the script is not executable
@@ -213,7 +213,7 @@ class ExternalProgram(mesonlib.HoldableObject):
         mlog.debug('Unusable script {!r}'.format((script)))
         return None
 
-    def _is_executable(self, path: str) -> bool:
+    def _is_executable(self, path )  :
         suffix = os.path.splitext(path)[-1].lower()[1:]
         execmask = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
         if mesonlib.is_windows():
@@ -223,7 +223,7 @@ class ExternalProgram(mesonlib.HoldableObject):
             return not os.path.isdir(path)
         return False
 
-    def _search_dir(self, name: str, search_dir: T.Optional[str]) -> T.Optional[list]:
+    def _search_dir(self, name , search_dir )  :
         if search_dir is None:
             return None
         trial = os.path.join(search_dir, name)
@@ -242,7 +242,7 @@ class ExternalProgram(mesonlib.HoldableObject):
                         return [trial_ext]
         return None
 
-    def _search_windows_special_cases(self, name: str, command: str) -> T.List[T.Optional[str]]:
+    def _search_windows_special_cases(self, name , command )  :
         '''
         Lots of weird Windows quirks:
         1. PATH search for @name returns files with extensions from PATHEXT,
@@ -285,7 +285,7 @@ class ExternalProgram(mesonlib.HoldableObject):
                 return commands
         return [None]
 
-    def _search(self, name: str, search_dir: T.Optional[str]) -> T.List[T.Optional[str]]:
+    def _search(self, name , search_dir )  :
         '''
         Search in the specified dir for the specified executable by name
         and if not found search in PATH
@@ -307,32 +307,32 @@ class ExternalProgram(mesonlib.HoldableObject):
         # all executables whether in PATH or with an absolute path
         return [command]
 
-    def found(self) -> bool:
+    def found(self)  :
         return self.command[0] is not None
 
-    def get_command(self) -> T.List[str]:
+    def get_command(self)  :
         return self.command[:]
 
-    def get_path(self) -> T.Optional[str]:
+    def get_path(self)  :
         return self.path
 
-    def get_name(self) -> str:
+    def get_name(self)  :
         return self.name
 
 
 class NonExistingExternalProgram(ExternalProgram):  # lgtm [py/missing-call-to-init]
     "A program that will never exist"
 
-    def __init__(self, name: str = 'nonexistingprogram') -> None:
+    def __init__(self, name  = 'nonexistingprogram')  :
         self.name = name
         self.command = [None]
         self.path = None
 
-    def __repr__(self) -> str:
+    def __repr__(self)  :
         r = '<{} {!r} -> {!r}>'
         return r.format(self.__class__.__name__, self.name, self.command)
 
-    def found(self) -> bool:
+    def found(self)  :
         return False
 
 
@@ -342,16 +342,16 @@ class EmptyExternalProgram(ExternalProgram):  # lgtm [py/missing-call-to-init]
     such as a cross file exe_wrapper to represent that it's not required.
     '''
 
-    def __init__(self) -> None:
+    def __init__(self)  :
         self.name = None
         self.command = []
         self.path = None
 
-    def __repr__(self) -> str:
+    def __repr__(self)  :
         r = '<{} {!r} -> {!r}>'
         return r.format(self.__class__.__name__, self.name, self.command)
 
-    def found(self) -> bool:
+    def found(self)  :
         return True
 
 
@@ -360,9 +360,9 @@ class OverrideProgram(ExternalProgram):
     """A script overriding a program."""
 
 
-def find_external_program(env: 'Environment', for_machine: MachineChoice, name: str,
-                          display_name: str, default_names: T.List[str],
-                          allow_default_for_cross: bool = True) -> T.Generator['ExternalProgram', None, None]:
+def find_external_program(env , for_machine , name ,
+                          display_name , default_names ,
+                          allow_default_for_cross  = True)    :
     """Find an external program, chcking the cross file plus any default options."""
     # Lookup in cross or machine file.
     potential_cmd = env.lookup_binary_entry(for_machine, name)

@@ -50,10 +50,10 @@ class WrapMode(Enum):
     forcefallback = 4
     nopromote = 5
 
-    def __str__(self) -> str:
+    def __str__(self)  :
         return self.name
 
     @staticmethod
-    def from_string(mode_name: str) -> 'WrapMode':
+    def from_string(mode_name )  :
         g = string_to_value[mode_name]
         return WrapMode(g)
