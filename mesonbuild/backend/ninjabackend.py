@@ -601,12 +601,13 @@ class NinjaBackend(backends.Backend):
         compdb_options = ['-x'] if mesonlib.version_compare(self.ninja_version, '>=1.9') else []
         ninja_compdb = self.ninja_command + ['-t', 'compdb'] + compdb_options + rules
         builddir = self.environment.get_build_dir()
-        try:
-            jsondb = subprocess.check_output(ninja_compdb, cwd=builddir)
+        jsondb = subprocess.run(ninja_compdb, capture_output=True, cwd=builddir)
+        if jsondb.returncode == 0:
             with open(os.path.join(builddir, 'compile_commands.json'), 'wb') as f:
-                f.write(jsondb)
-        except Exception:
+                f.write(jsondb.stdout)
+        else:
             mlog.warning('Could not create compilation database.', fatal=False)
+            mlog.debug('\nninja stderr:\n\n' + jsondb.stderr.decode('utf-8'))
 
     # Get all generated headers. Any source file might need them so
     # we need to add an order dependency to them.
