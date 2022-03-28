@@ -375,7 +375,9 @@ print(json.dumps({
 
 class PythonExternalProgram(ExternalProgram):
     def __init__(self, name: str, command: T.Optional[T.List[str]] = None,
-                 ext_prog: T.Optional[ExternalProgram] = None):
+                 ext_prog: T.Optional[ExternalProgram] = None,
+                 realname: T.Optional[str] = None):
+        self.realname = realname or name
         if ext_prog is None:
             super().__init__(name, command=command, silent=True)
         else:
@@ -400,9 +402,9 @@ class PythonExternalProgram(ExternalProgram):
         }
 
     def _check_version(self, version: str) -> bool:
-        if self.name == 'python2':
+        if self.realname == 'python2':
             return mesonlib.version_compare(version, '< 3.0')
-        elif self.name == 'python3':
+        elif self.realname == 'python3':
             return mesonlib.version_compare(version, '>= 3.0')
         return True
 
@@ -661,7 +663,7 @@ class PythonModule(ExtensionModule):
             # named python is available and has a compatible version, let's use
             # it
             if not python.found() and name_or_path in ['python2', 'python3']:
-                python = PythonExternalProgram('python')
+                python = PythonExternalProgram('python', realname=name_or_path)
 
         if python.found() and not python.sanity(state):
             python = NonExistingExternalProgram()
