@@ -109,20 +109,22 @@ class DependenciesHelper:
         self.metadata = metadata
 
     def add_pub_libs(self, libs: T.Sequence[ANY_DEP]) -> None:
+        assert isinstance(libs, list), 'for mypy'
         p_libs, reqs, cflags = self._process_libs(libs, True)
         self.pub_libs = p_libs + self.pub_libs # prepend to preserve dependencies
         self.pub_reqs += reqs
         self.cflags += cflags
 
     def add_priv_libs(self, libs: T.Sequence[ANY_DEP]) -> None:
+        assert isinstance(libs, list), 'for mypy'
         p_libs, reqs, _ = self._process_libs(libs, False)
         self.priv_libs = p_libs + self.priv_libs
         self.priv_reqs += reqs
 
-    def add_pub_reqs(self, reqs: T.Sequence[T.Union[str, build.StaticLibrary, build.SharedLibrary, dependencies.Dependency]]) -> None:
+    def add_pub_reqs(self, reqs: T.List[T.Union[str, build.StaticLibrary, build.SharedLibrary, dependencies.Dependency]]) -> None:
         self.pub_reqs += self._process_reqs(reqs)
 
-    def add_priv_reqs(self, reqs: T.Sequence[T.Union[str, build.StaticLibrary, build.SharedLibrary, dependencies.Dependency]]) -> None:
+    def add_priv_reqs(self, reqs: T.List[T.Union[str, build.StaticLibrary, build.SharedLibrary, dependencies.Dependency]]) -> None:
         self.priv_reqs += self._process_reqs(reqs)
 
     def _check_generated_pc_deprecation(self, obj: T.Union[build.CustomTarget, build.CustomTargetIndex, build.StaticLibrary, build.SharedLibrary]) -> None:
@@ -142,7 +144,7 @@ class DependenciesHelper:
                          location=data.location)
         data.warned = True
 
-    def _process_reqs(self, reqs: T.Sequence[T.Union[str, build.StaticLibrary, build.SharedLibrary, dependencies.Dependency]]) -> T.List[str]:
+    def _process_reqs(self, reqs: T.List[T.Union[str, build.StaticLibrary, build.SharedLibrary, dependencies.Dependency]]) -> T.List[str]:
         '''Returns string names of requirements'''
         processed_reqs: T.List[str] = []
         for obj in mesonlib.listify(reqs):
@@ -174,7 +176,7 @@ class DependenciesHelper:
         self.cflags += mesonlib.stringlistify(cflags)
 
     def _process_libs(
-            self, libs: T.Sequence[ANY_DEP], public: bool
+            self, libs: T.List[ANY_DEP], public: bool
             ) -> T.Tuple[T.List[T.Union[str, build.SharedLibrary, build.StaticLibrary, build.CustomTarget, build.CustomTargetIndex]], T.List[str], T.List[str]]:
         libs = mesonlib.listify(libs)
         processed_libs: T.List[T.Union[str, build.SharedLibrary, build.StaticLibrary, build.CustomTarget, build.CustomTargetIndex]] = []
@@ -231,7 +233,7 @@ class DependenciesHelper:
 
     def _add_lib_dependencies(
             self, link_targets: T.Sequence[build.BuildTargetTypes],
-            link_whole_targets: T.Sequence[T.Union[build.StaticLibrary, build.CustomTarget, build.CustomTargetIndex]],
+            link_whole_targets: T.List[T.Union[build.StaticLibrary, build.CustomTarget, build.CustomTargetIndex]],
             external_deps: T.List[dependencies.Dependency],
             public: bool,
             private_external_deps: bool = False) -> None:
