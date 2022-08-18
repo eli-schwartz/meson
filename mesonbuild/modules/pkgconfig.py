@@ -240,10 +240,9 @@ class DependenciesHelper:
         for t in link_targets:
             # Internal libraries (uninstalled static library) will be promoted
             # to link_whole, treat them as such here.
-            if t.is_internal():
+            if t.is_internal(t):
                 # `is_internal` shouldn't return True for anything but a
                 # StaticLibrary, or a CustomTarget that is a StaticLibrary
-                assert isinstance(t, (build.StaticLibrary, build.CustomTarget, build.CustomTargetIndex)), 'for mypy'
                 self._add_link_whole(t, public)
             else:
                 add_libs([t])

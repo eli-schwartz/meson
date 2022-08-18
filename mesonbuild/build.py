@@ -45,7 +45,7 @@ from .compilers import (
 from .interpreterbase import FeatureNew, FeatureDeprecated
 
 if T.TYPE_CHECKING:
-    from typing_extensions import Literal
+    from typing_extensions import Literal, TypeGuard
     from ._typing import ImmutableListProtocol
     from .backend.backends import Backend, ExecutableSerialisation
     from .compilers import Compiler
@@ -1404,7 +1404,8 @@ You probably should put it in link_with instead.''')
     def get_external_deps(self) -> T.List[dependencies.Dependency]:
         return self.external_deps
 
-    def is_internal(self) -> bool:
+    @staticmethod
+    def is_internal(self) -> TypeGuard[T.Union['StaticLibrary', 'CustomTarget', 'CustomTargetIndex']]:
         return False
 
     def link(self, target):
@@ -1415,7 +1416,7 @@ You probably should put it in link_with instead.''')
                         mlog.warning(f'Try to link an installed static library target {self.name} with a'
                                      'custom target that is not installed, this might cause problems'
                                      'when you try to use this static library')
-                elif t.is_internal():
+                elif t.is_internal(t):
                     # When we're a static library and we link_with to an
                     # internal/convenience library, promote to link_whole.
                     return self.link_whole(t)
@@ -1466,7 +1467,7 @@ You probably should put it in link_with instead.''')
     def extract_all_objects_recurse(self) -> T.List[T.Union[str, 'ExtractedObjects']]:
         objs = [self.extract_all_objects()]
         for t in self.link_targets:
-            if t.is_internal():
+            if t.is_internal(t):
                 objs += t.extract_all_objects_recurse()
         return objs
 
@@ -2018,7 +2019,8 @@ class StaticLibrary(BuildTarget):
     def is_linkable_target(self):
         return True
 
-    def is_internal(self) -> bool:
+    @staticmethod
+    def is_internal(self) -> TypeGuard[T.Union['StaticLibrary', 'CustomTarget', 'CustomTargetIndex']]:
         return not self.need_install
 
 class SharedLibrary(BuildTarget):
@@ -2600,13 +2602,15 @@ class CustomTarget(Target, CommandBase):
     def get_all_link_deps(self):
         return []
 
-    def is_internal(self) -> bool:
+    @staticmethod
+    def is_internal(self) -> TypeGuard[T.Union['StaticLibrary', 'CustomTarget', 'CustomTargetIndex']]:
         '''
         Returns True iif this is a not installed static library.
         '''
         if len(self.outputs) != 1:
             return False
-        return CustomTargetIndex(self, self.outputs[0]).is_internal()
+        t = CustomTargetIndex(self, self.outputs[0])
+        return t.is_internal(t)
 
     def extract_all_objects_recurse(self) -> T.List[T.Union[str, 'ExtractedObjects']]:
         return self.get_outputs()
@@ -2806,7 +2810,8 @@ class CustomTargetIndex(HoldableObject):
     def should_install(self) -> bool:
         return self.target.should_install()
 
-    def is_internal(self) -> bool:
+    @staticmethod
+    def is_internal(self) -> TypeGuard[T.Union['StaticLibrary', 'CustomTarget', 'CustomTargetIndex']]:
         '''
         Returns True iif this is a not installed static library
         '''
