@@ -317,6 +317,7 @@ class Interpreter(InterpreterBase, HoldableObject):
         self.project_args_frozen = False
         self.global_args_frozen = False  # implies self.project_args_frozen
         self.subprojects: T.Dict[str, SubprojectHolder] = {}
+        self.subproject_methods: T.Dict[str, T.Optional[str]] = {}
         self.subproject_stack: T.List[str] = []
         self.configure_file_outputs: T.Dict[str, int] = {}
         # Passed from the outside, only used in subprojects.
@@ -870,6 +871,7 @@ class Interpreter(InterpreterBase, HoldableObject):
         sub = SubprojectHolder(NullSubprojectInterpreter(), os.path.join(self.subproject_dir, subp_name),
                                disabled_feature=disabled_feature, exception=exception)
         self.subprojects[subp_name] = sub
+        self.subproject_methods[subp_name] = None
         return sub
 
     def do_subproject(self, subp_name: str, method: Literal['meson', 'cmake'], kwargs: kwargs.DoSubproject) -> SubprojectHolder:
@@ -895,17 +897,16 @@ class Interpreter(InterpreterBase, HoldableObject):
             fullstack = self.subproject_stack + [subp_name]
             incpath = ' => '.join(fullstack)
             raise InvalidCode(f'Recursive include of subprojects: {incpath}.')
-        if subp_name in self.subprojects:
+        if subp_name in self.subprojects and self.subproject_methods[subp_name] == method:
             subproject = self.subprojects[subp_name]
-            if subproject.buildmethod and subproject.buildmethod == method:
-                if required and not subproject.found():
-                    raise InterpreterException(f'Subproject "{subproject.subdir}" required but not found.')
-                if kwargs['version']:
-                    pv = self.build.subprojects[subp_name]
-                    wanted = kwargs['version']
-                    if pv == 'undefined' or not mesonlib.version_compare_many(pv, wanted)[0]:
-                        raise InterpreterException(f'Subproject {subp_name} version is {pv} but {wanted} required.')
-                return subproject
+            if required and not subproject.found():
+                raise InterpreterException(f'Subproject "{subproject.subdir}" required but not found.')
+            if kwargs['version']:
+                pv = self.build.subprojects[subp_name]
+                wanted = kwargs['version']
+                if pv == 'undefined' or not mesonlib.version_compare_many(pv, wanted)[0]:
+                    raise InterpreterException(f'Subproject {subp_name} version is {pv} but {wanted} required.')
+            return subproject
 
         r = self.environment.wrap_resolver
         try:
@@ -988,8 +989,9 @@ class Interpreter(InterpreterBase, HoldableObject):
                 raise InterpreterException(f'Subproject {subp_name} version is {pv} but {wanted} required.')
         self.active_projectname = current_active
         self.subprojects.update(subi.subprojects)
-        buildmethod = 'cmake' if is_translated else 'meson'
-        self.subprojects[subp_name] = SubprojectHolder(subi, subdir, warnings=subi_warnings, buildmethod=buildmethod)
+        self.subproject_methods.update(subi.subproject_methods)
+        self.subprojects[subp_name] = SubprojectHolder(subi, subdir, warnings=subi_warnings)
+        self.subproject_methods[subp_name] = 'cmake' if is_translated else 'meson'
         # Duplicates are possible when subproject uses files from project root
         if build_def_files:
             self.build_def_files.update(build_def_files)
