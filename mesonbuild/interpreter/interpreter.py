@@ -897,14 +897,15 @@ class Interpreter(InterpreterBase, HoldableObject):
             raise InvalidCode(f'Recursive include of subprojects: {incpath}.')
         if subp_name in self.subprojects:
             subproject = self.subprojects[subp_name]
-            if required and not subproject.found():
-                raise InterpreterException(f'Subproject "{subproject.subdir}" required but not found.')
-            if kwargs['version']:
-                pv = self.build.subprojects[subp_name]
-                wanted = kwargs['version']
-                if pv == 'undefined' or not mesonlib.version_compare_many(pv, wanted)[0]:
-                    raise InterpreterException(f'Subproject {subp_name} version is {pv} but {wanted} required.')
-            return subproject
+            if subproject.buildmethod and subproject.buildmethod == method:
+                if required and not subproject.found():
+                    raise InterpreterException(f'Subproject "{subproject.subdir}" required but not found.')
+                if kwargs['version']:
+                    pv = self.build.subprojects[subp_name]
+                    wanted = kwargs['version']
+                    if pv == 'undefined' or not mesonlib.version_compare_many(pv, wanted)[0]:
+                        raise InterpreterException(f'Subproject {subp_name} version is {pv} but {wanted} required.')
+                return subproject
 
         r = self.environment.wrap_resolver
         try:
@@ -987,7 +988,8 @@ class Interpreter(InterpreterBase, HoldableObject):
                 raise InterpreterException(f'Subproject {subp_name} version is {pv} but {wanted} required.')
         self.active_projectname = current_active
         self.subprojects.update(subi.subprojects)
-        self.subprojects[subp_name] = SubprojectHolder(subi, subdir, warnings=subi_warnings)
+        buildmethod = 'cmake' if is_translated else 'meson'
+        self.subprojects[subp_name] = SubprojectHolder(subi, subdir, warnings=subi_warnings, buildmethod=buildmethod)
         # Duplicates are possible when subproject uses files from project root
         if build_def_files:
             self.build_def_files.update(build_def_files)

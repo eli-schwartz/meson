@@ -686,12 +686,14 @@ class SubprojectHolder(MesonInterpreterObject):
                  subdir: str,
                  warnings: int = 0,
                  disabled_feature: T.Optional[str] = None,
-                 exception: T.Optional[Exception] = None) -> None:
+                 exception: T.Optional[Exception] = None,
+                 buildmethod: T.Optional[T.Literal['meson', 'cmake']] = None) -> None:
         super().__init__()
         self.held_object = subinterpreter
         self.warnings = warnings
         self.disabled_feature = disabled_feature
         self.exception = exception
+        self.buildmethod = buildmethod
         self.subdir = PurePath(subdir).as_posix()
         self.cm_interpreter: T.Optional[CMakeInterpreter] = None
         self.methods.update({'get_variable': self.get_variable_method,
