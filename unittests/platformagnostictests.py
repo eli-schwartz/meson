@@ -94,3 +94,9 @@ class PlatformAgnosticTests(BasePlatformTests):
         # https://github.com/mesonbuild/meson/issues/10225.
         self.setconf('-Dfoo=enabled')
         self.build('reconfigure')
+
+    def test_null_backend(self):
+        testdir = os.path.join(self.python_test_dir, '7 install path')
+        self.init(testdir, extra_args=['--backend=null'])
+        out = self._run(self.meson_command + ['install', f'--destdir={self.installdir}'], workdir=self.builddir)
+        self.assertIn('Only ninja backend is supported to rebuild the project before installation.', out)
