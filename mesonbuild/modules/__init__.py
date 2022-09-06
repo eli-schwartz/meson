@@ -201,6 +201,9 @@ class NewExtensionModule(ModuleObject):
     def found() -> bool:
         return True
 
+    def get_install_scripts(self) -> T.Optional[T.List[build.ExecutableSerialisation]]:
+        return None
+
     def get_devenv(self) -> T.Optional['EnvironmentVariables']:
         return None
 

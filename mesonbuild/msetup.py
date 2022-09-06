@@ -240,13 +240,15 @@ class MesonApp:
             # sync with the time that gets applied to any files. Thus, we dump this file as late as
             # possible, but before build files, and if any error occurs, delete it.
             cdf = env.dump_coredata()
+
+            self._finalize_scripts(b, intr)
+            self._finalize_devenv(b, intr)
             if self.options.profile:
                 fname = f'profile-{intr.backend.name}-backend.log'
                 fname = os.path.join(self.build_dir, 'meson-private', fname)
                 profile.runctx('intr.backend.generate()', globals(), locals(), filename=fname)
             else:
                 intr.backend.generate()
-            self._finalize_devenv(b, intr)
             build.save(b, dumpfile)
             if env.first_invocation:
                 # Use path resolved by coredata because they could have been
@@ -296,6 +298,12 @@ class MesonApp:
             devenv = mod.get_devenv()
             if devenv:
                 b.devenv.append(devenv)
+
+    def _finalize_scripts(self, b: build.Build, intr: interpreter.Interpreter) -> None:
+        for mod in intr.modules.values():
+            scripts = mod.get_install_scripts()
+            if scripts:
+                b.install_scripts.extend(scripts)
 
 def run(options: argparse.Namespace) -> int:
     coredata.parse_cmd_line_options(options)

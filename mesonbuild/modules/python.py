@@ -14,7 +14,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+import collections
 import functools
+import importlib.resources
 import json
 import os
 import shutil
@@ -44,7 +46,7 @@ if T.TYPE_CHECKING:
     from typing_extensions import TypedDict
 
     from . import ModuleState
-    from ..build import SharedModule, Data
+    from ..build import SharedModule, Data, ExecutableSerialisation
     from ..dependencies import ExternalDependency, Dependency
     from ..dependencies.factory import DependencyGenerator
     from ..environment import Environment
@@ -409,6 +411,7 @@ class PythonExternalProgram(ExternalProgram):
             'variables': {},
             'version': '0.0',
         }
+        self.run_bytecompile = False
 
     def _check_version(self, version: str) -> bool:
         if self.name == 'python2':
@@ -598,6 +601,7 @@ class PythonInstallation(ExternalProgramHolder):
     )
     def install_sources_method(self, args: T.Tuple[T.List[T.Union[str, mesonlib.File]]],
                                kwargs: 'PyInstallKw') -> 'Data':
+        self.held_object.run_bytecompile = True
         tag = kwargs['install_tag'] or 'runtime'
         install_dir = self._get_install_dir_impl(kwargs['pure'], kwargs['subdir'])
         return self.interpreter.install_data_impl(
@@ -676,6 +680,40 @@ class PythonModule(ExtensionModule):
         self.methods.update({
             'find_installation': self.find_installation,
         })
+
+    def get_install_scripts(self) -> T.Optional[T.List[ExecutableSerialisation]]:
+        ret = []
+        installdata = self.interpreter.backend.create_install_data()
+        py_files: T.Dict[str, T.List[str]] = collections.defaultdict(list)
+        def should_append(f):
+            return f.startswith(('{py_platlib}', '{py_purelib}')) and f.endswith('.py')
+
+        for t in installdata.targets:
+            if should_append(t.out_name):
+                py_files[t.subproject].append(os.path.join(installdata.prefix, t.outdir, os.path.basename(t.fname)))
+        for d in installdata.data:
+            if should_append(d.install_path_name):
+                py_files[d.subproject].append(os.path.join(installdata.prefix, d.install_path))
+        pycompile = os.path.join(self.interpreter.environment.get_scratch_dir(), 'pycompile.py')
+        if os.path.exists(pycompile):
+            os.remove(pycompile)
+        for i in self.installations.values():
+            if isinstance(i, PythonExternalProgram) and i.run_bytecompile:
+                i = T.cast(PythonExternalProgram, i)
+                manifest = f'python-{i.info["version"]}-installed.json'
+                manifest_json: T.List[str] = []
+                with open(pycompile, 'wb') as f:
+                    f.write(importlib.resources.read_binary('mesonbuild.scripts', 'pycompile.py'))
+                for s in py_files:
+                    for f in py_files[s]:
+                        if f.startswith((os.path.join(installdata.prefix, i.platlib), os.path.join(installdata.prefix, i.purelib))):
+                            manifest_json.append(f)
+                with open(os.path.join(self.interpreter.environment.get_scratch_dir(), manifest), 'w', encoding='utf-8') as f:
+                    json.dump(manifest_json, f)
+                cmd = i.command + [pycompile, manifest]
+                script = self.interpreter.backend.get_executable_serialisation(cmd)
+                ret.append(script)
+        return ret
 
     # https://www.python.org/dev/peps/pep-0397/
     @staticmethod
