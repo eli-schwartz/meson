@@ -82,6 +82,14 @@ jobs:
             mingw-w64-${{ matrix.MSYS2_ARCH }}-python-pip
             mingw-w64-${{ matrix.MSYS2_ARCH }}-${{ matrix.TOOLCHAIN }}
 
+      - name: Try to test updated msys2 runtime fix
+        run: |
+          mkdir msys2-dllfix
+          pushd msys2-dllfix
+          wget -nv https://github.com/msys2/msys2-runtime/files/9504539/install.zip
+          unzip -o install.zip usr/bin/msys-2.0.dll -d /
+          popd
+
       - name: Install dependencies
         run: |
           python3 -m pip --disable-pip-version-check install gcovr jsonschema pefile pytest pytest-subtests pytest-xdist coverage codecov
