@@ -27,9 +27,10 @@ import abc
 import typing as T
 
 if T.TYPE_CHECKING:
+    from hashlib import _Hash
     from typing_extensions import Literal
     from ..mparser import BaseNode
-    from . import programs
+    from .. import programs
 
 
 __all__ = [
@@ -92,7 +93,7 @@ class EnvironmentVariables(HoldableObject):
         repr_str = "<{0}: {1}>"
         return repr_str.format(self.__class__.__name__, self.envvars)
 
-    def hash(self, hasher: T.Any):
+    def hash(self, hasher: _Hash) -> None:
         myenv = self.get_env({})
         for key in sorted(myenv.keys()):
             hasher.update(bytes(key, encoding='utf-8'))
@@ -132,7 +133,7 @@ class EnvironmentVariables(HoldableObject):
         curr = env.get(name)
         return separator.join(values if curr is None else values + [curr])
 
-    def get_env(self, full_env: T.MutableMapping[str, str]) -> T.Dict[str, str]:
+    def get_env(self, full_env: T.Union[T.Dict[str, str], os._Environ[str]]) -> T.Dict[str, str]:
         env = full_env.copy()
         for method, name, values, separator in self.envvars:
             env[name] = method(env, name, values, separator)
