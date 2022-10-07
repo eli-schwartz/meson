@@ -13,6 +13,7 @@
 # limitations under the License.
 
 # A tool to run tests in many different ways.
+from __future__ import annotations
 
 from pathlib import Path
 from collections import deque
@@ -49,6 +50,13 @@ from .mesonlib import (MesonException, OrderedSet, RealPathAction,
 from .mintro import get_infodir, load_info_file
 from .programs import ExternalProgram
 from .backend.backends import TestProtocol, TestSerialisation
+
+if T.TYPE_CHECKING:
+    TYPE_TAPResult = T.Union['TAPParser.Test',
+                             'TAPParser.Error',
+                             'TAPParser.Version',
+                             'TAPParser.Plan',
+                             'TAPParser.Bailout']
 
 # GNU autotools interprets a return code of 77 from tests it executes to
 # mean that the test should be skipped.
@@ -270,12 +278,6 @@ class TestResult(enum.Enum):
     def get_command_marker(self) -> str:
         return str(self.colorize('>>> '))
 
-
-TYPE_TAPResult = T.Union['TAPParser.Test',
-                         'TAPParser.Error',
-                         'TAPParser.Version',
-                         'TAPParser.Plan',
-                         'TAPParser.Bailout']
 
 class TAPParser:
     class Plan(T.NamedTuple):
