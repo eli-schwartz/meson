@@ -939,7 +939,6 @@ class MachineFileParser():
             self.sections[s] = self._parse_section(s)
 
     def _parse_section(self, s):
-        self.scope = self.constants.copy()
         section = {}
         for entry, value in self.parser.items(s):
             if ' ' in entry or '\t' in entry or "'" in entry or '"' in entry:
@@ -954,7 +953,6 @@ class MachineFileParser():
             except KeyError as e:
                 raise EnvironmentException(f'Undefined constant {e.args[0]!r} in machine file variable {entry!r}.')
             section[entry] = res
-            self.scope[entry] = res
         return section
 
     def _evaluate_statement(self, node):
@@ -967,7 +965,7 @@ class MachineFileParser():
         elif isinstance(node, mparser.ArrayNode):
             return [self._evaluate_statement(arg) for arg in node.args.arguments]
         elif isinstance(node, mparser.IdNode):
-            return self.scope[node.value]
+            return self.constants[node.value]
         elif isinstance(node, mparser.ArithmeticNode):
             l = self._evaluate_statement(node.left)
             r = self._evaluate_statement(node.right)
