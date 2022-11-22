@@ -9,7 +9,6 @@ import os.path
 import sysconfig
 import json
 import sys
-import distutils.command.install
 
 def get_distutils_paths(scheme=None, prefix=None):
     import distutils.dist
@@ -35,13 +34,16 @@ def get_distutils_paths(scheme=None, prefix=None):
 # See https://github.com/mesonbuild/meson/issues/8739.
 # XXX: We should be using sysconfig, but Debian only patches distutils.
 
-if 'deb_system' in distutils.command.install.INSTALL_SCHEMES:
-    paths = get_distutils_paths(scheme='deb_system')
-    install_paths = get_distutils_paths(scheme='deb_system', prefix='')
-else:
-    paths = sysconfig.get_paths()
-    empty_vars = {'base': '', 'platbase': '', 'installed_base': ''}
-    install_paths = sysconfig.get_paths(vars=empty_vars)
+def get_install_paths():
+    import distutils.command.install
+    if 'deb_system' in distutils.command.install.INSTALL_SCHEMES:
+        paths = get_distutils_paths(scheme='deb_system')
+        install_paths = get_distutils_paths(scheme='deb_system', prefix='')
+    else:
+        paths = sysconfig.get_paths()
+        empty_vars = {'base': '', 'platbase': '', 'installed_base': ''}
+        install_paths = sysconfig.get_paths(vars=empty_vars)
+    return paths, install_paths
 
 def links_against_libpython():
     from distutils.core import Distribution, Extension
@@ -49,27 +51,32 @@ def links_against_libpython():
     cmd.ensure_finalized()
     return bool(cmd.get_libraries(Extension('dummy', [])))
 
-variables = sysconfig.get_config_vars()
-variables.update({'base_prefix': getattr(sys, 'base_prefix', sys.prefix)})
+def main():
+    variables = sysconfig.get_config_vars()
+    variables.update({'base_prefix': getattr(sys, 'base_prefix', sys.prefix)})
+    paths, install_paths = get_install_paths()
 
-if sys.version_info < (3, 0):
-    suffix = variables.get('SO')
-elif sys.version_info < (3, 8, 7):
-    # https://bugs.python.org/issue?@action=redirect&bpo=39825
-    from distutils.sysconfig import get_config_var
-    suffix = get_config_var('EXT_SUFFIX')
-else:
-    suffix = variables.get('EXT_SUFFIX')
+    if sys.version_info < (3, 0):
+        suffix = variables.get('SO')
+    elif sys.version_info < (3, 8, 7):
+        # https://bugs.python.org/issue?@action=redirect&bpo=39825
+        from distutils.sysconfig import get_config_var
+        suffix = get_config_var('EXT_SUFFIX')
+    else:
+        suffix = variables.get('EXT_SUFFIX')
 
-print(json.dumps({
-  'variables': variables,
-  'paths': paths,
-  'sysconfig_paths': sysconfig.get_paths(),
-  'install_paths': install_paths,
-  'version': sysconfig.get_python_version(),
-  'platform': sysconfig.get_platform(),
-  'is_pypy': '__pypy__' in sys.builtin_module_names,
-  'is_venv': sys.prefix != variables['base_prefix'],
-  'link_libpython': links_against_libpython(),
-  'suffix': suffix,
-}))
+    return {
+      'variables': variables,
+      'paths': paths,
+      'sysconfig_paths': sysconfig.get_paths(),
+      'install_paths': install_paths,
+      'version': sysconfig.get_python_version(),
+      'platform': sysconfig.get_platform(),
+      'is_pypy': '__pypy__' in sys.builtin_module_names,
+      'is_venv': sys.prefix != variables['base_prefix'],
+      'link_libpython': links_against_libpython(),
+      'suffix': suffix,
+    }
+
+if __name__ == '__main__':
+    print(json.dumps(main()))
