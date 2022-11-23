@@ -58,10 +58,15 @@ def get_install_paths():
     return paths, install_paths
 
 def links_against_libpython():
-    from distutils.core import Distribution, Extension
-    cmd = Distribution().get_command_obj('build_ext')
-    cmd.ensure_finalized()
-    return bool(cmd.get_libraries(Extension('dummy', [])))
+    # on versions supporting python-embed.pc, this is the non-embed lib
+    if sys.version_info >= (3, 8):
+        variables = sysconfig.get_config_vars()
+        return bool(variables.get('LIBPYTHON', 'yes'))
+    else:
+        from distutils.core import Distribution, Extension
+        cmd = Distribution().get_command_obj('build_ext')
+        cmd.ensure_finalized()
+        return bool(cmd.get_libraries(Extension('dummy', [])))
 
 def main():
     variables = sysconfig.get_config_vars()
