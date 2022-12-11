@@ -4,7 +4,7 @@
       "method": [
         { "val": "auto" },
         { "val": "pkg-config", "skip_on_jobname": ["bionic"] },
-        { "val": "config-tool" }
+        { "val": "config-tool", "skip_on_jobname": ["cygwin", "msys2"] }
       ]
     }
   },
