@@ -41,7 +41,7 @@ import mesonbuild.modules.pkgconfig
 from run_tests import (
     Backend, ensure_backend_detects_changes, get_backend_commands,
     get_builddir_target_args, get_meson_script, run_configure_inprocess,
-    run_mtest_inprocess
+    run_mtest_inprocess, meson_exe, muon_exe,
 )
 
 
@@ -60,8 +60,14 @@ class BasePlatformTests(TestCase):
         self.meson_native_files = []
         self.meson_cross_files = []
         self.meson_command = python_command + [get_meson_script()]
-        self.setup_command = self.meson_command + ['setup'] + self.meson_args
-        self.mconf_command = self.meson_command + ['configure']
+        if meson_exe:
+            self.setup_command = meson_exe + ['setup']
+        else:
+            self.setup_command =  + ['setup'] + self.meson_args
+        if muon_exe:
+            self.mconf_command = meson_exe + ['setup']
+        else:
+            self.mconf_command = self.meson_command + ['configure']
         self.mintro_command = self.meson_command + ['introspect']
         self.wrap_command = self.meson_command + ['wrap']
         self.rewrite_command = self.meson_command + ['rewrite']
@@ -194,23 +200,39 @@ class BasePlatformTests(TestCase):
             when :param allow_fail: is true
         """
         self.assertPathExists(srcdir)
+        if muon_exe and extra_args:
+            argtypes = {i.lstrip('-').split('=', 1)[0] for i in extra_args}
+            meson_only = argtypes & {'force-fallback-for', 'wrap-mode', 'native-file', 'cross-file', 'layout'}
+            if meson_only:
+                raise SkipTest(f'muon does not implement args: {meson_only!r}')
+        self._srcdir = srcdir
         if extra_args is None:
             extra_args = []
         if not isinstance(extra_args, list):
             extra_args = [extra_args]
-        args = [srcdir, self.builddir]
+        args = []
         if default_args:
-            args += ['--prefix', self.prefix]
+            args += ['-Dprefix=' + self.prefix]
             if self.libdir:
-                args += ['--libdir', self.libdir]
+                args += ['-Dlibdir=' + self.libdir]
             for f in self.meson_native_files:
                 args += ['--native-file', f]
+                if muon_exe:
+                    raise SkipTest('muon does not implement native files')
             for f in self.meson_cross_files:
                 args += ['--cross-file', f]
+                if muon_exe:
+                    raise SkipTest('muon does not implement cross files')
+        for arg in extra_args:
+            if arg.startswith(('--prefix', '--libdir')):
+                arg = arg.replace('--', '-D', 1)
+            else:
+                print(f'keeping {arg=} intact')
+            args.append(arg)
         self.privatedir = os.path.join(self.builddir, 'meson-private')
         if inprocess:
             try:
-                returncode, out, err = run_configure_inprocess(['setup'] + self.meson_args + args + extra_args, override_envvars)
+                returncode, out, err = run_configure_inprocess(['setup'] + self.meson_args + args + [srcdir, self.builddir] , override_envvars)
             except Exception as e:
                 if not allow_fail:
                     self._print_meson_log()
@@ -236,7 +258,7 @@ class BasePlatformTests(TestCase):
                     raise RuntimeError('Configure failed')
         else:
             try:
-                out = self._run(self.setup_command + args + extra_args, override_envvars=override_envvars, workdir=workdir)
+                out = self._run(self.setup_command + args + [self.builddir], override_envvars=override_envvars, workdir=srcdir)
             except SkipTest:
                 raise SkipTest('Project requested skipping: ' + srcdir)
             except Exception:
@@ -277,6 +299,8 @@ class BasePlatformTests(TestCase):
         return self._run(self.install_command, workdir=self.builddir, override_envvars=override_envvars)
 
     def uninstall(self, *, override_envvars=None):
+        if muon_exe:
+            raise SkipTest('muon does not implement uninstall')
         self._run(self.uninstall_command, workdir=self.builddir, override_envvars=override_envvars)
 
     def run_target(self, target, *, override_envvars=None):
@@ -291,7 +315,7 @@ class BasePlatformTests(TestCase):
             arg = [arg]
         if will_build:
             ensure_backend_detects_changes(self.backend)
-        self._run(self.mconf_command + arg + [self.builddir])
+        self._run(self.mconf_command + arg + [self.builddir], workdir=self._srcdir)
 
     def wipe(self):
         windows_proof_rmtree(self.builddir)
@@ -350,6 +374,8 @@ class BasePlatformTests(TestCase):
             return cmds
 
     def introspect(self, args):
+        if muon_exe:
+            raise SkipTest('introspection is not implemented by muon')
         if isinstance(args, str):
             args = [args]
         out = subprocess.check_output(self.mintro_command + args + [self.builddir],
@@ -357,6 +383,8 @@ class BasePlatformTests(TestCase):
         return json.loads(out)
 
     def introspect_directory(self, directory, args):
+        if muon_exe:
+            raise SkipTest('introspection is not implemented by muon')
         if isinstance(args, str):
             args = [args]
         out = subprocess.check_output(self.mintro_command + args + [directory],

@@ -63,7 +63,7 @@ from mesonbuild.scripts import destdir_join
 from mesonbuild.wrap.wrap import PackageDefinition, WrapException
 
 from run_tests import (
-    Backend, exe_suffix, get_fake_env, get_convincing_fake_env_and_cc
+    Backend, exe_suffix, get_fake_env, get_convincing_fake_env_and_cc, muon_exe
 )
 
 from .baseplatformtests import BasePlatformTests
@@ -481,6 +481,8 @@ class AllPlatformTests(BasePlatformTests):
         self.assertPathListEqual(intro[3]['install_filename'], [None, '/usr/bin/second.sh'])
 
     def read_install_logs(self):
+        if muon_exe:
+            raise SkipTest('muon does not implement install logs')
         # Find logged files and directories
         with Path(self.builddir, 'meson-logs', 'install-log.txt').open(encoding='utf-8') as f:
             return list(map(lambda l: Path(l.strip()),
@@ -2066,6 +2068,7 @@ class AllPlatformTests(BasePlatformTests):
         testdir = os.path.join(self.unit_test_dir, '24 compiler run_command')
         self.init(testdir)
 
+    @skipIf(muon_exe, 'muon')
     def test_identical_target_name_in_subproject_flat_layout(self):
         '''
         Test that identical targets in different subprojects do not collide
@@ -2075,6 +2078,7 @@ class AllPlatformTests(BasePlatformTests):
         self.init(testdir, extra_args=['--layout=flat'])
         self.build()
 
+    @skipIf(muon_exe, 'muon')
     def test_identical_target_name_in_subdir_flat_layout(self):
         '''
         Test that identical targets in different subdirs do not collide
@@ -2097,6 +2101,7 @@ class AllPlatformTests(BasePlatformTests):
         self.assertTrue(exception_raised, 'Double locking did not raise exception.')
 
     @skipIf(is_osx(), 'Test not applicable to OSX')
+    @skipIf(muon_exe, 'muon does not have meson output format')
     def test_check_module_linking(self):
         """
         Test that link_with: a shared module issues a warning
@@ -2257,6 +2262,7 @@ class AllPlatformTests(BasePlatformTests):
         self._test_same_option_twice_configure(
             'one', ['-Done=foo', '-Done=bar'])
 
+    @skipIf(muon_exe, 'muon')
     def test_command_line(self):
         testdir = os.path.join(self.unit_test_dir, '34 command line')
 
@@ -2727,6 +2733,7 @@ class AllPlatformTests(BasePlatformTests):
         self.assertEqual(res['subproject_dir'], 'custom_subproject_dir')
 
     @skipIfNoExecutable('clang-format')
+    @skipIf(muon_exe, 'muon no clangtool')
     def test_clang_format(self):
         if self.backend is not Backend.ninja:
             raise SkipTest(f'Clang-format is for now only supported on Ninja, not {self.backend.name}')
@@ -2777,6 +2784,7 @@ class AllPlatformTests(BasePlatformTests):
                 os.unlink(includefile)
 
     @skipIfNoExecutable('clang-tidy')
+    @skipIf(muon_exe, 'muon no clangtool')
     def test_clang_tidy(self):
         if self.backend is not Backend.ninja:
             raise SkipTest(f'Clang-tidy is for now only supported on Ninja, not {self.backend.name}')
@@ -2823,6 +2831,7 @@ class AllPlatformTests(BasePlatformTests):
         self.assertIn('c_args', optnames)
         self.assertNotIn('build.c_args', optnames)
 
+    @skipIf(muon_exe, 'muon')
     def test_introspect_json_flat(self):
         testdir = os.path.join(self.unit_test_dir, '56 introspection')
         self.init(testdir, extra_args=['-Dlayout=flat'])
@@ -2836,6 +2845,7 @@ class AllPlatformTests(BasePlatformTests):
             for out in i['filename']:
                 assert os.path.relpath(out, self.builddir).startswith('meson-out')
 
+    @skipIf(muon_exe, 'muon no introspect')
     def test_introspect_json_dump(self):
         testdir = os.path.join(self.unit_test_dir, '56 introspection')
         self.init(testdir)
@@ -3080,6 +3090,7 @@ class AllPlatformTests(BasePlatformTests):
         self.assertEqual(res1['error'], False)
         self.assertEqual(res1['build_files_updated'], True)
 
+    @skipIf(muon_exe, 'muon no introspection')
     def test_introspect_config_update(self):
         testdir = os.path.join(self.unit_test_dir, '56 introspection')
         introfile = os.path.join(self.builddir, 'meson-info', 'intro-buildoptions.json')
@@ -3113,11 +3124,12 @@ class AllPlatformTests(BasePlatformTests):
         testfile = os.path.join(testdir, 'meson.build')
         introfile = os.path.join(self.builddir, 'meson-info', 'intro-targets.json')
         self.init(testdir)
+
+        res_nb = self.introspect_directory(testfile, ['--targets'] + self.meson_args)
+
         self.assertPathExists(introfile)
         with open(introfile, encoding='utf-8') as fp:
             res_wb = json.load(fp)
-
-        res_nb = self.introspect_directory(testfile, ['--targets'] + self.meson_args)
 
         # Account for differences in output
         res_wb = [i for i in res_wb if i['type'] != 'custom']
@@ -3878,11 +3890,13 @@ class AllPlatformTests(BasePlatformTests):
         self.init(srcdir, override_envvars=envs)
         self.build()
 
+    @skipIf(muon_exe, 'muon')
     def test_build_b_options(self) -> None:
         # Currently (0.57) these do nothing, but they've always been allowed
         srcdir = os.path.join(self.common_test_dir, '2 cpp')
         self.init(srcdir, extra_args=['-Dbuild.b_lto=true'])
 
+    @skipIf(muon_exe, 'muon')
     def test_install_skip_subprojects(self):
         testdir = os.path.join(self.unit_test_dir, '91 install skip subprojects')
         self.init(testdir)
@@ -3947,6 +3961,7 @@ class AllPlatformTests(BasePlatformTests):
         self._run(cmd + python_command + [script])
         self.assertEqual('This is text.', self._run(cmd + [app]).strip())
 
+    @skipIf(muon_exe, 'muon no clangtool')
     def test_clang_format_check(self):
         if self.backend is not Backend.ninja:
             raise SkipTest(f'Skipping clang-format tests with {self.backend.name} backend')
@@ -4348,7 +4363,7 @@ class AllPlatformTests(BasePlatformTests):
                     self.assertEqual(res[data_type][file], details)
 
     @skip_if_not_language('rust')
-    @unittest.skipIf(not shutil.which('clippy-driver'), 'Test requires clippy-driver')
+    @skipIf(not shutil.which('clippy-driver'), 'Test requires clippy-driver')
     def test_rust_clippy(self) -> None:
         if self.backend is not Backend.ninja:
             raise unittest.SkipTest('Rust is only supported with ninja currently')

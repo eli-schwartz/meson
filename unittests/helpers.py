@@ -14,7 +14,7 @@ from mesonbuild.mesonlib import (
     MachineChoice, is_osx, is_cygwin, EnvironmentException, OptionKey, MachineChoice,
     OrderedSet
 )
-from run_tests import get_fake_env
+from run_tests import get_fake_env, muon_exe
 
 
 def is_ci():
@@ -82,6 +82,8 @@ def skip_if_no_cmake(f):
     def wrapped(*args, **kwargs):
         if not is_ci() and shutil.which('cmake') is None:
             raise unittest.SkipTest('cmake not found')
+        if muon_exe:
+            raise unittest.SkipTest('muon does not support cmake')
         return f(*args, **kwargs)
     return wrapped
 
