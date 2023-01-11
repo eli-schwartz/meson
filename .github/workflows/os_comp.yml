@@ -88,6 +88,9 @@ jobs:
             MESON_ARGS: '--unity=on'
             CC: 'gcc'
             CXX: 'g++'
+          - CC: 'gcc'
+            CXX: 'g++'
+            PYTHON: 'pypy3'
 
     env:
       MESON_CI_JOBNAME_UPDATE: linux-${{ github.job }}-${{ matrix.cfg.CC }}
@@ -100,6 +103,7 @@ jobs:
         RUN_TESTS_ARGS: ${{ matrix.cfg.RUN_TESTS_ARGS }}
         CC: ${{ matrix.cfg.CC }}
         CXX: ${{ matrix.cfg.CXX }}
+        PYTHON: ${{ matrix.cfg.PYTHON }}
 
     steps:
       - name: Checkout code
@@ -119,6 +123,13 @@ jobs:
           then
             export MESON_RSP_THRESHOLD=$MESON_RSP_THRESHOLD
           fi
+          echo "\$PYTHON is $PYTHON"
+          if test "$PYTHON" != ""
+          then
+            ln -sv /ci/python3 /usr/bin/pypy3
+          else
+            echo "no symlink pypy3"
+          fi
 
           source /ci/env_vars.sh
           export MESON_CI_JOBNAME=$MESON_CI_JOBNAME_UPDATE
@@ -131,8 +142,11 @@ jobs:
           debuginfod-find debuginfo /usr/lib/ld-linux-x86-64.so.2 || true
           debuginfod-find debuginfo /usr/lib/libc.so || true
 
+          type -a python3
+          type -a pypy3
 
           ./tools/run_with_cov.py ./run_tests.py $RUN_TESTS_ARGS -- $MESON_ARGS
 
       - name: Upload coverage report
+        if: ${{ matrix.cfg.PYTHON != 'pypy3' }}
         run: ./ci/upload_cov.sh "Ubuntu [${{ matrix.cfg.CC }} ${{ matrix.cfg.RUN_TESTS_ARGS }} ${{ matrix.cfg.MESON_ARGS }}]"
