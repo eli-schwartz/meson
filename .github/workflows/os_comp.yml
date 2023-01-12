@@ -128,6 +128,10 @@ jobs:
           update-alternatives --set i686-w64-mingw32-gcc   /usr/bin/i686-w64-mingw32-gcc-posix
           update-alternatives --set i686-w64-mingw32-g++   /usr/bin/i686-w64-mingw32-g++-posix
 
+          debuginfod-find debuginfo /usr/lib/ld-linux-x86-64.so.2 || true
+          debuginfod-find debuginfo /usr/lib/libc.so || true
+
+
           ./tools/run_with_cov.py ./run_tests.py $RUN_TESTS_ARGS -- $MESON_ARGS
 
       - name: Upload coverage report
