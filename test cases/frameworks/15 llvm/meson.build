@@ -4,7 +4,7 @@ method = get_option('method')
 static = get_option('link-static')
 d = dependency('llvm', required : false, method : method, static : static)
 if not d.found()
-  error('MESON_SKIP_TEST llvm not found.')
+  error(' llvm not found.')
 endif
 
 d = dependency('llvm', modules : 'not-found', required : false, static : static, method : method)
@@ -36,7 +36,7 @@ llvm_dep = dependency(
 )
 
 if not llvm_dep.found()
-  error('MESON_SKIP_TEST required llvm modules not found.')
+  error(' required llvm modules not found.')
 endif
 
 executable(
