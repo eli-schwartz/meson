@@ -27,7 +27,7 @@ from .. import mesonlib
 from .. import mlog
 from ..coredata import BUILTIN_DIR_OPTIONS
 from ..dependencies import ThreadDependency
-from ..interpreter.type_checking import D_MODULE_VERSIONS_KW, INSTALL_DIR_KW, VARIABLES_KW, NoneType
+from ..interpreter.type_checking import D_MODULE_VERSIONS_KW, INCLUDE_DIRECTORIES, INSTALL_DIR_KW, VARIABLES_KW, NoneType
 from ..interpreterbase import FeatureNew, FeatureDeprecated
 from ..interpreterbase.decorators import ContainerTypeInfo, KwargInfo, typed_kwargs, typed_pos_args
 
@@ -430,6 +430,7 @@ class PkgConfigModule(NewExtensionModule):
                                  variables: T.List[T.Tuple[str, str]],
                                  unescaped_variables: T.List[T.Tuple[str, str]],
                                  uninstalled: bool = False, dataonly: bool = False,
+                                 incdirs: T.Optional[T.List[build.IncludeDirs]] = None,
                                  pkgroot: T.Optional[str] = None) -> None:
         coredata = state.environment.get_coredata()
         referenced_vars = set()
@@ -572,10 +573,15 @@ class PkgConfigModule(NewExtensionModule):
                 return result
 
             def generate_uninstalled_cflags(libs: T.List[LIBS]) -> T.Iterable[str]:
-                for d in get_uninstalled_include_dirs(libs):
-                    for basedir in ['${prefix}', '${srcdir}']:
-                        path = PurePath(basedir, d)
-                        yield '-I%s' % self._escape(path.as_posix())
+                if incdirs:
+                    for i in incdirs:
+                        for d in i.to_string_list('${srcdir}', '${prefix}'):
+                            yield self._escape(d)
+                else:
+                    for d in get_uninstalled_include_dirs(libs):
+                        for basedir in ['${prefix}', '${srcdir}']:
+                            path = PurePath(basedir, d)
+                            yield '-I%s' % self._escape(path.as_posix())
 
             if len(deps.pub_libs) > 0:
                 ofile.write('Libs: {}\n'.format(' '.join(generate_libs_flags(deps.pub_libs))))
@@ -607,6 +613,13 @@ class PkgConfigModule(NewExtensionModule):
         KwargInfo('filebase', (str, NoneType), validator=lambda x: 'must not be an empty string' if x == '' else None),
         KwargInfo('name', (str, NoneType), validator=lambda x: 'must not be an empty string' if x == '' else None),
         KwargInfo('subdirs', ContainerTypeInfo(list, str), default=[], listify=True),
+        KwargInfo(
+            'uninstalled_include_directories',
+            (ContainerTypeInfo(list, (str, build.IncludeDirs)), NoneType),
+            listify=True,
+            default=None,
+            since='1.0.0',
+        ),
         KwargInfo('url', str, default=''),
         KwargInfo('version', (str, NoneType)),
         VARIABLES_KW.evolve(name="unescaped_uninstalled_variables", since='0.59.0'),
@@ -710,13 +723,16 @@ class PkgConfigModule(NewExtensionModule):
                                       unescaped_variables, False, dataonly,
                                       pkgroot=pkgroot if relocatable else None)
         res = build.Data([mesonlib.File(True, state.environment.get_scratch_dir(), pcfile)], pkgroot, pkgroot_name, None, state.subproject, install_tag='devel')
+
         variables = parse_variable_list(kwargs['uninstalled_variables'])
         unescaped_variables = parse_variable_list(kwargs['unescaped_uninstalled_variables'])
+        kw_incdirs = kwargs['uninstalled_include_directories']
+        incdirs = state.process_include_dirs(kw_incdirs) if kw_incdirs is not None else None
 
         pcfile = filebase + '-uninstalled.pc'
         self._generate_pkgconfig_file(state, deps, subdirs, name, description, url,
                                       version, pcfile, conflicts, variables,
-                                      unescaped_variables, uninstalled=True, dataonly=dataonly)
+                                      unescaped_variables, uninstalled=True, incdirs=incdirs, dataonly=dataonly)
         # Associate the main library with this generated pc file. If the library
         # is used in any subsequent call to the generated, it will generate a
         # 'Requires:' or 'Requires.private:'.

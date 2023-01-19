@@ -1150,10 +1150,13 @@ def default_print(*args: mlog.TV_Loggable, sep: str = ' ') -> None:
 safe_print = default_print
 
 class TestRunFuture:
-    def __init__(self, name: str, testdef: TestDef, future: T.Optional['Future[T.Optional[TestResult]]']) -> None:
+    def __init__(self, name: str, testdef: TestDef, args: T.List[str], should_fail: str,
+                 future: T.Optional['Future[T.Optional[TestResult]]']) -> None:
         super().__init__()
         self.name = name
         self.testdef = testdef
+        self.args = args
+        self.should_fail = should_fail
         self.future = future
         self.status = TestStatus.RUNNING if self.future is not None else TestStatus.SKIP
 
@@ -1240,11 +1243,12 @@ def _run_tests(all_tests: T.List[T.Tuple[str, T.List[TestDef], bool]],
                 suite_args = ['--fatal-meson-warnings']
                 should_fail = name.split('warning-')[1]
 
+            args = extra_args + suite_args + t.args
             if skipped or t.skip:
-                futures += [TestRunFuture(testname, t, None)]
+                futures += [TestRunFuture(testname, t, args, should_fail, None)]
                 continue
             result_future = executor.submit(run_test, t, extra_args + suite_args + t.args, should_fail, use_tmp, state=state)
-            futures += [TestRunFuture(testname, t, result_future)]
+            futures += [TestRunFuture(testname, t, args, should_fail, result_future)]
 
     # Ensure we only cancel once
     tests_canceled = False
@@ -1265,6 +1269,7 @@ def _run_tests(all_tests: T.List[T.Tuple[str, T.List[TestDef], bool]],
         except ImportError:
             pass
 
+    retriable_fails: T.List[TestRunFuture] = []
     # Wait and handle the test results and print the stored log output
     for f in futures_iter:
         # Just a log entry to print something to stdout
@@ -1350,7 +1355,11 @@ def _run_tests(all_tests: T.List[T.Tuple[str, T.List[TestDef], bool]],
             f.update_log(TestStatus.ERROR)
             safe_print(bold('During:'), result.step.name)
             safe_print(bold('Reason:'), result.msg)
-            failing_tests += 1
+            if False: # when to retry
+                # if under_ci and result.step in {BuildStep.build, BuildStep.test}:
+                retriable_fails += f
+            else:
+                failing_tests += 1
             # Append a visual separator for the different test cases
             cols = shutil.get_terminal_size((100, 20)).columns
             name_str = ' '.join([str(x) for x in f.testdef.display_name()])
@@ -1402,6 +1411,15 @@ def _run_tests(all_tests: T.List[T.Tuple[str, T.List[TestDef], bool]],
 
     # Reset, just in case
     safe_print = default_print
+
+    if retriable_fails:
+        print()
+        print('Attempting to retry flaky tests:')
+
+        executor = ProcessPoolExecutor(max_workers=num_workers)
+        for f in retriable_fails:
+            result_future = executor.submit(run_test, f.testdef, f.args, f.should_fail, use_tmp, state=state)
+            futures += [TestRunFuture(f.name, f.testdef, f.args, f.should_fail, result_future)]
 
     print()
     print("Total configuration time: %.2fs" % conf_time)

@@ -18,7 +18,7 @@ if v.version_compare('<0.29')
   error('MESON_SKIP_TEST: pkg-config version \'' + v + '\' too old')
 endif
 
-python = import('python').find_installation()
+python = find_program('python3')
 fs = import('fs')
 pkgg = import('pkgconfig')
 
@@ -28,6 +28,7 @@ h = install_headers('simple.h')
 
 pkgg.generate(
   libraries : [lib, '-lz'],
+  uninstalled_include_directories: 'dependencies',
   subdirs : '.',
   version : libver,
   name : 'libsimple',

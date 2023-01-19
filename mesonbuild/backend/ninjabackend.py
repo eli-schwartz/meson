@@ -792,7 +792,7 @@ class NinjaBackend(backends.Backend):
         src_block['sources'] += sources
         src_block['generated_sources'] += generated_sources
 
-    def generate_target(self, target):
+    def generate_target(self, target: T.Union[build.CustomTarget, build.BuildTarget]):
         try:
             if isinstance(target, build.BuildTarget):
                 os.makedirs(self.get_target_private_dir_abs(target))

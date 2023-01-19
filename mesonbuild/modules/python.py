@@ -385,6 +385,8 @@ class PythonExternalProgram(ExternalProgram):
                 mlog.debug(traceback.format_exc())
         else:
             import importlib.resources
+            import warnings
+            print(warnings.filters)
             with importlib.resources.path('mesonbuild.scripts', 'python_info.py') as f:
                 cmd = self.get_command() + [f]
                 print(f'running command: {cmd}')
@@ -392,6 +394,9 @@ class PythonExternalProgram(ExternalProgram):
                 p, stdout, stderr = mesonlib.Popen_safe(cmd)
             try:
                 info = json.loads(stdout)
+                mlog.debug('Got a json dump:')
+                import pprint
+                mlog.debug(pprint.pformat(info))
             except json.JSONDecodeError:
                 info = None
                 mlog.debug('Could not introspect Python (%s): exit code %d' % (str(p.args), p.returncode))

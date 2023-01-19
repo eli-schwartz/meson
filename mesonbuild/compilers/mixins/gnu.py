@@ -423,6 +423,9 @@ class GnuLikeCompiler(Compiler, metaclass=abc.ABCMeta):
         pass
 
     def gnu_symbol_visibility_args(self, vistype: str) -> T.List[str]:
+        if self.language == 'fortran':
+            # fortran is C-like in some ways, but not this way
+            return []
         if vistype == 'inlineshidden' and self.language not in {'cpp', 'objcpp'}:
             vistype = 'hidden'
         return gnu_symbol_visibility_args[vistype]

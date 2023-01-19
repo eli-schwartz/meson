@@ -277,6 +277,7 @@ class I18nModule(ExtensionModule):
         assert isinstance(install_dir, str), 'for mypy'
         if not languages:
             languages = read_linguas(path.join(state.environment.source_dir, state.subdir))
+            self.interpreter.add_build_def_file(path.join(state.subdir, 'LINGUAS'))
         for l in languages:
             po_file = mesonlib.File.from_source_file(state.environment.source_dir,
                                                      state.subdir, l+'.po')

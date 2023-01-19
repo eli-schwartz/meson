@@ -316,6 +316,10 @@ class MesonMain(MesonInterpreterObject):
     @typed_pos_args('meson.install_dependency_manifest', str)
     @noKwargs
     def install_dependency_manifest_method(self, args: T.Tuple[str], kwargs: 'TYPE_kwargs') -> None:
+        if self.build.dep_manifest_name is not None:
+            mlog.warning('multiple calls to install_dependency_manifest()', location=self.current_node)
+        elif self.interpreter.is_subproject():
+            mlog.warning('cannot install a dependency manifest from a subproject', location=self.current_node, fatal=False)
         self.build.dep_manifest_name = args[0]
 
     @FeatureNew('meson.override_find_program', '0.46.0')

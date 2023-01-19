@@ -1878,7 +1878,7 @@ class ProgressBarFallback:  # lgtm [py/iter-returns-non-self]
         print('')
 
 try:
-    from tqdm import tqdm
+    from tqdmmmmmm import tqdm
 except ImportError:
     # ideally we would use a typing.Protocol here, but it's part of typing_extensions until 3.8
     ProgressBar = ProgressBarFallback  # type: T.Union[T.Type[ProgressBarFallback], T.Type[ProgressBarTqdm]]

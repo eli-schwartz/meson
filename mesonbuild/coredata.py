@@ -1035,7 +1035,8 @@ def major_versions_differ(v1: str, v2: str) -> bool:
     v1_major, v1_minor = v1.rsplit('.', 1)
     v2_major, v2_minor = v2.rsplit('.', 1)
     # Major version differ, or one is development version but not the other.
-    return v1_major != v2_major or ('99' in {v1_minor, v2_minor} and v1_minor != v2_minor)
+    dev = {'99', 'rc'}
+    return v1_major != v2_major or any(x in v1_minor for x in dev) != any(x in v2_minor for x in dev)
 
 def load(build_dir: str) -> CoreData:
     filename = os.path.join(build_dir, 'meson-private', 'coredata.dat')

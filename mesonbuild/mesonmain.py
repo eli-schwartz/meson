@@ -177,6 +177,7 @@ class CommandLineParser:
             command = None
 
         from . import mesonlib
+        print(f'parsing {args=}', file=sys.stderr)
         args = mesonlib.expand_arguments(args)
         options = parser.parse_args(args)
 

@@ -265,6 +265,7 @@ class InternalDependency(Dependency):
         self.ext_deps = ext_deps
         self.variables = variables
         self.objects = objects
+        self.from_pkgconfig_generate = False
         if d_module_versions:
             self.d_features['versions'] = d_module_versions
         if d_import_dirs:
