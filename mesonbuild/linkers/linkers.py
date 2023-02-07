@@ -14,10 +14,10 @@
 from __future__ import annotations
 
 import abc
-import enum
 import os
 import typing as T
 
+from .base import RSPFileSyntax
 from .. import mesonlib
 from ..mesonlib import EnvironmentException, MesonException
 from ..arglist import CompilerArgs
@@ -26,15 +26,6 @@ if T.TYPE_CHECKING:
     from ..coredata import KeyedOptionDictType
     from ..environment import Environment
     from ..mesonlib import MachineChoice
-
-
-@enum.unique
-class RSPFileSyntax(enum.Enum):
-
-    """Which RSP file syntax the compiler supports."""
-
-    MSVC = enum.auto()
-    GCC = enum.auto()
 
 
 class StaticLinker:
