@@ -103,7 +103,7 @@ buildtarget_kwargs = {
     'win_subsystem',
 }
 
-known_build_target_kwargs = (
+known_generic_target_kwargs = (
     buildtarget_kwargs |
     lang_arg_kwargs |
     pch_kwargs |
@@ -111,11 +111,23 @@ known_build_target_kwargs = (
     rust_kwargs |
     cs_kwargs)
 
-known_exe_kwargs = known_build_target_kwargs | {'implib', 'export_dynamic', 'pie'}
-known_shlib_kwargs = known_build_target_kwargs | {'version', 'soversion', 'vs_module_defs', 'darwin_versions'}
-known_shmod_kwargs = known_build_target_kwargs | {'vs_module_defs'}
-known_stlib_kwargs = known_build_target_kwargs | {'pic', 'prelink'}
+known_exe_kwargs = known_generic_target_kwargs | {'implib', 'export_dynamic', 'pie'}
+known_shlib_kwargs = known_generic_target_kwargs | {'version', 'soversion', 'vs_module_defs', 'darwin_versions'}
+known_shmod_kwargs = known_generic_target_kwargs | {'vs_module_defs'}
+known_stlib_kwargs = known_generic_target_kwargs | {'pic', 'prelink'}
 known_jar_kwargs = known_exe_kwargs | {'main_class', 'java_resources'}
+known_library_kwargs = known_shlib_kwargs | known_stlib_kwargs
+known_build_target_kwargs = known_library_kwargs | known_exe_kwargs | known_jar_kwargs | {'target_type'}
+
+known_target_type_map = {
+    'both_libraries': known_library_kwargs,
+    'library': known_library_kwargs,
+    'executable': known_exe_kwargs,
+    'shared_library': known_shlib_kwargs,
+    'shared_module': known_shmod_kwargs,
+    'static_library': known_stlib_kwargs,
+    'jar': known_jar_kwargs,
+}
 
 def _process_install_tag(install_tag: T.Optional[T.List[T.Optional[str]]],
                          num_outputs: int) -> T.List[T.Optional[str]]:
@@ -682,7 +694,7 @@ class Target(HoldableObject):
         return False
 
 class BuildTarget(Target):
-    known_kwargs = known_build_target_kwargs
+    known_kwargs = known_generic_target_kwargs
 
     install_dir: T.List[T.Union[str, Literal[False]]]
 
