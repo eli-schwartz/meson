@@ -1810,8 +1810,6 @@ class Interpreter(InterpreterBase, HoldableObject):
         return self.build_target(node, args, kwargs, build.Jar)
 
     @FeatureNewKwargs('build_target', '0.40.0', ['link_whole', 'override_options'])
-    @permittedKwargs(build.known_build_target_kwargs)
-    @typed_pos_args('build_target', str, varargs=(str, mesonlib.File, build.CustomTarget, build.CustomTargetIndex, build.GeneratedList, build.StructuredSources, build.ExtractedObjects, build.BuildTarget))
     def func_build_target(self, node: mparser.BaseNode,
                           args: T.Tuple[str, T.List[BuildTargetSource]],
                           kwargs) -> T.Union[build.Executable, build.StaticLibrary, build.SharedLibrary,
@@ -1819,25 +1817,16 @@ class Interpreter(InterpreterBase, HoldableObject):
         if 'target_type' not in kwargs:
             raise InterpreterException('Missing target_type keyword argument')
         target_type = kwargs.pop('target_type')
-        if target_type == 'executable':
-            return self.build_target(node, args, kwargs, build.Executable)
-        elif target_type == 'shared_library':
-            return self.build_target(node, args, kwargs, build.SharedLibrary)
-        elif target_type == 'shared_module':
+        if target_type not in build.known_target_type_map:
+            raise InterpreterException('Unknown target_type.')
+        if target_type == 'shared_module':
             FeatureNew.single_use(
                 'build_target(target_type: \'shared_module\')',
                 '0.51.0', self.subproject, location=node)
-            return self.build_target(node, args, kwargs, build.SharedModule)
-        elif target_type == 'static_library':
-            return self.build_target(node, args, kwargs, build.StaticLibrary)
-        elif target_type == 'both_libraries':
-            return self.build_both_libraries(node, args, kwargs)
-        elif target_type == 'library':
-            return self.build_library(node, args, kwargs)
-        elif target_type == 'jar':
-            return self.build_target(node, args, kwargs, build.Jar)
-        else:
-            raise InterpreterException('Unknown target_type.')
+
+        to_ignore = build.known_build_target_kwargs - build.known_target_type_map[target_type]
+        targetkwargs = {k: v for k, v in kwargs.items() if k not in to_ignore}
+        return self.funcs[target_type](node, args, targetkwargs)
 
     @noPosargs
     @typed_kwargs(
