@@ -8,7 +8,7 @@ import os
 import typing as T
 
 from .. import compilers
-from ..build import (CustomTarget, BuildTarget,
+from ..build import (known_target_type_map, CustomTarget, BuildTarget,
                      CustomTargetIndex, ExtractedObjects, GeneratedList, IncludeDirs,
                      BothLibraries, SharedLibrary, StaticLibrary, Jar, Executable)
 from ..coredata import UserFeatureOption
@@ -32,7 +32,7 @@ if T.TYPE_CHECKING:
     _FullEnvInitValueType = T.Union[EnvironmentVariables, T.List[str], T.List[T.List[str]], EnvInitValueType, str, None]
 
 
-def in_set_validator(choices: T.Set[str]) -> T.Callable[[str], T.Optional[str]]:
+def in_set_validator(choices: T.Union[T.KeysView[str], T.Set[str]]) -> T.Callable[[str], T.Optional[str]]:
     """Check that the choice given was one of the given set."""
 
     def inner(check: str) -> T.Optional[str]:
@@ -477,3 +477,10 @@ TEST_KWS: T.List[KwargInfo] = [
     KwargInfo('suite', ContainerTypeInfo(list, str), listify=True, default=['']),  # yes, a list of empty string
     KwargInfo('verbose', bool, default=False, since='0.62.0'),
 ]
+
+TARGET_TYPE: KwargInfo[str] = KwargInfo(
+    'target_type',
+    str,
+    required=True,
+    validator=in_set_validator(known_target_type_map.keys()),
+)

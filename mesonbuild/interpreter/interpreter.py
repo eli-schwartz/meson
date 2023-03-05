@@ -83,6 +83,7 @@ from .type_checking import (
     REQUIRED_KW,
     SOURCES_KW,
     VARIABLES_KW,
+    TARGET_TYPE,
     TEST_KWS,
     NoneType,
     in_set_validator,
@@ -1810,15 +1811,12 @@ class Interpreter(InterpreterBase, HoldableObject):
         return self.build_target(node, args, kwargs, build.Jar)
 
     @FeatureNewKwargs('build_target', '0.40.0', ['link_whole', 'override_options'])
+    @typed_kwargs('build_target', TARGET_TYPE, allow_unknown=True)
     def func_build_target(self, node: mparser.BaseNode,
                           args: T.Tuple[str, T.List[BuildTargetSource]],
                           kwargs) -> T.Union[build.Executable, build.StaticLibrary, build.SharedLibrary,
                                              build.SharedModule, build.BothLibraries, build.Jar]:
-        if 'target_type' not in kwargs:
-            raise InterpreterException('Missing target_type keyword argument')
         target_type = kwargs.pop('target_type')
-        if target_type not in build.known_target_type_map:
-            raise InterpreterException('Unknown target_type.')
         if target_type == 'shared_module':
             FeatureNew.single_use(
                 'build_target(target_type: \'shared_module\')',
