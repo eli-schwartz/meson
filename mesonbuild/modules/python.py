@@ -17,8 +17,7 @@ import collections, copy, json, os, shutil
 import typing as T
 
 from . import ExtensionModule, ModuleInfo
-from .. import mesonlib
-from .. import mlog
+from .. import mesonlib, mlog, mesondata
 from ..coredata import UserFeatureOption
 from ..build import known_shmod_kwargs
 from ..dependencies import NotFoundDependency
@@ -320,18 +319,11 @@ class PythonModule(ExtensionModule):
         for d in installdata.install_subdirs:
             if should_append(d.install_path_name, True):
                 py_files[d.subproject].append((d.install_path_name, os.path.join(installdata.prefix, d.install_path, '')))
-        pycompile = os.path.join(self.interpreter.environment.get_scratch_dir(), 'pycompile.py')
-        if os.path.exists(pycompile):
-            os.remove(pycompile)
         for i in self.installations.values():
             if isinstance(i, PythonExternalProgram) and i.run_bytecompile[i.info['version']]:
-                import importlib.resources
-
-                i = T.cast(PythonExternalProgram, i)
-                manifest = f'python-{i.info["version"]}-installed.json'
+                manifest = os.path.join(self.interpreter.environment.get_scratch_dir(), f'python-{i.info["version"]}-installed.json')
                 manifest_json: T.List[str] = []
-                with open(pycompile, 'wb') as f:
-                    f.write(importlib.resources.read_binary('mesonbuild.scripts', 'pycompile.py'))
+                pycompile = str(mesondata.DataFile('scripts/pycompile.py').write_to_private(self.interpreter.environment))
                 for s in py_files:
                     for name, f in py_files[s]:
                         if f.startswith((os.path.join(installdata.prefix, i.platlib), os.path.join(installdata.prefix, i.purelib))):
