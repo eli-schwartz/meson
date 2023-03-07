@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import glob
 import os
 import unittest
 import pathlib
@@ -60,3 +61,21 @@ python = pymod.find_installation('python3', required: true)
             git_init(dirstr)
             self.init(dirstr)
             subprocess.check_call(self.meson_command + ['dist', '-C', self.builddir], stdout=subprocess.DEVNULL)
+
+    def test_bytecompile(self):
+        testdir = os.path.join(self.src_root, 'test cases', 'python', '2 extmodule')
+
+        self.init(testdir, extra_args=['-Dpython2=enabled', '-Dpython.bytecompile=1'])
+        self.build()
+        self.install()
+
+        count = 0
+        for root, dirs, files in os.walk(self.installdir):
+            for file in files:
+                realfile = os.path.join(root, file)
+                if file.endswith('.py'):
+                    cached = glob.glob(realfile+'?') + glob.glob(os.path.join(root, '__pycache__', os.path.splitext(file)[0] + '*.pyc'))
+                    self.assertEqual(len(cached), 2)
+                    count += 1
+        # there are 5 files x 2 installations
+        self.assertEqual(count, 10)
