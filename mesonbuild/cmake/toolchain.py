@@ -241,6 +241,7 @@ class CMakeToolchain:
         rc, _, raw_trace = self.cmakebin.call(cmake_args, build_dir=build_dir, disable_cache=True)
 
         if rc != 0:
+            mlog.debug(f'returned error:\n{raw_trace}\n')
             mlog.warning('CMake Toolchain: Failed to determine CMake compilers state')
             return
 
