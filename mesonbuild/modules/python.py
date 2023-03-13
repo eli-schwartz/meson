@@ -56,6 +56,8 @@ if T.TYPE_CHECKING:
         modules: T.List[str]
         pure: T.Optional[bool]
 
+    MaybePythonProg = T.Union[NonExistingExternalProgram, 'PythonExternalProgram']
+
 
 mod_kwargs = {'subdir'}
 mod_kwargs.update(known_shmod_kwargs)
@@ -293,7 +295,7 @@ class PythonModule(ExtensionModule):
 
     def __init__(self, interpreter: 'Interpreter') -> None:
         super().__init__(interpreter)
-        self.installations: T.Dict[str, ExternalProgram] = {}
+        self.installations: T.Dict[str, MaybePythonProg] = {}
         self.methods.update({
             'find_installation': self.find_installation,
         })
@@ -357,7 +359,7 @@ class PythonModule(ExtensionModule):
         else:
             return None
 
-    def _find_installation_impl(self, state: 'ModuleState', display_name: str, name_or_path: str, required: bool) -> ExternalProgram:
+    def _find_installation_impl(self, state: 'ModuleState', display_name: str, name_or_path: str, required: bool) -> MaybePythonProg:
         if not name_or_path:
             python = PythonExternalProgram('python3', mesonlib.python_command)
         else:
@@ -399,7 +401,7 @@ class PythonModule(ExtensionModule):
         _PURE_KW.evolve(default=True, since='0.64.0'),
     )
     def find_installation(self, state: 'ModuleState', args: T.Tuple[T.Optional[str]],
-                          kwargs: 'FindInstallationKw') -> ExternalProgram:
+                          kwargs: 'FindInstallationKw') -> MaybePythonProg:
         feature_check = FeatureNew('Passing "feature" option to find_installation', '0.48.0')
         disabled, required, feature = extract_required_kwarg(kwargs, state.subproject, feature_check)
 
