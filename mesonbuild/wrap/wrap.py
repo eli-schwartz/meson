@@ -455,9 +455,12 @@ class Resolver:
         # Check if the subproject is a git submodule
         self.resolve_git_submodule()
 
-        if os.path.exists(self.dirname):
-            if not os.path.isdir(self.dirname):
-                raise WrapException('Path already exists but is not a directory')
+        # only consider the subproject to already exist, if the directory has contents,
+        # because git-archive creates an empty directory for submodules
+        if os.path.isdir(self.dirname) and os.listdir(self.dirname):
+            pass
+        elif os.path.exists(self.dirname) and not os.path.isdir(self.dirname):
+            raise WrapException('Path already exists but is not a directory')
         else:
             if self.wrap.type == 'file':
                 self.get_file()
