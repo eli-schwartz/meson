@@ -77,7 +77,7 @@ jobs:
         brew install --force python3 && brew unlink python3 && brew unlink python3 && brew link --overwrite python3
     # use python3 from homebrew because it is a valid framework, unlike the actions one:
     # https://github.com/actions/setup-python/issues/58
-    - run: brew install pkg-config ninja llvm qt@5 boost ldc hdf5 openmpi lapack scalapack sdl2 boost-python3 gtk-doc
+    - run: brew install pkg-config ninja llvm@15 qt@5 boost ldc hdf5 openmpi lapack scalapack sdl2 boost-python3 gtk-doc
     - run: |
         python3 -m pip install --upgrade setuptools
         python3 -m pip install --upgrade pip
