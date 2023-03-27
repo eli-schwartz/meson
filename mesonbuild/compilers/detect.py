@@ -127,9 +127,12 @@ def _get_compilers(env: 'Environment', lang: str, for_machine: MachineChoice) ->
     The list of compilers is detected in the exact same way for
     C, C++, ObjC, ObjC++, Fortran, CS so consolidate it here.
     '''
+    mlog.log(f'detect compilers: {env=}, {lang=}, {for_machine=}')
     value = env.lookup_binary_entry(for_machine, lang)
+    mlog.log(f'{value=}')
     if value is not None:
         comp, ccache = BinaryTable.parse_entry(value)
+        mlog.log(f'{comp=}, {ccache=}')
         # Return value has to be a list of compiler 'choices'
         compilers = [comp]
     else:
@@ -143,6 +146,7 @@ def _get_compilers(env: 'Environment', lang: str, for_machine: MachineChoice) ->
     else:
         exe_wrap = env.get_exe_wrapper()
 
+    mlog.log(f'returning detected {lang} compilers: {compilers=}, {ccache=}, {exe_wrap=}')
     return compilers, ccache, exe_wrap
 
 def _handle_exceptions(
