@@ -195,6 +195,7 @@ class GitException(MesonException):
 GIT = shutil.which('git')
 def git(cmd: T.List[str], workingdir: T.Union[str, bytes, os.PathLike], check: bool = False, **kwargs: T.Any) -> T.Tuple[subprocess.Popen, str, str]:
     cmd = [GIT] + cmd
+    mlog.log(f'executing: {join_args(cmd)}')
     p, o, e = Popen_safe(cmd, cwd=workingdir, **kwargs)
     if check and p.returncode != 0:
         raise GitException('Git command failed: ' + str(cmd), e)

@@ -16,7 +16,7 @@
 # or an interpreter-based tool.
 from __future__ import annotations
 
-from .. import environment, mparser, mesonlib
+from .. import environment, mparser, mesonlib, mlog
 
 from .baseobjects import (
     InterpreterObject,
@@ -192,6 +192,7 @@ class InterpreterBase:
 
     def evaluate_statement(self, cur: mparser.BaseNode) -> T.Optional[InterpreterObject]:
         self.current_node = cur
+        mlog.log(f'\n\n\nevaluating {cur=} at {self.current_node=}')
         if isinstance(cur, mparser.FunctionNode):
             return self.function_call(cur)
         elif isinstance(cur, mparser.AssignmentNode):
@@ -244,7 +245,7 @@ class InterpreterBase:
         elif isinstance(cur, mparser.TestCaseClauseNode):
             return self.evaluate_testcase(cur)
         else:
-            raise InvalidCode("Unknown statement.")
+            raise InvalidCode('Unknown statement.')
         return None
 
     def evaluate_arraystatement(self, cur: mparser.ArrayNode) -> InterpreterObject:
@@ -280,10 +281,12 @@ class InterpreterBase:
     def evaluate_if(self, node: mparser.IfClauseNode) -> T.Optional[Disabler]:
         assert isinstance(node, mparser.IfClauseNode)
         for i in node.ifs:
+            mlog.log(f'{i=}, {i.condition=}, {i.block=}')
             # Reset self.tmp_meson_version to know if it gets set during this
             # statement evaluation.
             self.tmp_meson_version = None
             result = self.evaluate_statement(i.condition)
+            mlog.log(f'passed condition as {result=}')
             if result is None:
                 raise InvalidCodeOnVoid('if')
             if isinstance(result, Disabler):
@@ -506,17 +509,24 @@ class InterpreterBase:
 
     def function_call(self, node: mparser.FunctionNode) -> T.Optional[InterpreterObject]:
         func_name = node.func_name
+        mlog.log(f'\n\n\nstarted with {self.current_node=}, {node=}, {func_name=}')
         (h_posargs, h_kwargs) = self.reduce_arguments(node.args)
+        mlog.log(f'reduce_arguments + {self.current_node=}')
         (posargs, kwargs) = self._unholder_args(h_posargs, h_kwargs)
+        mlog.log(f'unholder args + {self.current_node=}')
         if is_disabled(posargs, kwargs) and func_name not in {'get_variable', 'set_variable', 'unset_variable', 'is_disabler'}:
             return Disabler()
         if func_name in self.funcs:
             func = self.funcs[func_name]
             func_args = posargs
+            mlog.log(f'func assign + {self.current_node=}')
             if not getattr(func, 'no-args-flattening', False):
                 func_args = flatten(posargs)
+                mlog.log(f'flatten + {self.current_node=}')
             if not getattr(func, 'no-second-level-holder-flattening', False):
                 func_args, kwargs = resolve_second_level_holders(func_args, kwargs)
+                mlog.log(f'resolve_second_level + {self.current_node=}')
+            mlog.log(f'invoking {func=} with args: {node=}, {func_args=}, {kwargs=}')
             self.current_node = node
             res = func(node, func_args, kwargs)
             return self._holderify(res) if res is not None else None
