@@ -1798,6 +1798,10 @@ class Interpreter(InterpreterBase, HoldableObject):
     def func_static_lib(self, node: mparser.BaseNode,
                         args: T.Tuple[str, T.List[BuildTargetSource]],
                         kwargs) -> build.StaticLibrary:
+        if 'link_args' in kwargs:
+            # FIXME: use FeatureBroken
+            FeatureDeprecated.single_use('link_args for a static library', '1.2.0', self.subproject,
+                                         'This cannot do anything for a static linker', location=node)
         return self.build_target(node, args, kwargs, build.StaticLibrary)
 
     @permittedKwargs(build.known_shlib_kwargs)
