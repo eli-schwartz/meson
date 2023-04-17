@@ -300,9 +300,10 @@ class PythonModule(ExtensionModule):
         })
 
     def _get_install_scripts(self) -> T.List[mesonlib.ExecutableSerialisation]:
+        backend = self.interpreter.backend
         ret = []
-        installdata = self.interpreter.backend.create_install_data()
-        py_files: T.Dict[str, T.List[str]] = collections.defaultdict(list)
+        installdata = backend.create_install_data()
+        py_files: T.Dict[str, T.List[T.Tuple[str, str]]] = collections.defaultdict(list)
         optlevel = self.interpreter.environment.coredata.get_option(mesonlib.OptionKey('bytecompile', module='python'))
         if optlevel == -1:
             return ret
@@ -312,13 +313,13 @@ class PythonModule(ExtensionModule):
 
         for t in installdata.targets:
             if should_append(t.out_name):
-                py_files[t.subproject].append(os.path.join(installdata.prefix, t.outdir, os.path.basename(t.fname)))
+                py_files[t.subproject].append((t.out_name, os.path.join(installdata.prefix, t.outdir, os.path.basename(t.fname))))
         for d in installdata.data:
             if should_append(d.install_path_name):
-                py_files[d.subproject].append(os.path.join(installdata.prefix, d.install_path))
+                py_files[d.subproject].append((d.install_path_name, os.path.join(installdata.prefix, d.install_path)))
         for d in installdata.install_subdirs:
             if should_append(d.install_path_name, True):
-                py_files[d.subproject].append(os.path.join(installdata.prefix, d.install_path, ''))
+                py_files[d.subproject].append((d.install_path_name, os.path.join(installdata.prefix, d.install_path, '')))
         pycompile = os.path.join(self.interpreter.environment.get_scratch_dir(), 'pycompile.py')
         if os.path.exists(pycompile):
             os.remove(pycompile)
@@ -332,13 +333,15 @@ class PythonModule(ExtensionModule):
                 with open(pycompile, 'wb') as f:
                     f.write(importlib.resources.read_binary('mesonbuild.scripts', 'pycompile.py'))
                 for s in py_files:
-                    for f in py_files[s]:
+                    for name, f in py_files[s]:
                         if f.startswith((os.path.join(installdata.prefix, i.platlib), os.path.join(installdata.prefix, i.purelib))):
-                            manifest_json.append(f)
+                            manifest_json.append(name)
                 with open(os.path.join(self.interpreter.environment.get_scratch_dir(), manifest), 'w', encoding='utf-8') as f:
                     json.dump(manifest_json, f)
                 cmd = i.command + [pycompile, manifest, str(optlevel)]
-                script = self.interpreter.backend.get_executable_serialisation(cmd, verbose=True)
+
+                script = backend.get_executable_serialisation(cmd, verbose=True,
+                                                              installdir_map={'py_purelib': i.purelib, 'py_platlib': i.platlib})
                 ret.append(script)
         return ret
 
