@@ -21,6 +21,9 @@ i18n = import('i18n')
 
 subdir('po')
 subdir('src')
+
+installdir = join_paths(get_option('datadir'), 'applications')
+
 subdir('data')
 subdir('data2')
 subdir('data3')

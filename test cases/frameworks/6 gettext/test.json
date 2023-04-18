@@ -16,11 +16,18 @@
   ],
   "matrix": {
     "options": {
+      "style": [
+        { "val": "posix"  },
+        { "val": "gnu" }
+      ],
       "static": [
         { "val": "true"  },
         { "val": "false" }
       ]
-    }
+    },
+    "exclude": [
+      { "static": "true", "style": "posix" }
+    ]
   },
   "skip_on_jobname": ["azure", "cygwin"]
 }

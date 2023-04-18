@@ -1,1 +1,2 @@
 option('static', type : 'boolean', value : false, description : 'build statically linked binaries')
+option('style', type : 'combo', choices: ['gnu', 'posix'], value : 'gnu', description : 'which set of functionality to test')
