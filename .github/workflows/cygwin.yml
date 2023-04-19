@@ -83,7 +83,7 @@ jobs:
         with:
           # should use 'pip3 cache dir' to discover this path
           path: C:\cygwin\home\runneradmin\.cache\pip
-          key: cygwin-pip-${{ github.run_number }}
+          key: cygwin-pip-${{ hashFiles('C:\cygwin\home\runneradmin\.cache\**.whl') }}
 
       - name: Run tests
         run: |
