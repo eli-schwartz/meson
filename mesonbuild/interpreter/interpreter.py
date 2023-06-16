@@ -1092,17 +1092,19 @@ class Interpreter(InterpreterBase, HoldableObject):
         raise InterpreterException(f'Tried to access unknown option {optname!r}.')
 
     @typed_pos_args('get_option', str)
-    @typed_kwargs('get_option', KwargInfo('name', (str, NoneType), since='1.2.0'))
+    @typed_kwargs(
+            'get_option',
+            KwargInfo('value', (str, NoneType), since='1.2.0',
+                      validator=in_set_validator({'enabled', 'disabled', 'auto'})),
+    )
     def func_get_option(self, nodes: mparser.BaseNode, args: T.Tuple[str],
                         kwargs: 'TYPE_kwargs') -> T.Union[coredata.UserOption, 'TYPE_var']:
-        if kwargs['name'] is not None:
-            if args[0] not in {'enabled', 'disabled', 'auto'}:
-                raise InterpreterException('Instantiating a feature option can only be done with enabled/disabled/auto values')
-            opt = coredata.UserFeatureOption('', args[0])
-            opt.name = kwargs['name']
+        optname = args[0]
+        if kwargs['value'] is not None:
+            opt = coredata.UserFeatureOption('', kwargs['value'])
+            opt.name = optname
             return opt
 
-        optname = args[0]
         if ':' in optname:
             raise InterpreterException('Having a colon in option name is forbidden, '
                                        'projects are not allowed to directly access '
