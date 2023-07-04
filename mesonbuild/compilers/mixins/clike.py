@@ -669,13 +669,13 @@ class CLikeCompiler(Compiler):
                    extra_args: T.Union[T.List[str], T.Callable[[CompileCheckMode], T.List[str]]],
                    dependencies: T.Optional[T.List['Dependency']],
                    disable_cache: bool = False) -> T.Tuple[str, bool]:
-        delim = '"MESON_GET_DEFINE_DELIMITER"'
+        delim = 'MESON_GET_DEFINE_DELIMITER'
         code = f'''
         {prefix}
         #ifndef {dname}
         # define {dname}
         #endif
-        {delim}\n{dname}'''
+        {delim}({dname}){delim}'''
         args = self.build_wrapper_args(env, extra_args, dependencies,
                                        mode=CompileCheckMode.PREPROCESS).to_native()
         func = functools.partial(self.cached_compile, code, env.coredata, extra_args=args, mode='preprocess')
@@ -685,10 +685,12 @@ class CLikeCompiler(Compiler):
             cached = p.cached
             if p.returncode != 0:
                 raise mesonlib.EnvironmentException(f'Could not get define {dname!r}')
-        # Get the preprocessed value after the delimiter,
+        # Get the preprocessed value in between the delimiters,
         # minus the extra newline at the end and
         # merge string literals.
-        return self._concatenate_string_literals(p.stdout.split(delim + '\n')[-1][:-1]), cached
+        delimlen = len(delim+'(')
+        start = p.stdout.strip().index(delim+'(') + delimlen
+        return self._concatenate_string_literals(p.stdout.strip()[start:-delimlen]), cached
 
     def get_return_value(self, fname: str, rtype: str, prefix: str,
                          env: 'Environment', extra_args: T.Optional[T.List[str]],
