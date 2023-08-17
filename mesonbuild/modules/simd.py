@@ -15,15 +15,49 @@ from __future__ import annotations
 
 import typing as T
 
-from .. import mesonlib, compilers, mlog
+from .. import mesonlib, mlog
 from .. import build
+from ..compilers import Compiler
+from ..interpreter.type_checking import SOURCES_KW
+from ..interpreterbase.decorators import KwargInfo, typed_pos_args, typed_kwargs
 
 from . import ExtensionModule, ModuleInfo
 
 if T.TYPE_CHECKING:
+    from typing_extensions import TypedDict
+
     from . import ModuleState
     from ..interpreter import Interpreter
-    from ..interpreterbase import TYPE_var, TYPE_kwargs
+
+    class CheckKw(TypedDict):
+
+        compiler: Compiler
+        mmx: T.List[mesonlib.FileOrString]
+        sse: T.List[mesonlib.FileOrString]
+        sse2: T.List[mesonlib.FileOrString]
+        sse3: T.List[mesonlib.FileOrString]
+        ssse3: T.List[mesonlib.FileOrString]
+        sse41: T.List[mesonlib.FileOrString]
+        sse42: T.List[mesonlib.FileOrString]
+        avx: T.List[mesonlib.FileOrString]
+        avx2: T.List[mesonlib.FileOrString]
+        neon: T.List[mesonlib.FileOrString]
+
+
+# FIXME add Altivec and AVX512.
+ISETS = (
+    'mmx',
+    'sse',
+    'sse2',
+    'sse3',
+    'ssse3',
+    'sse41',
+    'sse42',
+    'avx',
+    'avx2',
+    'neon',
+)
+
 
 class SimdModule(ExtensionModule):
 
@@ -31,42 +65,28 @@ class SimdModule(ExtensionModule):
 
     def __init__(self, interpreter: Interpreter):
         super().__init__(interpreter)
-        # FIXME add Altivec and AVX512.
-        self.isets = ('mmx',
-                      'sse',
-                      'sse2',
-                      'sse3',
-                      'ssse3',
-                      'sse41',
-                      'sse42',
-                      'avx',
-                      'avx2',
-                      'neon',
-                      )
         self.methods.update({
             'check': self.check,
         })
 
-    def check(self, state: ModuleState, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> T.List[T.Union[T.List[build.StaticLibrary], build.ConfigurationData]]:
+    @typed_pos_args('simd.check', str)
+    @typed_kwargs('simd.check',
+                  KwargInfo('compiler', Compiler, required=True),
+                  *[SOURCES_KW.evolve(name=iset) for iset in ISETS],
+                  *[a for a in STATIC_LIB_KWS if a.name != 'sources'],
+                  allow_unknown=True) # Because we also accept STATIC_LIB_KWS, but we check them in the interpreter call later on.
+    def check(self, state: ModuleState, args: T.Tuple[str], kwargs: CheckKw) -> T.List[T.Union[T.List[build.StaticLibrary], build.ConfigurationData]]:
         result: T.List[build.StaticLibrary] = []
-        if len(args) != 1:
-            raise mesonlib.MesonException('Check requires one argument, a name prefix for checks.')
-        prefix = args[0]
-        if not isinstance(prefix, str):
-            raise mesonlib.MesonException('Argument must be a string.')
-        if 'compiler' not in kwargs:
-            raise mesonlib.MesonException('Must specify compiler keyword')
         if 'sources' in kwargs:
             raise mesonlib.MesonException('SIMD module does not support the "sources" keyword')
+        prefix = args[0]
         basic_kwargs = {}
         for key, value in kwargs.items():
-            if key not in self.isets and key != 'compiler':
+            if key not in ISETS and key != 'compiler':
                 basic_kwargs[key] = value
         compiler = kwargs['compiler']
-        if not isinstance(compiler, compilers.compilers.Compiler):
-            raise mesonlib.MesonException('Compiler argument must be a compiler object.')
         conf = build.ConfigurationData()
-        for iset in self.isets:
+        for iset in ISETS:
             if iset not in kwargs:
                 continue
             iset_fname = kwargs[iset] # Might also be an array or Files. static_library will validate.
