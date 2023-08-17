@@ -13,16 +13,23 @@
 # limitations under the License.
 from __future__ import annotations
 
+import typing as T
+
 from .. import mesonlib, compilers, mlog
 from .. import build
 
 from . import ExtensionModule, ModuleInfo
 
+if T.TYPE_CHECKING:
+    from . import ModuleState
+    from ..interpreter import Interpreter
+    from ..interpreterbase import TYPE_var, TYPE_kwargs
+
 class SimdModule(ExtensionModule):
 
     INFO = ModuleInfo('SIMD', '0.42.0', unstable=True)
 
-    def __init__(self, interpreter):
+    def __init__(self, interpreter: Interpreter):
         super().__init__(interpreter)
         # FIXME add Altivec and AVX512.
         self.isets = ('mmx',
@@ -40,8 +47,8 @@ class SimdModule(ExtensionModule):
             'check': self.check,
         })
 
-    def check(self, state, args, kwargs):
-        result = []
+    def check(self, state: ModuleState, args: T.List[TYPE_var], kwargs: TYPE_kwargs) -> T.List[T.Union[T.List[build.StaticLibrary], build.ConfigurationData]]:
+        result: T.List[build.StaticLibrary] = []
         if len(args) != 1:
             raise mesonlib.MesonException('Check requires one argument, a name prefix for checks.')
         prefix = args[0]
@@ -84,5 +91,5 @@ class SimdModule(ExtensionModule):
             result.append(self.interpreter.func_static_lib(None, [libname], lib_kwargs))
         return [result, conf]
 
-def initialize(*args, **kwargs):
-    return SimdModule(*args, **kwargs)
+def initialize(interp: Interpreter) -> SimdModule:
+    return SimdModule(interp)
