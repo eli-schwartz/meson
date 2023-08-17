@@ -18,18 +18,16 @@ import typing as T
 from .. import mesonlib, mlog
 from .. import build
 from ..compilers import Compiler
-from ..interpreter.type_checking import SOURCES_KW
+from ..interpreter.type_checking import SOURCES_KW, STATIC_LIB_KWS
 from ..interpreterbase.decorators import KwargInfo, typed_pos_args, typed_kwargs
 
 from . import ExtensionModule, ModuleInfo
 
 if T.TYPE_CHECKING:
-    from typing_extensions import TypedDict
-
     from . import ModuleState
-    from ..interpreter import Interpreter
+    from ..interpreter import Interpreter, kwargs as kwtypes
 
-    class CheckKw(TypedDict):
+    class CheckKw(kwtypes.StaticLibrary):
 
         compiler: Compiler
         mmx: T.List[mesonlib.FileOrString]
@@ -76,39 +74,47 @@ class SimdModule(ExtensionModule):
                   *[a for a in STATIC_LIB_KWS if a.name != 'sources'],
                   allow_unknown=True) # Because we also accept STATIC_LIB_KWS, but we check them in the interpreter call later on.
     def check(self, state: ModuleState, args: T.Tuple[str], kwargs: CheckKw) -> T.List[T.Union[T.List[build.StaticLibrary], build.ConfigurationData]]:
-        result: T.List[build.StaticLibrary] = []
         if 'sources' in kwargs:
             raise mesonlib.MesonException('SIMD module does not support the "sources" keyword')
+
+        result: T.List[build.StaticLibrary] = []
         prefix = args[0]
-        basic_kwargs = {}
-        for key, value in kwargs.items():
-            if key not in ISETS and key != 'compiler':
-                basic_kwargs[key] = value
         compiler = kwargs['compiler']
         conf = build.ConfigurationData()
+
+        local_keys = set((*ISETS, 'compiler'))
+        static_lib_kwargs = T.cast('kwtypes.StaticLibrary', {k: v for k, v in kwargs.items() if k not in local_keys})
+
         for iset in ISETS:
-            if iset not in kwargs:
+            sources = kwargs[iset] # type: ignore
+
+            cargs = compiler.get_instruction_set_args(iset)
+            if cargs is None:
+                mlog.log(f'Compiler supports {iset}:', mlog.red('NO'))
                 continue
-            iset_fname = kwargs[iset] # Might also be an array or Files. static_library will validate.
-            args = compiler.get_instruction_set_args(iset)
-            if args is None:
-                mlog.log('Compiler supports %s:' % iset, mlog.red('NO'))
+
+            if not compiler.has_multi_arguments(cargs, state.environment)[0]:
+                mlog.log(f'Compiler supports {iset}:', mlog.red('NO'))
                 continue
-            if args:
-                if not compiler.has_multi_arguments(args, state.environment)[0]:
-                    mlog.log('Compiler supports %s:' % iset, mlog.red('NO'))
-                    continue
-            mlog.log('Compiler supports %s:' % iset, mlog.green('YES'))
-            conf.values['HAVE_' + iset.upper()] = ('1', 'Compiler supports %s.' % iset)
-            libname = prefix + '_' + iset
-            lib_kwargs = {'sources': iset_fname,
-                          }
-            lib_kwargs.update(basic_kwargs)
-            langarg_key = compiler.get_language() + '_args'
-            old_lang_args = mesonlib.extract_as_list(lib_kwargs, langarg_key)
-            all_lang_args = old_lang_args + args
-            lib_kwargs[langarg_key] = all_lang_args
-            result.append(self.interpreter.func_static_lib(None, [libname], lib_kwargs))
+
+            mlog.log(f'Compiler supports {iset}:', mlog.green('YES'))
+            conf.values['HAVE_' + iset.upper()] = ('1', f'Compiler supports {iset}.')
+
+            my_name = f'{prefix}_{iset}'
+
+            my_kwargs = static_lib_kwargs.copy()
+            my_kwargs['sources'] = sources # type: ignore
+
+            # Add compile args we derived above to those the user provided us
+            lang_args_key = compiler.get_language() + '_args'
+            old_lang_args = mesonlib.extract_as_list(my_kwargs, lang_args_key) # type: ignore
+            all_lang_args = old_lang_args + cargs
+            my_kwargs[lang_args_key] = all_lang_args # type: ignore
+
+            lib = self.interpreter.build_target(state.current_node, (my_name, []), my_kwargs, build.StaticLibrary)
+
+            result.append(lib)
+
         return [result, conf]
 
 def initialize(interp: Interpreter) -> SimdModule:
