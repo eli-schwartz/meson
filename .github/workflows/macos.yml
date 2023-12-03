@@ -28,13 +28,19 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
-    - run: |
-        python -m pip install --upgrade pip
-        python -m pip install pytest pytest-xdist pytest-subtests jsonschema coverage
+    - run: brew update
+    # github actions overwrites brew's python. Force it to reassert itself, by running in a separate step.
+    # Any brew package can arbitrarily depend on python, even if we don't explicitly install or test a
+    # framework or brew-based python package, which means we cannot rely on the broken Actions mess.
+    - name: unbreak python in github actions
+      run: |
+        find /usr/local/bin -lname '*/Library/Frameworks/Python.framework/*' -delete
+        sudo rm -rf /Library/Frameworks/Python.framework/
+        brew install --force python3 && brew unlink python3 && brew unlink python3 && brew link --overwrite python3
     - run: brew install pkg-config ninja llvm qt@5
+    - run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install pytest pytest-xdist pytest-subtests jsonschema coverage
     - env:
         CPPFLAGS: "-I/usr/local/include"
         LDFLAGS: "-L/usr/local/lib"
