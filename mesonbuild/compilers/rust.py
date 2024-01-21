@@ -66,7 +66,7 @@ class RustCompiler(Compiler):
                          is_cross=is_cross, full_version=full_version,
                          linker=linker)
         self.exe_wrapper = exe_wrapper
-        self.base_options.update({OptionKey(o) for o in ['b_colorout', 'b_ndebug']})
+        self.base_options.update({OptionKey(o) for o in ['b_colorout', 'b_coverage', 'b_ndebug']})
         if 'link' in self.linker.id:
             self.base_options.add(OptionKey('b_vscrt'))
         self.native_static_libs: T.List[str] = []
@@ -215,6 +215,9 @@ class RustCompiler(Compiler):
         # Rustc currently has no way to toggle this, it's controlled by whether
         # pic is on by rustc
         return []
+
+    def get_coverage_args(self) -> T.List[str]:
+        return ['-C', 'instrument-coverage']
 
     def get_assert_args(self, disable: bool) -> T.List[str]:
         action = "no" if disable else "yes"

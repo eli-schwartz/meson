@@ -1215,6 +1215,8 @@ class NinjaBackend(backends.Backend):
             if not hasattr(target, 'compilers'):
                 continue
             for compiler in target.compilers.values():
+                if compiler.get_id() == 'rustc':
+                    use_llvm_cov = True
                 if compiler.get_id() == 'clang' and not compiler.info.is_darwin():
                     use_llvm_cov = True
                     break
