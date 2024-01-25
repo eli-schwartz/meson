@@ -75,6 +75,7 @@ def setup_console() -> None:
             pass
 
 _in_ci = 'CI' in os.environ
+_ci_is_github = 'GITHUB_ACTIONS' in os.environ
 
 
 class _Severity(enum.Enum):
@@ -540,3 +541,21 @@ def code_line(text: str, line: str, colno: int) -> str:
     :return: A formatted string of the text, line, and a caret
     """
     return f'{text}\n{line}\n{" " * colno}^'
+
+def ci_fold_file(fname: T.Union[str, os.PathLike], banner: T.Optional[str]) -> T.Optional[str]:
+    if not _in_ci:
+        return None
+
+    if not banner:
+        banner = os.fsdecode(fname)
+
+    if _ci_is_github:
+        header = f'::group::==== {banner} ===='
+        footer = '::endgroup::'
+    else:
+        # only github is implemented
+        return None
+
+    with open(fname, 'r', encoding='utf-8') as f:
+        data = f.read()
+    return f'{header}\n{data}\n{footer}\n'
