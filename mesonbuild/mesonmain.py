@@ -109,19 +109,17 @@ class CommandLineParser:
         self.add_command('unstable-coredata', munstable_coredata.add_arguments, munstable_coredata.run,
                          help_msg=argparse.SUPPRESS)
 
-    def add_command(self, name, add_arguments_func, run_func, help_msg, aliases=None):
-        aliases = aliases or []
+    def add_command(self, name, add_arguments_func, run_func, help_msg):
         # FIXME: Cannot have hidden subparser:
         # https://bugs.python.org/issue22848
         if help_msg == argparse.SUPPRESS:
             p = argparse.ArgumentParser(prog='meson ' + name, formatter_class=self.formatter)
             self.hidden_commands.append(name)
         else:
-            p = self.subparsers.add_parser(name, help=help_msg, aliases=aliases, formatter_class=self.formatter)
+            p = self.subparsers.add_parser(name, help=help_msg, formatter_class=self.formatter)
         add_arguments_func(p)
         p.set_defaults(run_func=run_func)
-        for i in [name] + aliases:
-            self.commands[i] = p
+        self.commands[name] = p
 
     def add_runpython_arguments(self, parser: argparse.ArgumentParser):
         parser.add_argument('-c', action='store_true', dest='eval_arg', default=False)
