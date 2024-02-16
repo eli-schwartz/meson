@@ -76,6 +76,11 @@ pkgg.generate(
   description : 'A minimalistic pkgconfig file.',
   version : libver,
 )
+pkgg.generate(
+  name : 'libhello2',
+  description : 'A minimalistic pkgconfig file copy.',
+  version : libver,
+)
 
 pkgg.generate(
   name : 'libhello_nolib',

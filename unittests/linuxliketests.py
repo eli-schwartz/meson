@@ -197,7 +197,8 @@ class LinuxlikeTests(BasePlatformTests):
         # generated file ourself.
         expected = {
             'Requires': 'libexposed',
-            'Requires.private': 'libfoo >= 1.0',
+            'Requires.private': 'libfoo >= 1.0, libhello2',
+            'Requires.internal': 'libanswer',
             'Libs': '-L${libdir} -llibmain -pthread -lcustom',
             'Libs.private': '-lcustom2 -L${libdir} -llibinternal',
             'Cflags': '-I${includedir} -pthread -DCUSTOM',

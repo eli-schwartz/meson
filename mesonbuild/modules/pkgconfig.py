@@ -44,6 +44,7 @@ if T.TYPE_CHECKING:
         libraries_private: T.List[ANY_DEP]
         requires: T.List[T.Union[str, build.StaticLibrary, build.SharedLibrary, dependencies.Dependency]]
         requires_private: T.List[T.Union[str, build.StaticLibrary, build.SharedLibrary, dependencies.Dependency]]
+        requires_internal: T.List[T.Union[str, build.StaticLibrary, build.SharedLibrary, dependencies.Dependency]]
         install_dir: T.Optional[str]
         d_module_versions: T.List[T.Union[str, int]]
         extra_cflags: T.List[str]
@@ -93,6 +94,8 @@ class DependenciesHelper:
         self.pub_reqs: T.List[str] = []
         self.priv_libs: T.List[LIBS] = []
         self.priv_reqs: T.List[str] = []
+        self.internal_reqs: T.List[str] = []
+        self.drop_internal_reqs: T.List[str] = []
         self.cflags: T.List[str] = []
         self.version_reqs: T.DefaultDict[str, T.Set[str]] = defaultdict(set)
         self.link_whole_targets: T.List[T.Union[build.CustomTarget, build.CustomTargetIndex, build.StaticLibrary]] = []
@@ -115,6 +118,9 @@ class DependenciesHelper:
     def add_priv_reqs(self, reqs: T.List[T.Union[str, build.StaticLibrary, build.SharedLibrary, dependencies.Dependency]]) -> None:
         self.priv_reqs += self._process_reqs(reqs)
 
+    def add_internal_reqs(self, reqs: T.List[T.Union[str, build.StaticLibrary, build.SharedLibrary, dependencies.Dependency]]) -> None:
+        self.internal_reqs += self._process_reqs(reqs, skipincludes=True)
+
     def _check_generated_pc_deprecation(self, obj: T.Union[build.CustomTarget, build.CustomTargetIndex, build.StaticLibrary, build.SharedLibrary]) -> None:
         if obj.get_id() in self.metadata:
             return
@@ -132,7 +138,7 @@ class DependenciesHelper:
                          location=data.location)
         data.warned = True
 
-    def _process_reqs(self, reqs: T.Sequence[T.Union[str, build.StaticLibrary, build.SharedLibrary, dependencies.Dependency]]) -> T.List[str]:
+    def _process_reqs(self, reqs: T.Sequence[T.Union[str, build.StaticLibrary, build.SharedLibrary, dependencies.Dependency]], skipincludes: bool = False) -> T.List[str]:
         '''Returns string names of requirements'''
         processed_reqs: T.List[str] = []
         for obj in mesonlib.listify(reqs):
@@ -143,7 +149,9 @@ class DependenciesHelper:
                 self._check_generated_pc_deprecation(obj)
                 processed_reqs.append(self.metadata[obj.get_id()].filebase)
             elif isinstance(obj, PkgConfigDependency):
-                if obj.found():
+                if skipincludes and not obj.link_args:
+                    self.drop_internal_reqs.append(obj.name)
+                elif obj.found():
                     processed_reqs.append(obj.name)
                     self.add_version_reqs(obj.name, obj.version_reqs)
             elif isinstance(obj, str):
@@ -325,6 +333,9 @@ class DependenciesHelper:
                     exclude.add(i)
             return was_excluded
 
+        # Internal reqs with no internal flags
+        for ireq in self.drop_internal_reqs:
+            _add_exclude(ireq)
         # link_whole targets are already part of other targets, exclude them all.
         for t in self.link_whole_targets:
             _add_exclude(t)
@@ -355,7 +366,9 @@ class DependenciesHelper:
             return result
 
         # Handle lists in priority order: public items can be excluded from
-        # private and Requires can excluded from Libs.
+        # private and Requires can excluded from Libs. Requires.internal can
+        # be excluded from all other requirements
+        self.internal_reqs = _fn(self.internal_reqs)
         self.pub_reqs = _fn(self.pub_reqs)
         self.pub_libs = _fn(self.pub_libs, True)
         self.priv_reqs = _fn(self.priv_reqs)
@@ -522,6 +535,9 @@ class PkgConfigModule(NewExtensionModule):
             reqs_str = deps.format_reqs(deps.priv_reqs)
             if len(reqs_str) > 0:
                 ofile.write(f'Requires.private: {reqs_str}\n')
+            reqs_str = deps.format_reqs(deps.internal_reqs)
+            if len(reqs_str) > 0:
+                ofile.write(f'Requires.internal: {reqs_str}\n')
             if len(conflicts) > 0:
                 ofile.write('Conflicts: {}\n'.format(' '.join(conflicts)))
 
@@ -606,6 +622,7 @@ class PkgConfigModule(NewExtensionModule):
         _PKG_LIBRARIES.evolve(name='libraries_private'),
         _PKG_REQUIRES,
         _PKG_REQUIRES.evolve(name='requires_private'),
+        _PKG_REQUIRES.evolve(name='requires_internal', since='1.4.0'),
     )
     def generate(self, state: ModuleState,
                  args: T.Tuple[T.Optional[T.Union[build.SharedLibrary, build.StaticLibrary]]],
@@ -638,7 +655,7 @@ class PkgConfigModule(NewExtensionModule):
         dataonly = kwargs['dataonly']
         if dataonly:
             default_subdirs = []
-            blocked_vars = ['libraries', 'libraries_private', 'requires_private', 'extra_cflags', 'subdirs']
+            blocked_vars = ['libraries', 'libraries_private', 'requires_private', 'requires_internal', 'extra_cflags', 'subdirs']
             # Mypy can't figure out that this TypedDict index is correct, without repeating T.Literal for the entire list
             if any(kwargs[k] for k in blocked_vars):  # type: ignore
                 raise mesonlib.MesonException(f'Cannot combine dataonly with any of {blocked_vars}')
@@ -666,6 +683,7 @@ class PkgConfigModule(NewExtensionModule):
         deps.add_pub_reqs(kwargs['requires'])
         deps.add_priv_reqs(kwargs['requires_private'])
         deps.add_cflags(kwargs['extra_cflags'])
+        deps.add_internal_reqs(kwargs['requires_internal'])
 
         dversions = kwargs['d_module_versions']
         if dversions:

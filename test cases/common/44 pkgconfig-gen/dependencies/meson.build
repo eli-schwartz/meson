@@ -17,6 +17,9 @@ pkgg.generate(exposed_lib)
 # Declare a few different Dependency objects
 pc_dep = dependency('libfoo', version : '>=1.0')
 pc_dep_dup = dependency('libfoo', version : '>= 1.0')
+hello_dep = dependency('libhello')
+hello2_dep = dependency('libhello2')
+answer_dep = dependency('libanswer')
 notfound_dep = dependency('notfound', required : false)
 threads_dep = dependency('threads')
 custom_dep = declare_dependency(link_with : custom_lib, compile_args : ['-DCUSTOM'])
@@ -35,8 +38,14 @@ test('Test1', exe)
 # - Having pc_dep in libraries_private should add it in Requires.private
 # - pc_dep_dup is the same library and same version, should be ignored
 # - notfound_dep is not required so it shouldn't appear in the pc file.
+# - hello_dep and hello2_dep have only Cflags, no Libs. When:
+#   - listed internal, it should be removed
+#   - listed only private, it should be private
+# - answer_dep is both private and internal, so it should be hidden as internal
 pkgg.generate(libraries : [main_lib, exposed_lib, threads_dep, threads_dep, custom_dep, custom_dep, '-pthread'],
   libraries_private : [custom_dep, custom2_dep, custom2_dep, pc_dep, pc_dep_dup, notfound_dep],
+  requires_internal: [hello_dep, answer_dep],
+  requires_private: [hello_dep, hello2_dep, answer_dep],
   version : '1.0',
   name : 'dependency-test',
   filebase : 'dependency-test',
