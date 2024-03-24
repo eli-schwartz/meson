@@ -1587,13 +1587,12 @@ def Popen_safe_logged(args: T.List[str], msg: str = 'Called', **kwargs: T.Any) -
         mlog.debug(f'{msg}: `{join_args(args)}` -> {excp}')
         raise
 
-    rc, out, err = p.returncode, o.strip(), e.strip()
     mlog.debug('-----------')
-    mlog.debug(f'{msg}: `{join_args(args)}` -> {rc}')
-    if out:
-        mlog.debug(f'stdout:\n{out}\n-----------')
-    if err:
-        mlog.debug(f'stderr:\n{err}\n-----------')
+    mlog.debug(f'{msg}: `{join_args(args)}` -> {p.returncode}')
+    if o:
+        mlog.debug(f'stdout:\n{o.strip()}\n-----------')
+    if e:
+        mlog.debug(f'stderr:\n{e.strip()}\n-----------')
     return p, o, e
 
 
