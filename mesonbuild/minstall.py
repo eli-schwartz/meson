@@ -161,8 +161,11 @@ def set_chown(path: str, user: T.Union[str, int, None] = None,
         real_os_chown(path, uid, gid, dir_fd=dir_fd, follow_symlinks=follow_symlinks)
 
     try:
-        os.chown = chown
-        shutil.chown(path, user, group)
+        if sys.version_info >= (3, 13):
+            shutil.chown(path, user, group, dir_fd=dir_fd, follow_symlinks=follow_symlinks)
+        else:
+            os.chown = chown
+            shutil.chown(path, user, group)
     finally:
         os.chown = real_os_chown
 
