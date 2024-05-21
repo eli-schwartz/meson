@@ -1578,16 +1578,13 @@ class SingleTestRunner:
             # Make the meson executable ignore SIGINT while gdb is running.
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-        def preexec_fn() -> None:
-            if self.options.interactive:
-                # Restore the SIGINT handler for the child process to
-                # ensure it can handle it.
-                signal.signal(signal.SIGINT, signal.SIG_DFL)
-            else:
-                # We don't want setsid() in gdb because gdb needs the
-                # terminal in order to handle ^C and not show tcsetpgrp()
-                # errors avoid not being able to use the terminal.
-                os.setsid()
+        # We don't want setsid() in gdb because gdb needs the
+        # terminal in order to handle ^C and not show tcsetpgrp()
+        # errors avoid not being able to use the terminal.
+        start_new_session = not self.options.interactive and not is_windows()
+        # Restore the SIGINT handler for the child process to
+        # ensure it can handle it.
+        restore_signals = self.options.interactive and not is_windows()
 
         def postwait_fn() -> None:
             if self.options.interactive:
@@ -1600,7 +1597,8 @@ class SingleTestRunner:
                                                  stderr=stderr,
                                                  env=env,
                                                  cwd=cwd,
-                                                 preexec_fn=preexec_fn if not is_windows() else None)
+                                                 restore_signals=restore_signals,
+                                                 start_new_session=start_new_session)
         return TestSubprocess(p, stdout=stdout, stderr=stderr,
                               postwait_fn=postwait_fn if not is_windows() else None)
 
