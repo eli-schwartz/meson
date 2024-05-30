@@ -11,7 +11,7 @@ add_languages('cuda')
 nvcc = meson.get_compiler('cuda')
 cuda = import('unstable-cuda')
 
-arch_flags = cuda.nvcc_arch_flags(nvcc.version(), 'Auto', detected : ['8.0'])
+arch_flags = cuda.nvcc_arch_flags(nvcc.version(), 'Common')
 
 message('NVCC version:   ' + nvcc.version())
 message('NVCC flags:     ' + ' '.join(arch_flags))
