@@ -17,5 +17,4 @@ install_minimal_python_packages
 
 # Manually remove cache to avoid GitHub space restrictions
 rm -rf /var/cache/pacman
-
 echo "source /etc/profile" >> /ci/env_vars.sh
