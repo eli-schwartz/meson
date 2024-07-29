@@ -1215,14 +1215,14 @@ class NinjaBackend(backends.Backend):
         self.add_build(elem)
         self.processed_targets.add(target.get_id())
 
-    def build_run_target_name(self, target):
+    def build_run_target_name(self, target) -> str:
         if target.subproject != '':
             subproject_prefix = f'{target.subproject}@@'
         else:
             subproject_prefix = ''
         return f'{subproject_prefix}{target.name}'
 
-    def generate_run_target(self, target: build.RunTarget):
+    def generate_run_target(self, target: build.RunTarget) -> None:
         target_name = self.build_run_target_name(target)
         if not target.command:
             # This is an alias target, it has no command, it just depends on
@@ -1245,7 +1245,8 @@ class NinjaBackend(backends.Backend):
         self.add_build(elem)
         self.processed_targets.add(target.get_id())
 
-    def generate_coverage_command(self, elem: NinjaBuildElement, outputs: T.List[str], gcovr_exe: T.Optional[str], llvm_cov_exe: T.Optional[str]):
+    def generate_coverage_command(self, elem: NinjaBuildElement, outputs: T.List[str],
+                                  gcovr_exe: T.Optional[str], llvm_cov_exe: T.Optional[str]) -> None:
         targets = self.build.get_targets().values()
         use_llvm_cov = False
         exe_args = []
@@ -1272,14 +1273,14 @@ class NinjaBackend(backends.Backend):
                       exe_args +
                       (['--use-llvm-cov'] if use_llvm_cov else []))
 
-    def generate_coverage_rules(self, gcovr_exe: T.Optional[str], gcovr_version: T.Optional[str], llvm_cov_exe: T.Optional[str]):
+    def generate_coverage_rules(self, gcovr_exe: T.Optional[str], gcovr_version: T.Optional[str], llvm_cov_exe: T.Optional[str]) -> None:
         e = self.create_phony_target('coverage', 'CUSTOM_COMMAND', 'PHONY')
         self.generate_coverage_command(e, [], gcovr_exe, llvm_cov_exe)
         e.add_item('description', 'Generates coverage reports')
         self.add_build(e)
         self.generate_coverage_legacy_rules(gcovr_exe, gcovr_version, llvm_cov_exe)
 
-    def generate_coverage_legacy_rules(self, gcovr_exe: T.Optional[str], gcovr_version: T.Optional[str], llvm_cov_exe: T.Optional[str]):
+    def generate_coverage_legacy_rules(self, gcovr_exe: T.Optional[str], gcovr_version: T.Optional[str], llvm_cov_exe: T.Optional[str]) -> None:
         e = self.create_phony_target('coverage-html', 'CUSTOM_COMMAND', 'PHONY')
         self.generate_coverage_command(e, ['--html'], gcovr_exe, llvm_cov_exe)
         e.add_item('description', 'Generates HTML coverage report')
@@ -1302,7 +1303,7 @@ class NinjaBackend(backends.Backend):
                 e.add_item('description', 'Generates Sonarqube XML coverage report')
                 self.add_build(e)
 
-    def generate_install(self):
+    def generate_install(self) -> None:
         self.create_install_data_files()
         elem = self.create_phony_target('install', 'CUSTOM_COMMAND', 'PHONY')
         elem.add_dep('all')
@@ -1311,7 +1312,7 @@ class NinjaBackend(backends.Backend):
         elem.add_item('pool', 'console')
         self.add_build(elem)
 
-    def generate_tests(self):
+    def generate_tests(self) -> None:
         self.serialize_tests()
         cmd = self.environment.get_build_command(True) + ['test', '--no-rebuild']
         if not self.environment.coredata.get_option(OptionKey('stdsplit')):
@@ -1334,7 +1335,7 @@ class NinjaBackend(backends.Backend):
         elem.add_item('pool', 'console')
         self.add_build(elem)
 
-    def generate_rules(self):
+    def generate_rules(self) -> None:
         self.rules = []
         self.ruledict = {}
 
@@ -1409,7 +1410,7 @@ class NinjaBackend(backends.Backend):
         elem = NinjaBuildElement(self.all_outputs, 'PHONY', 'phony', '')
         self.add_build(elem)
 
-    def generate_jar_target(self, target: build.Jar):
+    def generate_jar_target(self, target: build.Jar) -> None:
         fname = target.get_filename()
         outname_rel = os.path.join(self.get_target_dir(target), fname)
         src_list = target.get_sources()
@@ -1484,7 +1485,7 @@ class NinjaBackend(backends.Backend):
             args.append(a)
         return args, deps
 
-    def generate_cs_target(self, target: build.BuildTarget):
+    def generate_cs_target(self, target: build.BuildTarget) -> None:
         fname = target.get_filename()
         outname_rel = os.path.join(self.get_target_dir(target), fname)
         src_list = target.get_sources()
@@ -1569,7 +1570,7 @@ class NinjaBackend(backends.Backend):
         self.add_build(element)
         return plain_class_paths
 
-    def generate_java_link(self):
+    def generate_java_link(self) -> None:
         rule = 'java_LINKER'
         command = ['jar', '$ARGS']
         description = 'Creating JAR $out'
@@ -2191,7 +2192,7 @@ class NinjaBackend(backends.Backend):
                 others.append(i)
         return srcs, others
 
-    def generate_swift_target(self, target):
+    def generate_swift_target(self, target) -> None:
         module_name = self.target_swift_modulename(target)
         swiftc = target.compilers['swift']
         abssrc = []
@@ -2296,7 +2297,7 @@ class NinjaBackend(backends.Backend):
             options['rspfile_quote_style'] = tool.rsp_file_syntax()
         return options
 
-    def generate_static_link_rules(self):
+    def generate_static_link_rules(self) -> None:
         num_pools = self.environment.coredata.optstore.get_value('backend_max_links')
         if 'java' in self.environment.coredata.compilers.host:
             self.generate_java_link()
@@ -2344,7 +2345,7 @@ class NinjaBackend(backends.Backend):
             options = self._rsp_options(static_linker)
             self.add_rule(NinjaRule(rule, cmdlist, args, description, **options, extra=pool))
 
-    def generate_dynamic_link_rules(self):
+    def generate_dynamic_link_rules(self) -> None:
         num_pools = self.environment.coredata.optstore.get_value('backend_max_links')
         for for_machine in MachineChoice:
             complist = self.environment.coredata.compilers[for_machine]
@@ -2383,7 +2384,7 @@ class NinjaBackend(backends.Backend):
         synstat = 'restat = 1'
         self.add_rule(NinjaRule(symrule, symcmd, [], syndesc, extra=synstat))
 
-    def generate_java_compile_rule(self, compiler):
+    def generate_java_compile_rule(self, compiler) -> None:
         rule = self.compiler_to_rule_name(compiler)
         command = compiler.get_exelist() + ['$ARGS', '$in']
         description = 'Compiling Java sources for $FOR_JAR'
@@ -2398,7 +2399,7 @@ class NinjaBackend(backends.Backend):
                                 rspable=mesonlib.is_windows(),
                                 rspfile_quote_style=compiler.rsp_file_syntax()))
 
-    def generate_vala_compile_rules(self, compiler):
+    def generate_vala_compile_rules(self, compiler) -> None:
         rule = self.compiler_to_rule_name(compiler)
         command = compiler.get_exelist() + ['$ARGS', '$in']
         description = 'Compiling Vala source $in'
@@ -2419,7 +2420,7 @@ class NinjaBackend(backends.Backend):
                                 depfile=depfile,
                                 extra='restat = 1'))
 
-    def generate_rust_compile_rules(self, compiler):
+    def generate_rust_compile_rules(self, compiler) -> None:
         rule = self.compiler_to_rule_name(compiler)
         command = compiler.get_exelist() + ['$ARGS', '$in']
         description = 'Compiling Rust source $in'
@@ -2428,7 +2429,7 @@ class NinjaBackend(backends.Backend):
         self.add_rule(NinjaRule(rule, command, [], description, deps=depstyle,
                                 depfile=depfile))
 
-    def generate_swift_compile_rules(self, compiler):
+    def generate_swift_compile_rules(self, compiler) -> None:
         rule = self.compiler_to_rule_name(compiler)
         full_exe = self.environment.get_build_command() + [
             '--internal',
@@ -2459,7 +2460,7 @@ https://groups.google.com/forum/#!topic/ninja-build/j-2RfBIOd_8
 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47485'''))
         self.add_rule(NinjaRule(rule, cmd, [], 'Dep hack', extra='restat = 1'))
 
-    def generate_llvm_ir_compile_rule(self, compiler):
+    def generate_llvm_ir_compile_rule(self, compiler) -> None:
         if self.created_llvm_ir_rule[compiler.for_machine]:
             return
         rule = self.get_compiler_rule_name('llvm_ir', compiler.for_machine)
@@ -2472,7 +2473,7 @@ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47485'''))
         self.add_rule(NinjaRule(rule, command, args, description, **options))
         self.created_llvm_ir_rule[compiler.for_machine] = True
 
-    def generate_compile_rule_for(self, langname, compiler):
+    def generate_compile_rule_for(self, langname: str, compiler: Compiler) -> None:
         if langname == 'java':
             self.generate_java_compile_rule(compiler)
             return
@@ -2518,7 +2519,7 @@ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47485'''))
         self.add_rule(NinjaRule(rule, command, args, description, **options,
                                 deps=deps, depfile=depfile))
 
-    def generate_pch_rule_for(self, langname, compiler):
+    def generate_pch_rule_for(self, langname: str, compiler: Compiler) -> None:
         if langname not in {'c', 'cpp'}:
             return
         rule = self.compiler_to_pch_rule_name(compiler)
@@ -2544,7 +2545,7 @@ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47485'''))
         self.add_rule(NinjaRule(rule, command, [], description, deps=deps,
                                 depfile=depfile))
 
-    def generate_scanner_rules(self):
+    def generate_scanner_rules(self) -> None:
         rulename = 'depscan'
         if rulename in self.ruledict:
             # Scanning command is the same for native and cross compilation.
@@ -2556,7 +2557,7 @@ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47485'''))
         rule = NinjaRule(rulename, command, args, description)
         self.add_rule(rule)
 
-    def generate_compile_rules(self):
+    def generate_compile_rules(self) -> None:
         for for_machine in MachineChoice:
             clist = self.environment.coredata.compilers[for_machine]
             for langname, compiler in clist.items():
@@ -2567,7 +2568,7 @@ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47485'''))
                 for mode in compiler.get_modes():
                     self.generate_compile_rule_for(langname, mode)
 
-    def generate_generator_list_rules(self, target):
+    def generate_generator_list_rules(self, target) -> None:
         # CustomTargets have already written their rules and
         # CustomTargetIndexes don't actually get generated, so write rules for
         # GeneratedLists here
@@ -2652,7 +2653,7 @@ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47485'''))
             elem.add_item('COMMAND', cmdlist)
             self.add_build(elem)
 
-    def scan_fortran_module_outputs(self, target):
+    def scan_fortran_module_outputs(self, target) -> None:
         """
         Find all module and submodule made available in a Fortran code file.
         """
@@ -3098,7 +3099,7 @@ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47485'''))
         assert isinstance(rel_src, str)
         return (rel_obj, rel_src.replace('\\', '/'))
 
-    def add_dependency_scanner_entries_to_element(self, target: build.BuildTarget, compiler, element, src):
+    def add_dependency_scanner_entries_to_element(self, target: build.BuildTarget, compiler, element, src) -> None:
         if not self.should_use_dyndeps_for_target(target):
             return
         if isinstance(target, build.CompileTarget):
@@ -3230,7 +3231,7 @@ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47485'''))
         targetdir = self.get_target_private_dir(target)
         return os.path.join(targetdir, target.get_filename() + '.symbols')
 
-    def generate_shsym(self, target):
+    def generate_shsym(self, target) -> None:
         target_file = self.get_target_filename(target)
         symname = self.get_target_shsym_filename(target)
         elem = NinjaBuildElement(self.all_outputs, symname, 'SHSYM', target_file)
@@ -3240,7 +3241,7 @@ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47485'''))
             elem.add_item('CROSS', '--cross-host=' + self.environment.machines[target.for_machine].system)
         self.add_build(elem)
 
-    def get_import_filename(self, target):
+    def get_import_filename(self, target) -> str:
         return os.path.join(self.get_target_dir(target), target.import_filename)
 
     def get_target_type_link_args(self, target, linker):
@@ -3295,7 +3296,7 @@ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47485'''))
                 commands += linker.get_win_subsystem_args(target.win_subsystem)
         return commands
 
-    def get_link_whole_args(self, linker, target):
+    def get_link_whole_args(self, linker: DynamicLinker, target):
         use_custom = False
         if linker.id == 'msvc':
             # Expand our object lists manually if we are on pre-Visual Studio 2015 Update 2
@@ -3565,7 +3566,7 @@ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47485'''))
                                        self.environment.get_build_dir())
         return self.get_target_filename(t)
 
-    def generate_shlib_aliases(self, target, outdir):
+    def generate_shlib_aliases(self, target, outdir) -> None:
         for alias, to, tag in target.get_aliases():
             aliasfile = os.path.join(outdir, alias)
             abs_aliasfile = os.path.join(self.environment.get_build_dir(), outdir, alias)
