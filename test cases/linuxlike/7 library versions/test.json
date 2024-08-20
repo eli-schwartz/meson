@@ -9,6 +9,14 @@
     {"type": "file", "file": "usr/lib/libonlyversion.so.1.4.5"},
     {"type": "file", "file": "usr/lib/libonlysoversion.so"},
     {"type": "file", "file": "usr/lib/libonlysoversion.so.5"},
-    {"type": "file", "file": "usr/lib/libmodule.so"}
+    {"type": "file", "file": "usr/lib/libmodule.so"},
+    {"type": "file", "file": "usr/lib/libwarn_soversion.so"},
+    {"type": "file", "file": "usr/lib/libwarn_soversion.so.1_2_3"}
+  ],
+  "stdout": [
+    {
+      "line": ".*\"shared_library\" keyword argument \"soversion\" Invalid Shared library version \"1_2_3\"\\. Should be of the form X\\.Y\\.Z where all three are numbers\\..*",
+      "match": "re"
+    }
   ]
 }

@@ -1,4 +1,4 @@
-project('library versions', 'c')
+project('library versions', 'c', meson_version: '>=0.37.0')
 
 if host_machine.system() == 'cygwin'
   error('MESON_SKIP_TEST linuxlike soversions not supported on Cygwin.')
@@ -20,6 +20,10 @@ onlysoversion = shared_library('onlysoversion', 'lib.c',
   # Also test that int soversion is acceptable
   soversion : 5,
   install : true)
+
+warn_soversion = shared_library('warn_soversion', 'lib.c',
+  soversion: '1_2_3',
+  install: true)
 
 # Hack to make the executables below depend on the shared libraries above
 # without actually adding them as `link_with` dependencies since we want to try

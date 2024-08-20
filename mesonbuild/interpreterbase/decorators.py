@@ -502,6 +502,8 @@ def typed_kwargs(name: str, *types: KwargInfo, allow_unknown: bool = False) -> T
                     elif isinstance(n, type):
                         if isinstance(value, n):
                             warning = f'of type {n.__name__}'
+                    elif callable(n):
+                        warning = n(value)
                     elif isinstance(value, list):
                         if n in value:
                             warning = f'value "{n}" in list'

@@ -122,11 +122,20 @@ def _lower_strlist(input: T.List[str]) -> T.List[str]:
     return [i.lower() for i in input]
 
 
-def _validate_shlib_version(val: T.Optional[str]) -> T.Optional[str]:
+def _validate_shlib_version(val: T.Optional[str], weak: bool = False) -> T.Optional[str]:
+    term = 'Should' if weak else 'Must'
     if val is not None and not re.fullmatch(r'[0-9]+(\.[0-9]+){0,2}', val):
         return (f'Invalid Shared library version "{val}". '
-                'Must be of the form X.Y.Z where all three are numbers. Y and Z are optional.')
+                f'{term} be of the form X.Y.Z where all three are numbers. Y and Z are optional')
     return None
+
+def _validate_shlib_soversion(val: T.Optional[T.Union[str, int]]) -> T.Optional[str]:
+    val2: T.Optional[str]
+    if isinstance(val, int):
+        val2 = str(val)
+    else:
+        val2 = val
+    return _validate_shlib_version(val2, weak=True)
 
 
 def variables_validator(contents: T.Union[str, T.List[str], T.Dict[str, str]]) -> T.Optional[str]:
@@ -744,7 +753,12 @@ STATIC_LIB_KWS = [
 # them into build_target easier
 _EXCLUSIVE_SHARED_LIB_KWS: T.List[KwargInfo] = [
     _DARWIN_VERSIONS_KW,
-    KwargInfo('soversion', (str, int, NoneType), convertor=lambda x: str(x) if x is not None else None),
+    KwargInfo(
+        'soversion',
+        (str, int, NoneType),
+        convertor=lambda x: str(x) if x is not None else None,
+        deprecated_values={_validate_shlib_soversion: '1.6.0'}
+    ),
     KwargInfo('version', (str, NoneType), validator=_validate_shlib_version),
 ]
 
