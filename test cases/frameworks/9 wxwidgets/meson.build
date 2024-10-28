@@ -1,5 +1,7 @@
 project('wxwidgets test', 'cpp', default_options : ['cpp_std=c++11'])
 
+# multiple calls to the same dependency should work
+# https://github.com/mesonbuild/meson/issues/1937
 wxd = dependency('wxwidgets', version : '>=5', required : false)
 wxd = dependency('wxwidgets', version : '>=3.0.0', required : false)
 
