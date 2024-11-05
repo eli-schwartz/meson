@@ -508,3 +508,12 @@ class PlatformAgnosticTests(BasePlatformTests):
             f.write("option('new_option', type : 'boolean', value : false)")
         self.setconf('-Dsubproject:new_option=true')
         self.assertEqual(self.getconf('subproject:new_option'), True)
+
+    def test_mtest_rebuild_deps(self):
+        testdir = os.path.join(self.unit_test_dir, '106 underspecified mtest')
+        self.init(testdir)
+
+        self._run(self.mtest_command)
+        self.clean()
+
+        self._run(self.mtest_command + ['runner-with-exedep'])
