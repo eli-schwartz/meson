@@ -3060,14 +3060,9 @@ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47485'''))
 
         element = NinjaBuildElement(self.all_outputs, rel_obj, compiler_name, rel_src)
         self.add_header_deps(target, element, header_deps)
+        self.add_order_deps(target, element, order_deps)
         for d in extra_deps:
             element.add_dep(d)
-        for d in order_deps:
-            if isinstance(d, File):
-                d = d.rel_to_builddir(self.build_to_src)
-            elif not self.has_dir_part(d):
-                d = os.path.join(self.get_target_private_dir(target), d)
-            element.add_orderdep(d)
         element.add_dep(pch_dep)
         for i in self.get_fortran_orderdeps(target, compiler):
             element.add_orderdep(i)
@@ -3127,6 +3122,14 @@ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47485'''))
             elif not self.has_dir_part(d):
                 d = os.path.join(self.get_target_private_dir(target), d)
             ninja_element.add_dep(d)
+
+    def add_order_deps(self, target: build.BuildTarget, ninja_element: NinjaBuildElement, header_deps: T.List[FileOrString]) -> None:
+        for d in header_deps:
+            if isinstance(d, File):
+                d = d.rel_to_builddir(self.build_to_src)
+            elif not self.has_dir_part(d):
+                d = os.path.join(self.get_target_private_dir(target), d)
+            ninja_element.add_orderdep(d)
 
     def has_dir_part(self, fname: FileOrString) -> bool:
         # FIXME FIXME: The usage of this is a terrible and unreliable hack
@@ -3224,7 +3227,7 @@ https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47485'''))
             elem = NinjaBuildElement(self.all_outputs, objs + [dst], rulename, src)
             if extradep is not None:
                 elem.add_dep(extradep)
-            self.add_header_deps(target, elem, header_deps)
+            self.add_order_deps(target, elem, header_deps)
             elem.add_item('ARGS', commands)
             elem.add_item('DEPFILE', dep)
             self.add_build(elem)
