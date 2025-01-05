@@ -38,7 +38,7 @@ pkgs_stable=(
   dev-cpp/gtest
   sci-libs/hdf5
   dev-qt/linguist-tools
-  sys-devel/llvm
+  llvm-core/llvm
   dev-qt/qttools
 
   # misc
