@@ -114,12 +114,6 @@ cat <<-EOF > /etc/portage/package.use/ci
 
 	# slimmed binpkg, nomesa
 	media-libs/libsdl2 -opengl -wayland -alsa -dbus -gles2 -udev -vulkan
-	# binpkg
-	dev-qt/qtgui:5 dbus
-	dev-qt/qtwidgets:5 dbus gtk
-	media-libs/libsdl2 X
-	media-libs/vulkan-loader X
-	dev-libs/boost icu
 
 	# Some of these settings are needed just to get the binpkg but
 	# aren't negative to have anyway
