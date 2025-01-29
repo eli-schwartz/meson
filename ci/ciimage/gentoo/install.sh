@@ -57,6 +57,8 @@ pkgs_stable=(
   app-text/doxygen
   sys-devel/bison
   sys-devel/gettext
+  # needed by vala
+  x11-libs/gtk+
 
   # TODO: vulkan-validation-layers
   # TODO: cuda
