@@ -42,7 +42,7 @@ permissions:
 jobs:
 
   linux:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
@@ -51,7 +51,7 @@ jobs:
     - name: Install Compilers
       run: |
         sudo apt update -yq
-        sudo apt install -yq --no-install-recommends g++ gfortran ninja-build gobjc gobjc++
+        sudo apt install -yq --no-install-recommends g++ gfortran ninja-build gobjc gobjc++ libglib2.0-dev
         python -m pip install coverage
     - run: ./tools/run_with_cov.py run_project_tests.py --only cmake common fortran platform-linux "objective c" "objective c++"
       env:
